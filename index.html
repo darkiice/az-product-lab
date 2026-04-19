@@ -7,14 +7,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="13.1" />
-<title>Thirteen.One — Half Marathon Training</title>
+<meta name="apple-mobile-web-app-title" content="Forward" />
+<title>Forward — Half Marathon Training</title>
 
 <!-- Inline manifest via data URI so everything works from a single file -->
-<link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"Thirteen.One — Half Marathon Training","short_name":"13.1","start_url":".","display":"standalone","background_color":"#1c1917","theme_color":"#1c1917","orientation":"portrait","icons":[{"src":"data:image/svg%2Bxml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22110%22 fill=%22%231c1917%22/><text x=%22256%22 y=%22260%22 font-family=%22Georgia,serif%22 font-size=%22170%22 font-weight=%22700%22 fill=%22%23fb923c%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>13.1</text></svg>","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}' />
+<link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"Forward — Half Marathon Training","short_name":"Forward","start_url":".","display":"standalone","background_color":"#1c1917","theme_color":"#1c1917","orientation":"portrait","icons":[{"src":"data:image/svg%2Bxml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22110%22 fill=%22%231c1917%22/><text x=%22256%22 y=%22290%22 font-family=%22Georgia,serif%22 font-size=%22320%22 font-weight=%22700%22 fill=%22%23fb923c%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>→</text></svg>","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}' />
 
 <!-- Apple touch icon (SVG data URI) -->
-<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="%231c1917"/><text x="256" y="260" font-family="Georgia,serif" font-size="170" font-weight="700" fill="%23fb923c" text-anchor="middle" dominant-baseline="central">13.1</text></svg>' />
+<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="%231c1917"/><text x="256" y="290" font-family="Georgia,serif" font-size="320" font-weight="700" fill="%23fb923c" text-anchor="middle" dominant-baseline="central">→</text></svg>' />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,26 +91,31 @@
     margin-bottom: 6px;
   }
   h1.wordmark {
-    font-size: 38px;
+    font-size: 42px;
     font-weight: 800;
     letter-spacing: -0.02em;
     line-height: 1;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
   }
-  h1.wordmark .dot { color: var(--orange); font-style: italic; font-weight: 400; }
+  h1.wordmark .arrow { color: var(--orange); font-style: italic; font-weight: 400; font-size: 0.9em; }
   h1.wordmark .italic { font-style: italic; font-weight: 400; color: var(--stone-400); }
   .tagline { font-size: 13px; color: var(--stone-400); font-style: italic; margin-top: 6px; }
 
   .header-stats {
     display: flex;
-    gap: 24px;
+    gap: 18px;
     margin-top: 20px;
     padding-top: 16px;
     border-top: 1px solid var(--stone-700);
     position: relative;
   }
-  .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+  .header-stats > div { min-width: 0; }
+  .stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
   .stat-value .frac { color: var(--stone-500); }
   .stat-value.accent { color: var(--orange); }
+  .stat-value .unit { font-size: 12px; color: var(--stone-500); font-weight: 400; margin-left: 3px; }
   .stat-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone-400); margin-top: 6px; }
 
   /* Main */
@@ -276,6 +281,8 @@
   .pill.Long { background: var(--emerald-light); color: #065f46; }
   .pill.Recovery { background: var(--sky-light); color: var(--sky); }
   .pill.Shakeout { background: var(--violet-light); color: var(--violet); }
+  .pill.Strength { background: #fce7f3; color: #9d174d; }
+  .pill.Swimming { background: #cffafe; color: #155e75; }
   .pill.RACE { background: linear-gradient(135deg, #f97316, #e11d48); color: white; }
   .day-row.done .pill { background: var(--stone-700); color: var(--stone-200); }
 
@@ -403,8 +410,11 @@
     padding: 28px 24px calc(28px + var(--safe-bottom));
     width: 100%;
     max-width: 560px;
+    max-height: 88vh;
+    overflow-y: auto;
     border-top: 2px solid var(--stone-900);
     animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+    -webkit-overflow-scrolling: touch;
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .modal .grabber {
@@ -414,8 +424,69 @@
   .modal .eyebrow { color: var(--stone-500); margin-bottom: 8px; }
   .modal h3 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
   .modal .dist { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--orange); margin-bottom: 16px; font-weight: 600; }
-  .modal p { color: var(--stone-600); line-height: 1.6; margin-bottom: 24px; }
-  .modal button {
+  .modal p { color: var(--stone-600); line-height: 1.6; margin-bottom: 20px; }
+
+  .modal-section {
+    border-top: 1px solid var(--stone-200);
+    padding-top: 18px;
+    margin-bottom: 20px;
+  }
+  .modal-section h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--stone-500);
+    margin-bottom: 14px;
+  }
+  .exercise-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+  .exercise {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 10px 12px;
+    background: var(--stone-50);
+    border-radius: 10px;
+    border-left: 3px solid var(--orange);
+  }
+  .exercise .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--stone-400);
+    font-weight: 600;
+  }
+  .exercise .name { font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .exercise .name .target { display: block; font-size: 11px; color: var(--stone-500); font-weight: 400; font-style: italic; margin-top: 2px; }
+  .exercise .reps {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--stone-700);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .tip-list { list-style: none; padding: 0; margin: 0; }
+  .tip-list li {
+    font-size: 13px;
+    color: var(--stone-600);
+    line-height: 1.5;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .tip-list li::before {
+    content: "·";
+    position: absolute;
+    left: 4px;
+    top: -2px;
+    color: var(--orange);
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .tip-list li:last-child { margin-bottom: 0; }
+  .tip-list li strong { color: var(--stone-900); }
+
+  .modal button.close-btn {
     width: 100%;
     padding: 14px;
     background: var(--stone-900);
@@ -428,8 +499,9 @@
     letter-spacing: 0.15em;
     text-transform: uppercase;
     cursor: pointer;
+    margin-top: 8px;
   }
-  .modal button:active { transform: scale(0.98); }
+  .modal button.close-btn:active { transform: scale(0.98); }
 
   @media (min-width: 640px) {
     header { padding: 40px 32px; }
@@ -442,16 +514,20 @@
 
 <header class="grain">
   <div class="eyebrow">Training Journal</div>
-  <h1 class="wordmark">Thirteen<span class="dot">.</span><span class="italic">One</span></h1>
+  <h1 class="wordmark">Forward<span class="arrow">→</span></h1>
   <div class="tagline">A twelve-week path to the start line</div>
   <div class="header-stats">
     <div>
       <div class="stat-value"><span id="runs-done">0</span><span class="frac" id="runs-total">/0</span></div>
-      <div class="stat-label">Runs logged</div>
+      <div class="stat-label">Workouts done</div>
     </div>
     <div>
       <div class="stat-value accent" id="miles-done">0.0</div>
       <div class="stat-label">Miles run</div>
+    </div>
+    <div>
+      <div class="stat-value"><span id="this-week-miles">0.0</span><span class="unit">mi</span></div>
+      <div class="stat-label">This week</div>
     </div>
   </div>
 </header>
@@ -509,25 +585,26 @@
     <h3 id="modal-title">—</h3>
     <div class="dist" id="modal-dist">—</div>
     <p id="modal-desc">—</p>
-    <button onclick="closeModal()">Got it</button>
+    <div id="modal-body"></div>
+    <button class="close-btn" onclick="closeModal()">Got it</button>
   </div>
 </div>
 
 <script>
-// Plan data
+// Plan data — Tue: Strength · Wed: Swim · Thu: Tempo
 const PLAN = [
-  { week:1,  focus:"Base Building",  mon:"Rest", tue:{type:"Easy",dist:4}, wed:{type:"Tempo",dist:4},     thu:{type:"Easy",dist:3}, fri:"Rest",                  sat:{type:"Long",dist:7},   sun:{type:"Recovery",dist:3} },
-  { week:2,  focus:"Base Building",  mon:"Rest", tue:{type:"Easy",dist:4}, wed:{type:"Intervals",dist:4}, thu:{type:"Easy",dist:4}, fri:"Rest",                  sat:{type:"Long",dist:8},   sun:{type:"Recovery",dist:3} },
-  { week:3,  focus:"Strength",       mon:"Rest", tue:{type:"Easy",dist:5}, wed:{type:"Tempo",dist:5},     thu:{type:"Easy",dist:4}, fri:"Rest",                  sat:{type:"Long",dist:9},   sun:{type:"Recovery",dist:3} },
-  { week:4,  focus:"Cutback",        mon:"Rest", tue:{type:"Easy",dist:4}, wed:{type:"Intervals",dist:4}, thu:{type:"Easy",dist:3}, fri:"Rest",                  sat:{type:"Long",dist:7},   sun:{type:"Recovery",dist:3} },
-  { week:5,  focus:"Endurance",      mon:"Rest", tue:{type:"Easy",dist:5}, wed:{type:"Tempo",dist:5},     thu:{type:"Easy",dist:4}, fri:"Rest",                  sat:{type:"Long",dist:10},  sun:{type:"Recovery",dist:4} },
-  { week:6,  focus:"Endurance",      mon:"Rest", tue:{type:"Easy",dist:5}, wed:{type:"Intervals",dist:5}, thu:{type:"Easy",dist:4}, fri:"Rest",                  sat:{type:"Long",dist:11},  sun:{type:"Recovery",dist:4} },
-  { week:7,  focus:"Peak Mileage",   mon:"Rest", tue:{type:"Easy",dist:5}, wed:{type:"Tempo",dist:6},     thu:{type:"Easy",dist:5}, fri:"Rest",                  sat:{type:"Long",dist:12},  sun:{type:"Recovery",dist:4} },
-  { week:8,  focus:"Cutback",        mon:"Rest", tue:{type:"Easy",dist:4}, wed:{type:"Intervals",dist:5}, thu:{type:"Easy",dist:4}, fri:"Rest",                  sat:{type:"Long",dist:9},   sun:{type:"Recovery",dist:3} },
-  { week:9,  focus:"Race Specific",  mon:"Rest", tue:{type:"Easy",dist:5}, wed:{type:"Tempo",dist:6},     thu:{type:"Easy",dist:5}, fri:"Rest",                  sat:{type:"Long",dist:12},  sun:{type:"Recovery",dist:4} },
-  { week:10, focus:"Peak Long Run",  mon:"Rest", tue:{type:"Easy",dist:5}, wed:{type:"Intervals",dist:5}, thu:{type:"Easy",dist:5}, fri:"Rest",                  sat:{type:"Long",dist:13},  sun:{type:"Recovery",dist:3} },
-  { week:11, focus:"Taper Begins",   mon:"Rest", tue:{type:"Easy",dist:4}, wed:{type:"Tempo",dist:4},     thu:{type:"Easy",dist:3}, fri:"Rest",                  sat:{type:"Long",dist:8},   sun:{type:"Recovery",dist:3} },
-  { week:12, focus:"Race Week",      mon:"Rest", tue:{type:"Easy",dist:3}, wed:{type:"Shakeout",dist:2},  thu:"Rest",               fri:{type:"Shakeout",dist:2}, sat:"Rest",                 sun:{type:"RACE",dist:13.1} },
+  { week:1,  focus:"Base Building",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:3}, fri:"Rest", sat:{type:"Long",dist:7},  sun:{type:"Recovery",dist:3} },
+  { week:2,  focus:"Base Building",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:8},  sun:{type:"Recovery",dist:3} },
+  { week:3,  focus:"Strength",       mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:9},  sun:{type:"Recovery",dist:3} },
+  { week:4,  focus:"Cutback",        mon:"Rest", tue:{type:"Strength",duration:30}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:3}, fri:"Rest", sat:{type:"Long",dist:7},  sun:{type:"Recovery",dist:3} },
+  { week:5,  focus:"Endurance",      mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:5}, fri:"Rest", sat:{type:"Long",dist:10}, sun:{type:"Recovery",dist:4} },
+  { week:6,  focus:"Endurance",      mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:5}, fri:"Rest", sat:{type:"Long",dist:11}, sun:{type:"Recovery",dist:4} },
+  { week:7,  focus:"Peak Mileage",   mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:6}, fri:"Rest", sat:{type:"Long",dist:12}, sun:{type:"Recovery",dist:4} },
+  { week:8,  focus:"Cutback",        mon:"Rest", tue:{type:"Strength",duration:30}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:9},  sun:{type:"Recovery",dist:3} },
+  { week:9,  focus:"Race Specific",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:6}, fri:"Rest", sat:{type:"Long",dist:12}, sun:{type:"Recovery",dist:4} },
+  { week:10, focus:"Peak Long Run",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:5}, fri:"Rest", sat:{type:"Long",dist:13}, sun:{type:"Recovery",dist:3} },
+  { week:11, focus:"Taper Begins",   mon:"Rest", tue:{type:"Strength",duration:30}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:8},  sun:{type:"Recovery",dist:3} },
+  { week:12, focus:"Race Week",      mon:"Rest", tue:{type:"Easy",dist:3},          wed:{type:"Shakeout",dist:2},      thu:"Rest",                fri:{type:"Shakeout",dist:2}, sat:"Rest", sun:{type:"RACE",dist:13.1} },
 ];
 
 const DAYS = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -539,8 +616,41 @@ const DESC = {
   Long: "Slow and steady. Build endurance. Run 45-90 seconds slower than goal race pace.",
   Recovery: "Very easy shakeout to flush the legs. Slow is the point.",
   Shakeout: "Short, light run to stay loose. Few strides at the end optional.",
+  Strength: "Run-specific strength to build the muscles that support form and prevent injury. Tap to see the routine.",
+  Swimming: "Active recovery between Tuesday strength and Thursday tempo. Low-impact cardio that lets your legs reset.",
   RACE: "Race day! Trust your training. Start conservative, finish strong."
 };
+
+// Strength routine for runners — focused on glutes, hamstrings, calves, core
+const STRENGTH_ROUTINE = [
+  { name: "Goblet squats",            target: "Quads, glutes",                reps: "3 × 10" },
+  { name: "Single-leg RDLs",          target: "Hamstrings, glutes, balance",  reps: "3 × 8 ea" },
+  { name: "Walking lunges",           target: "Single-leg power",             reps: "3 × 12" },
+  { name: "Glute bridges",            target: "Glute activation",             reps: "3 × 15" },
+  { name: "Calf raises",              target: "Lower leg, prevents shin pain",reps: "3 × 15" },
+  { name: "Plank",                    target: "Core stability",               reps: "3 × 45 sec" },
+  { name: "Side plank",               target: "Lateral core",                 reps: "3 × 30 sec ea" },
+  { name: "Bird dogs",                target: "Anti-rotation, balance",       reps: "3 × 10 ea" },
+];
+const STRENGTH_TIPS = [
+  "<strong>Pick a weight</strong> that feels challenging in the last 2–3 reps.",
+  "<strong>Rest 60–90 sec</strong> between sets.",
+  "<strong>Warm up</strong> with 5 min of leg swings, hip circles, and bodyweight squats.",
+  "<strong>Skip or scale back</strong> if your legs are heavy from a recent long run.",
+  "Progress over the 12 weeks: add weight, slow the tempo, or add a 4th set."
+];
+
+const SWIM_WORKOUT = [
+  { name: "Easy warmup",        target: "Any stroke, find your rhythm",   reps: "5 min" },
+  { name: "Mixed swim",         target: "Alternate freestyle / backstroke", reps: "20 min" },
+  { name: "Cooldown",           target: "Slow, breathe deep",             reps: "5 min" },
+];
+const SWIM_TIPS = [
+  "Keep effort <strong>conversational</strong> — should feel restorative, not exhausting.",
+  "Focus on <strong>breathing rhythm</strong> rather than speed.",
+  "<strong>No pool?</strong> Substitute 30 min easy bike, elliptical, or brisk walk.",
+  "If your shoulders fatigue, switch strokes or kick on a board for a few laps."
+];
 
 // State
 const STORAGE_KEY = "half-marathon-training-v1";
@@ -556,36 +666,45 @@ function saveState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
 }
 
+// Helpers
+function isWorkout(w) { return typeof w === "object"; }
+function workoutMiles(w) { return (w && typeof w.dist === "number") ? w.dist : 0; }
+function workoutLabel(w) {
+  if (typeof w.dist === "number") return { value: w.dist, unit: "mi" };
+  if (typeof w.duration === "number") return { value: w.duration, unit: "min" };
+  return { value: "", unit: "" };
+}
+
 // Render
 function render() {
   // Stats
-  let totalMiles = 0, doneMiles = 0, totalRuns = 0, doneRuns = 0;
+  let totalMiles = 0, doneMiles = 0, totalWorkouts = 0, doneWorkouts = 0;
   PLAN.forEach(w => {
     DAYS.forEach(d => {
       const wk = w[d];
-      if (typeof wk === "object") {
-        totalRuns++;
-        totalMiles += wk.dist;
+      if (isWorkout(wk)) {
+        totalWorkouts++;
+        totalMiles += workoutMiles(wk);
         const key = `w${w.week}-${d}`;
-        if (state.completed[key]) { doneRuns++; doneMiles += wk.dist; }
+        if (state.completed[key]) { doneWorkouts++; doneMiles += workoutMiles(wk); }
       }
     });
   });
 
-  document.getElementById("runs-done").textContent = doneRuns;
-  document.getElementById("runs-total").textContent = "/" + totalRuns;
+  document.getElementById("runs-done").textContent = doneWorkouts;
+  document.getElementById("runs-total").textContent = "/" + totalWorkouts;
   document.getElementById("miles-done").textContent = doneMiles.toFixed(1);
   const pct = totalMiles ? Math.round(doneMiles / totalMiles * 100) : 0;
-  document.getElementById("progress-meta").textContent = `${pct}% · ${doneMiles.toFixed(1)} of ${totalMiles} mi`;
+  document.getElementById("progress-meta").textContent = `${pct}% · ${doneMiles.toFixed(1)} of ${totalMiles.toFixed(1)} mi`;
   document.getElementById("progress-bar").style.width = pct + "%";
 
   // Week pills
   const pillsEl = document.getElementById("week-pills");
   pillsEl.innerHTML = "";
   PLAN.forEach(w => {
-    const runs = DAYS.filter(d => typeof w[d] === "object");
-    const done = runs.filter(d => state.completed[`w${w.week}-${d}`]).length;
-    const allDone = done === runs.length;
+    const workouts = DAYS.filter(d => isWorkout(w[d]));
+    const done = workouts.filter(d => state.completed[`w${w.week}-${d}`]).length;
+    const allDone = done === workouts.length && workouts.length > 0;
     const isActive = state.currentWeek === w.week;
     const pill = document.createElement("div");
     pill.className = "week-pill" + (isActive ? " active" : allDone ? " done" : "");
@@ -602,13 +721,16 @@ function render() {
   let weekTotal = 0, weekDone = 0;
   DAYS.forEach(d => {
     const w = wk[d];
-    if (typeof w === "object") {
-      weekTotal += w.dist;
-      if (state.completed[`w${wk.week}-${d}`]) weekDone += w.dist;
+    if (isWorkout(w)) {
+      weekTotal += workoutMiles(w);
+      if (state.completed[`w${wk.week}-${d}`]) weekDone += workoutMiles(w);
     }
   });
   document.getElementById("week-done").textContent = weekDone.toFixed(1);
   document.getElementById("week-total").textContent = "/" + weekTotal;
+
+  // Header "this week" stat — selected week's running mileage total
+  document.getElementById("this-week-miles").textContent = weekTotal.toFixed(1);
 
   // Days
   const daysEl = document.getElementById("days");
@@ -628,11 +750,12 @@ function render() {
         <div></div>
       `;
     } else {
+      const lbl = workoutLabel(w);
       row.innerHTML = `
         <div class="dow">${LBL[d]}</div>
         <div class="day-info">
           <span class="pill ${w.type}">${w.type}</span>
-          <div class="day-distance">${w.dist}<span class="mi">mi</span></div>
+          <div class="day-distance">${lbl.value}<span class="mi">${lbl.unit}</span></div>
         </div>
         <button class="check-btn ${isDone ? 'done' : ''}" aria-label="Mark done">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -649,22 +772,71 @@ function render() {
     daysEl.appendChild(row);
   });
 
-  // Legend
+  // Legend — show all workout types in a sensible order
   const legendEl = document.getElementById("legend");
   legendEl.innerHTML = "";
-  Object.entries(DESC).filter(([k]) => k !== "RACE").forEach(([type, desc]) => {
+  const legendOrder = ["Easy","Tempo","Long","Recovery","Strength","Swimming","Shakeout","Intervals"];
+  legendOrder.forEach(type => {
+    if (!DESC[type]) return;
     const row = document.createElement("div");
     row.className = "legend-row";
-    row.innerHTML = `<span class="pill ${type}">${type}</span><span class="desc">${desc}</span>`;
+    row.innerHTML = `<span class="pill ${type}">${type}</span><span class="desc">${DESC[type]}</span>`;
     legendEl.appendChild(row);
   });
 }
 
+function exerciseListHtml(items) {
+  return `<div class="exercise-list">` + items.map((ex, i) => `
+    <div class="exercise">
+      <div class="num">${String(i+1).padStart(2,'0')}</div>
+      <div class="name">${ex.name}<span class="target">${ex.target}</span></div>
+      <div class="reps">${ex.reps}</div>
+    </div>`).join("") + `</div>`;
+}
+function tipsHtml(tips) {
+  return `<ul class="tip-list">` + tips.map(t => `<li>${t}</li>`).join("") + `</ul>`;
+}
+
 function openModal(w, d) {
   document.getElementById("modal-eyebrow").textContent = `${LBL[d]} · Week ${state.currentWeek}`;
-  document.getElementById("modal-title").textContent = `${w.type} Run`;
-  document.getElementById("modal-dist").textContent = `${w.dist} miles`;
-  document.getElementById("modal-desc").textContent = DESC[w.type];
+  const titleEl = document.getElementById("modal-title");
+  const distEl = document.getElementById("modal-dist");
+  const descEl = document.getElementById("modal-desc");
+  const bodyEl = document.getElementById("modal-body");
+
+  if (w.type === "Strength") {
+    titleEl.textContent = "Strength Training";
+    distEl.textContent = `${w.duration} min · 2–3 rounds`;
+    descEl.textContent = DESC.Strength.replace(" Tap to see the routine.", "");
+    bodyEl.innerHTML = `
+      <div class="modal-section">
+        <h4>▸ The Routine</h4>
+        ${exerciseListHtml(STRENGTH_ROUTINE)}
+      </div>
+      <div class="modal-section">
+        <h4>▸ How to do it well</h4>
+        ${tipsHtml(STRENGTH_TIPS)}
+      </div>`;
+  } else if (w.type === "Swimming") {
+    titleEl.textContent = "Swimming";
+    distEl.textContent = `${w.duration} min · easy effort`;
+    descEl.textContent = DESC.Swimming;
+    bodyEl.innerHTML = `
+      <div class="modal-section">
+        <h4>▸ Suggested workout</h4>
+        ${exerciseListHtml(SWIM_WORKOUT)}
+      </div>
+      <div class="modal-section">
+        <h4>▸ Tips</h4>
+        ${tipsHtml(SWIM_TIPS)}
+      </div>`;
+  } else {
+    titleEl.textContent = `${w.type} Run`;
+    distEl.textContent = `${w.dist} miles`;
+    descEl.textContent = DESC[w.type];
+    bodyEl.innerHTML = "";
+  }
+
   document.getElementById("modal").classList.add("show");
 }
 function closeModal() {
