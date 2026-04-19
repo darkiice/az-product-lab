@@ -2,31 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#1c1917" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Forward" />
-<title>Forward — Half Marathon Training</title>
-
-<!-- Inline manifest via data URI so everything works from a single file -->
-<link rel="manifest" href='data:application/manifest+json;charset=utf-8,{"name":"Forward — Half Marathon Training","short_name":"Forward","start_url":".","display":"standalone","background_color":"#1c1917","theme_color":"#1c1917","orientation":"portrait","icons":[{"src":"data:image/svg%2Bxml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22110%22 fill=%22%231c1917%22/><text x=%22256%22 y=%22290%22 font-family=%22Georgia,serif%22 font-size=%22320%22 font-weight=%22700%22 fill=%22%23fb923c%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>→</text></svg>","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}' />
-
-<!-- Apple touch icon (SVG data URI) -->
-<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="%231c1917"/><text x="256" y="290" font-family="Georgia,serif" font-size="320" font-weight="700" fill="%23fb923c" text-anchor="middle" dominant-baseline="central">→</text></svg>' />
-
+<title>az-product-lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
     --bg: #fafaf9;
     --ink: #1c1917;
-    --stone-50: #fafaf9;
     --stone-100: #f5f5f4;
     --stone-200: #e7e5e4;
     --stone-300: #d6d3d1;
@@ -36,865 +22,217 @@
     --stone-700: #44403c;
     --stone-900: #1c1917;
     --orange: #f97316;
-    --orange-light: #fed7aa;
-    --rose: #e11d48;
-    --emerald: #10b981;
-    --emerald-light: #d1fae5;
-    --amber-light: #fef3c7;
-    --amber: #92400e;
-    --rose-light: #ffe4e6;
-    --sky-light: #e0f2fe;
-    --sky: #075985;
-    --violet-light: #ede9fe;
-    --violet: #5b21b6;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
-
-  html, body {
-    height: 100%;
-    overflow-x: hidden;
-    overscroll-behavior-y: contain;
-  }
-
+  html, body { height: 100%; }
   body {
     font-family: 'Fraunces', Georgia, serif;
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
-    padding-bottom: calc(80px + var(--safe-bottom));
-    padding-top: var(--safe-top);
   }
-
   .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
 
-  .grain::before {
+  header {
+    background: var(--stone-900);
+    color: white;
+    padding: 56px 24px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
     content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.4;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-
-  /* Header */
-  header {
-    background: var(--stone-900);
-    color: var(--stone-50);
-    padding: 28px 20px 24px;
-    position: relative;
-    overflow: hidden;
-    border-bottom: 2px solid var(--stone-900);
-  }
+  .header-inner { max-width: 720px; margin: 0 auto; position: relative; }
   .eyebrow {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--stone-400);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 52px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  h1 .accent { color: var(--orange); font-weight: 400; font-style: italic; }
+  .tagline {
+    font-size: 16px;
+    color: var(--stone-300);
+    font-style: italic;
+    margin-top: 14px;
+    max-width: 540px;
+    line-height: 1.5;
+  }
+
+  main { max-width: 720px; margin: -32px auto 0; padding: 0 24px 80px; position: relative; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--stone-500);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .section-label .count { color: var(--stone-400); }
+
+  .product-list { display: flex; flex-direction: column; gap: 16px; }
+  .product-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: white;
+    border: 2px solid var(--stone-900);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 6px 6px 0 var(--stone-900);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .product-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--stone-900);
+  }
+  .product-card:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--stone-900);
+  }
+  .product-card .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .product-card h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .product-card h2 .arrow { color: var(--orange); font-weight: 400; font-style: italic; margin-left: 4px; }
+  .product-card .open {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--stone-500);
+    flex-shrink: 0;
+  }
+  .product-card .desc {
+    font-size: 15px;
+    color: var(--stone-600);
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  .product-card .meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid var(--stone-200);
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--stone-100);
+    color: var(--stone-700);
+    font-weight: 600;
+  }
+  .tag.fitness { background: #fed7aa; color: #9a3412; }
+  .tag.pwa { background: #e0f2fe; color: #075985; }
+  .tag.installable { background: #d1fae5; color: #065f46; }
+
+  .placeholder {
+    background: var(--stone-100);
+    border: 2px dashed var(--stone-300);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    color: var(--stone-500);
+    font-size: 14px;
+    font-style: italic;
+  }
+  .placeholder .mono {
+    display: block;
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--stone-400);
     margin-bottom: 6px;
   }
-  h1.wordmark {
-    font-size: 42px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 4px;
-  }
-  h1.wordmark .arrow { color: var(--orange); font-style: italic; font-weight: 400; font-size: 0.9em; }
-  h1.wordmark .italic { font-style: italic; font-weight: 400; color: var(--stone-400); }
-  .tagline { font-size: 13px; color: var(--stone-400); font-style: italic; margin-top: 6px; }
 
-  .header-stats {
-    display: flex;
-    gap: 18px;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--stone-700);
-    position: relative;
-  }
-  .header-stats > div { min-width: 0; }
-  .stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
-  .stat-value .frac { color: var(--stone-500); }
-  .stat-value.accent { color: var(--orange); }
-  .stat-value .unit { font-size: 12px; color: var(--stone-500); font-weight: 400; margin-left: 3px; }
-  .stat-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone-400); margin-top: 6px; }
-
-  /* Main */
-  main { padding: 20px; max-width: 640px; margin: 0 auto; }
-
-  .section-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--stone-500);
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-  .section-title .meta { font-size: 12px; letter-spacing: 0.05em; color: var(--stone-600); text-transform: none; }
-
-  /* Progress bar */
-  .progress-track {
-    height: 8px;
-    background: var(--stone-200);
-    border-radius: 99px;
-    overflow: hidden;
-    margin-bottom: 28px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--orange), var(--rose));
-    transition: width 0.7s ease-out;
-    border-radius: 99px;
-  }
-
-  /* Week pills (horizontal scroll) */
-  .week-pills {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding: 2px 0 10px;
-    margin-bottom: 20px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .week-pills::-webkit-scrollbar { display: none; }
-  .week-pill {
-    flex: 0 0 64px;
-    height: 80px;
-    border-radius: 12px;
-    border: 2px solid var(--stone-200);
-    background: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-    transition: all 0.2s;
-    scroll-snap-align: center;
-    color: var(--stone-700);
-  }
-  .week-pill.done {
-    background: var(--emerald-light);
-    border-color: var(--emerald);
-    color: #065f46;
-  }
-  .week-pill.active {
-    background: var(--stone-900);
-    color: white;
-    border-color: var(--stone-900);
-    transform: scale(1.05);
-  }
-  .week-pill .wk { font-size: 9px; opacity: 0.6; }
-  .week-pill .num { font-size: 22px; font-weight: 700; line-height: 1; margin-top: 2px; }
-
-  /* Week card */
-  .week-card {
-    background: white;
-    border: 2px solid var(--stone-900);
-    border-radius: 16px;
-    padding: 22px 20px;
-    box-shadow: 6px 6px 0 var(--stone-900);
-    margin-bottom: 28px;
-  }
-  .week-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--stone-200);
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-  }
-  .week-header .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 4px;
-  }
-  .week-header h3 { font-size: 26px; font-weight: 700; line-height: 1.1; }
-  .week-header h3 .dash { color: var(--stone-400); font-weight: 400; font-style: italic; }
-
-  .week-miles { text-align: right; font-family: 'JetBrains Mono', monospace; }
-  .week-miles .num { font-size: 22px; font-weight: 700; line-height: 1; }
-  .week-miles .num .frac { color: var(--stone-400); }
-  .week-miles .lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--stone-500); margin-top: 4px; }
-
-  /* Day rows (mobile-optimized list) */
-  .days { display: flex; flex-direction: column; gap: 10px; }
-
-  .day-row {
-    display: grid;
-    grid-template-columns: 48px 1fr auto;
-    align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border-radius: 12px;
-    border: 2px solid var(--stone-200);
-    background: white;
-    min-height: 72px;
-    transition: all 0.2s;
-  }
-  .day-row.rest {
-    background: var(--stone-50);
-    border-style: dashed;
-    border-color: var(--stone-300);
-  }
-  .day-row.done {
-    background: var(--stone-900);
-    color: var(--stone-50);
-    border-color: var(--stone-900);
-  }
-  .day-row .dow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--stone-500);
+  footer {
     text-align: center;
-    line-height: 1.2;
-  }
-  .day-row.done .dow { color: var(--stone-400); }
-  .day-row .dow .date { font-size: 16px; font-weight: 700; color: var(--stone-900); display: block; margin-top: 2px; }
-  .day-row.done .dow .date { color: white; }
-
-  .day-info { display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
-  .pill {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.03em;
-    width: fit-content;
-  }
-  .pill.Easy { background: var(--stone-100); color: var(--stone-700); }
-  .pill.Tempo { background: var(--amber-light); color: var(--amber); }
-  .pill.Intervals { background: var(--rose-light); color: #9f1239; }
-  .pill.Long { background: var(--emerald-light); color: #065f46; }
-  .pill.Recovery { background: var(--sky-light); color: var(--sky); }
-  .pill.Shakeout { background: var(--violet-light); color: var(--violet); }
-  .pill.Strength { background: #fce7f3; color: #9d174d; }
-  .pill.Swimming { background: #cffafe; color: #155e75; }
-  .pill.RACE { background: linear-gradient(135deg, #f97316, #e11d48); color: white; }
-  .day-row.done .pill { background: var(--stone-700); color: var(--stone-200); }
-
-  .day-distance {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
-    font-weight: 700;
-  }
-  .day-row.done .day-distance { color: var(--orange); }
-  .day-distance .mi { font-size: 10px; color: var(--stone-500); font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 2px; }
-  .day-row.done .day-distance .mi { color: var(--stone-400); }
-
-  .rest-label { color: var(--stone-400); font-style: italic; font-size: 14px; }
-
-  .check-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 2px solid var(--stone-200);
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .check-btn:active { transform: scale(0.9); }
-  .check-btn.done {
-    background: var(--orange);
-    border-color: var(--orange);
-    color: white;
-  }
-  .check-btn svg { width: 20px; height: 20px; }
-  .check-btn:not(.done) svg { display: none; }
-
-  /* Legend & principles */
-  .info-grid { display: flex; flex-direction: column; gap: 16px; }
-  .info-card {
-    background: white;
-    border: 2px solid var(--stone-200);
-    border-radius: 14px;
-    padding: 20px;
-  }
-  .info-card.dark {
-    background: var(--stone-900);
-    color: var(--stone-50);
-    border-color: var(--stone-900);
-    position: relative;
-    overflow: hidden;
-  }
-  .info-card h4 {
+    padding: 24px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--stone-500);
-    margin-bottom: 14px;
-  }
-  .info-card.dark h4 { color: var(--stone-400); }
-
-  .legend-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
-  .legend-row:last-child { margin-bottom: 0; }
-  .legend-row .pill { width: 80px; text-align: center; flex-shrink: 0; margin-top: 2px; }
-  .legend-row .desc { font-size: 13px; color: var(--stone-600); line-height: 1.5; }
-
-  .principle { display: flex; gap: 12px; margin-bottom: 14px; font-size: 13px; color: var(--stone-300); line-height: 1.5; position: relative; }
-  .principle:last-child { margin-bottom: 0; }
-  .principle .icon { color: var(--orange); flex-shrink: 0; margin-top: 3px; }
-  .principle strong { color: var(--stone-50); }
-
-  /* Bottom nav (install prompt area) */
-  .bottom-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: white;
-    border-top: 1px solid var(--stone-200);
-    padding: 12px 20px calc(12px + var(--safe-bottom));
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    z-index: 40;
-    backdrop-filter: blur(10px);
-    background: rgba(255,255,255,0.92);
-  }
-  .footer-note {
-    font-size: 11px;
-    color: var(--stone-500);
-    font-style: italic;
-    flex: 1;
-  }
-  .install-btn {
-    background: var(--stone-900);
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 99px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    display: none;
-  }
-  .install-btn.show { display: block; }
-  .install-btn:active { transform: scale(0.96); }
-
-  /* Modal */
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(28, 25, 23, 0.7);
-    backdrop-filter: blur(4px);
-    z-index: 100;
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
-  }
-  .modal-backdrop.show { display: flex; }
-  .modal {
-    background: white;
-    border-radius: 20px 20px 0 0;
-    padding: 28px 24px calc(28px + var(--safe-bottom));
-    width: 100%;
-    max-width: 560px;
-    max-height: 88vh;
-    overflow-y: auto;
-    border-top: 2px solid var(--stone-900);
-    animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
-    -webkit-overflow-scrolling: touch;
-  }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal .grabber {
-    width: 40px; height: 4px; background: var(--stone-300);
-    border-radius: 99px; margin: -12px auto 20px;
-  }
-  .modal .eyebrow { color: var(--stone-500); margin-bottom: 8px; }
-  .modal h3 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-  .modal .dist { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--orange); margin-bottom: 16px; font-weight: 600; }
-  .modal p { color: var(--stone-600); line-height: 1.6; margin-bottom: 20px; }
-
-  .modal-section {
-    border-top: 1px solid var(--stone-200);
-    padding-top: 18px;
-    margin-bottom: 20px;
-  }
-  .modal-section h4 {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--stone-500);
-    margin-bottom: 14px;
-  }
-  .exercise-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
-  .exercise {
-    display: grid;
-    grid-template-columns: 24px 1fr auto;
-    gap: 12px;
-    align-items: baseline;
-    padding: 10px 12px;
-    background: var(--stone-50);
-    border-radius: 10px;
-    border-left: 3px solid var(--orange);
-  }
-  .exercise .num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--stone-400);
-    font-weight: 600;
-  }
-  .exercise .name { font-size: 15px; font-weight: 600; line-height: 1.3; }
-  .exercise .name .target { display: block; font-size: 11px; color: var(--stone-500); font-weight: 400; font-style: italic; margin-top: 2px; }
-  .exercise .reps {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--stone-700);
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .tip-list { list-style: none; padding: 0; margin: 0; }
-  .tip-list li {
-    font-size: 13px;
-    color: var(--stone-600);
-    line-height: 1.5;
-    padding-left: 16px;
-    position: relative;
-    margin-bottom: 8px;
-  }
-  .tip-list li::before {
-    content: "·";
-    position: absolute;
-    left: 4px;
-    top: -2px;
-    color: var(--orange);
-    font-weight: 700;
-    font-size: 18px;
-  }
-  .tip-list li:last-child { margin-bottom: 0; }
-  .tip-list li strong { color: var(--stone-900); }
-
-  .modal button.close-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--stone-900);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    cursor: pointer;
-    margin-top: 8px;
+    color: var(--stone-400);
   }
-  .modal button.close-btn:active { transform: scale(0.98); }
+  footer a { color: var(--stone-600); text-decoration: none; }
+  footer a:hover { color: var(--orange); }
 
-  @media (min-width: 640px) {
-    header { padding: 40px 32px; }
-    h1.wordmark { font-size: 48px; }
-    main { padding: 32px; }
+  @media (max-width: 540px) {
+    header { padding: 44px 20px 56px; }
+    h1 { font-size: 40px; }
+    main { padding: 0 20px 60px; }
+    .product-card h2 { font-size: 22px; }
   }
 </style>
 </head>
 <body>
 
-<header class="grain">
-  <div class="eyebrow">Training Journal</div>
-  <h1 class="wordmark">Forward<span class="arrow">→</span></h1>
-  <div class="tagline">A twelve-week path to the start line</div>
-  <div class="header-stats">
-    <div>
-      <div class="stat-value"><span id="runs-done">0</span><span class="frac" id="runs-total">/0</span></div>
-      <div class="stat-label">Workouts done</div>
-    </div>
-    <div>
-      <div class="stat-value accent" id="miles-done">0.0</div>
-      <div class="stat-label">Miles run</div>
-    </div>
-    <div>
-      <div class="stat-value"><span id="this-week-miles">0.0</span><span class="unit">mi</span></div>
-      <div class="stat-label">This week</div>
-    </div>
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">Personal Workshop</div>
+    <h1>az<span class="accent">·</span>product<span class="accent">·</span>lab</h1>
+    <p class="tagline">A small workshop for personal product experiments. Built one weekend at a time.</p>
   </div>
 </header>
 
 <main>
-  <div class="section-title">
-    <span>Program Progress</span>
-    <span class="meta" id="progress-meta">0% · 0 of 0 mi</span>
-  </div>
-  <div class="progress-track"><div class="progress-fill" id="progress-bar" style="width: 0%"></div></div>
-
-  <div class="section-title"><span>Select Week</span></div>
-  <div class="week-pills" id="week-pills"></div>
-
-  <div class="week-card">
-    <div class="week-header">
-      <div>
-        <div class="label" id="week-label">Week 1 of 12</div>
-        <h3><span class="dash">—</span> <span id="week-focus">Base Building</span></h3>
-      </div>
-      <div class="week-miles">
-        <div class="num"><span id="week-done">0.0</span><span class="frac" id="week-total">/0</span></div>
-        <div class="lbl">Miles this week</div>
-      </div>
-    </div>
-    <div class="days" id="days"></div>
+  <div class="section-label">
+    <span>▸ Products</span>
+    <span class="count mono">01</span>
   </div>
 
-  <div class="info-grid">
-    <div class="info-card">
-      <h4>▸ Workout Types</h4>
-      <div id="legend"></div>
-    </div>
-    <div class="info-card dark grain">
-      <h4>▸ Training Principles</h4>
-      <div style="position:relative">
-        <div class="principle"><span class="icon">◉</span><span><strong>80/20 rule.</strong> Most of your miles should feel easy. Save the hard efforts for tempo and interval days.</span></div>
-        <div class="principle"><span class="icon">↗</span><span><strong>Respect cutback weeks.</strong> Weeks 4 and 8 drop volume on purpose — let your body absorb the training.</span></div>
-        <div class="principle"><span class="icon">⚡</span><span><strong>Trust the taper.</strong> Weeks 11 and 12 will feel too easy. That's the point — you're storing it up.</span></div>
-        <div class="principle"><span class="icon">✦</span><span><strong>Skip, don't stack.</strong> Miss a run? Move on. Never cram two hard days back-to-back to catch up.</span></div>
+  <div class="product-list">
+    <a class="product-card" href="./Forward.html">
+      <div class="top">
+        <h2>Forward<span class="arrow">→</span></h2>
+        <span class="open">Open ↗</span>
       </div>
+      <div class="desc">A twelve-week half marathon training app. Plan, track, and check off your runs with strength and swim cross-training built in. Installs to your phone's home screen.</div>
+      <div class="meta">
+        <span class="tag fitness">Fitness</span>
+        <span class="tag pwa">PWA</span>
+        <span class="tag installable">Installable</span>
+      </div>
+    </a>
+
+    <div class="placeholder">
+      <span class="mono">▸ Future Product</span>
+      Whatever's next will live here.
     </div>
   </div>
 </main>
 
-<div class="bottom-bar">
-  <div class="footer-note">Progress saves automatically. Lace up and go.</div>
-  <button class="install-btn" id="install-btn">Install</button>
-</div>
+<footer>
+  <a href="https://github.intuit.com/azhou2/az-product-lab" target="_blank">View on GitHub</a>
+</footer>
 
-<div class="modal-backdrop" id="modal">
-  <div class="modal">
-    <div class="grabber"></div>
-    <div class="eyebrow" id="modal-eyebrow">—</div>
-    <h3 id="modal-title">—</h3>
-    <div class="dist" id="modal-dist">—</div>
-    <p id="modal-desc">—</p>
-    <div id="modal-body"></div>
-    <button class="close-btn" onclick="closeModal()">Got it</button>
-  </div>
-</div>
-
-<script>
-// Plan data — Tue: Strength · Wed: Swim · Thu: Tempo
-const PLAN = [
-  { week:1,  focus:"Base Building",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:3}, fri:"Rest", sat:{type:"Long",dist:7},  sun:{type:"Recovery",dist:3} },
-  { week:2,  focus:"Base Building",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:8},  sun:{type:"Recovery",dist:3} },
-  { week:3,  focus:"Strength",       mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:9},  sun:{type:"Recovery",dist:3} },
-  { week:4,  focus:"Cutback",        mon:"Rest", tue:{type:"Strength",duration:30}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:3}, fri:"Rest", sat:{type:"Long",dist:7},  sun:{type:"Recovery",dist:3} },
-  { week:5,  focus:"Endurance",      mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:5}, fri:"Rest", sat:{type:"Long",dist:10}, sun:{type:"Recovery",dist:4} },
-  { week:6,  focus:"Endurance",      mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:5}, fri:"Rest", sat:{type:"Long",dist:11}, sun:{type:"Recovery",dist:4} },
-  { week:7,  focus:"Peak Mileage",   mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:6}, fri:"Rest", sat:{type:"Long",dist:12}, sun:{type:"Recovery",dist:4} },
-  { week:8,  focus:"Cutback",        mon:"Rest", tue:{type:"Strength",duration:30}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:9},  sun:{type:"Recovery",dist:3} },
-  { week:9,  focus:"Race Specific",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:6}, fri:"Rest", sat:{type:"Long",dist:12}, sun:{type:"Recovery",dist:4} },
-  { week:10, focus:"Peak Long Run",  mon:"Rest", tue:{type:"Strength",duration:45}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:5}, fri:"Rest", sat:{type:"Long",dist:13}, sun:{type:"Recovery",dist:3} },
-  { week:11, focus:"Taper Begins",   mon:"Rest", tue:{type:"Strength",duration:30}, wed:{type:"Swimming",duration:30}, thu:{type:"Tempo",dist:4}, fri:"Rest", sat:{type:"Long",dist:8},  sun:{type:"Recovery",dist:3} },
-  { week:12, focus:"Race Week",      mon:"Rest", tue:{type:"Easy",dist:3},          wed:{type:"Shakeout",dist:2},      thu:"Rest",                fri:{type:"Shakeout",dist:2}, sat:"Rest", sun:{type:"RACE",dist:13.1} },
-];
-
-const DAYS = ["mon","tue","wed","thu","fri","sat","sun"];
-const LBL = { mon:"Mon", tue:"Tue", wed:"Wed", thu:"Thu", fri:"Fri", sat:"Sat", sun:"Sun" };
-const DESC = {
-  Easy: "Conversational pace. You should be able to hold a conversation the whole run.",
-  Tempo: "Comfortably hard — about 80-85% effort. 'Controlled discomfort' for the middle portion.",
-  Intervals: "Hard efforts with recovery. E.g., 6x800m at 5K pace with 400m jog recovery.",
-  Long: "Slow and steady. Build endurance. Run 45-90 seconds slower than goal race pace.",
-  Recovery: "Very easy shakeout to flush the legs. Slow is the point.",
-  Shakeout: "Short, light run to stay loose. Few strides at the end optional.",
-  Strength: "Run-specific strength to build the muscles that support form and prevent injury. Tap to see the routine.",
-  Swimming: "Active recovery between Tuesday strength and Thursday tempo. Low-impact cardio that lets your legs reset.",
-  RACE: "Race day! Trust your training. Start conservative, finish strong."
-};
-
-// Strength routine for runners — focused on glutes, hamstrings, calves, core
-const STRENGTH_ROUTINE = [
-  { name: "Goblet squats",            target: "Quads, glutes",                reps: "3 × 10" },
-  { name: "Single-leg RDLs",          target: "Hamstrings, glutes, balance",  reps: "3 × 8 ea" },
-  { name: "Walking lunges",           target: "Single-leg power",             reps: "3 × 12" },
-  { name: "Glute bridges",            target: "Glute activation",             reps: "3 × 15" },
-  { name: "Calf raises",              target: "Lower leg, prevents shin pain",reps: "3 × 15" },
-  { name: "Plank",                    target: "Core stability",               reps: "3 × 45 sec" },
-  { name: "Side plank",               target: "Lateral core",                 reps: "3 × 30 sec ea" },
-  { name: "Bird dogs",                target: "Anti-rotation, balance",       reps: "3 × 10 ea" },
-];
-const STRENGTH_TIPS = [
-  "<strong>Pick a weight</strong> that feels challenging in the last 2–3 reps.",
-  "<strong>Rest 60–90 sec</strong> between sets.",
-  "<strong>Warm up</strong> with 5 min of leg swings, hip circles, and bodyweight squats.",
-  "<strong>Skip or scale back</strong> if your legs are heavy from a recent long run.",
-  "Progress over the 12 weeks: add weight, slow the tempo, or add a 4th set."
-];
-
-const SWIM_WORKOUT = [
-  { name: "Easy warmup",        target: "Any stroke, find your rhythm",   reps: "5 min" },
-  { name: "Mixed swim",         target: "Alternate freestyle / backstroke", reps: "20 min" },
-  { name: "Cooldown",           target: "Slow, breathe deep",             reps: "5 min" },
-];
-const SWIM_TIPS = [
-  "Keep effort <strong>conversational</strong> — should feel restorative, not exhausting.",
-  "Focus on <strong>breathing rhythm</strong> rather than speed.",
-  "<strong>No pool?</strong> Substitute 30 min easy bike, elliptical, or brisk walk.",
-  "If your shoulders fatigue, switch strokes or kick on a board for a few laps."
-];
-
-// State
-const STORAGE_KEY = "half-marathon-training-v1";
-let state = { completed: {}, currentWeek: 1 };
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
-  } catch(e) {}
-}
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-}
-
-// Helpers
-function isWorkout(w) { return typeof w === "object"; }
-function workoutMiles(w) { return (w && typeof w.dist === "number") ? w.dist : 0; }
-function workoutLabel(w) {
-  if (typeof w.dist === "number") return { value: w.dist, unit: "mi" };
-  if (typeof w.duration === "number") return { value: w.duration, unit: "min" };
-  return { value: "", unit: "" };
-}
-
-// Render
-function render() {
-  // Stats
-  let totalMiles = 0, doneMiles = 0, totalWorkouts = 0, doneWorkouts = 0;
-  PLAN.forEach(w => {
-    DAYS.forEach(d => {
-      const wk = w[d];
-      if (isWorkout(wk)) {
-        totalWorkouts++;
-        totalMiles += workoutMiles(wk);
-        const key = `w${w.week}-${d}`;
-        if (state.completed[key]) { doneWorkouts++; doneMiles += workoutMiles(wk); }
-      }
-    });
-  });
-
-  document.getElementById("runs-done").textContent = doneWorkouts;
-  document.getElementById("runs-total").textContent = "/" + totalWorkouts;
-  document.getElementById("miles-done").textContent = doneMiles.toFixed(1);
-  const pct = totalMiles ? Math.round(doneMiles / totalMiles * 100) : 0;
-  document.getElementById("progress-meta").textContent = `${pct}% · ${doneMiles.toFixed(1)} of ${totalMiles.toFixed(1)} mi`;
-  document.getElementById("progress-bar").style.width = pct + "%";
-
-  // Week pills
-  const pillsEl = document.getElementById("week-pills");
-  pillsEl.innerHTML = "";
-  PLAN.forEach(w => {
-    const workouts = DAYS.filter(d => isWorkout(w[d]));
-    const done = workouts.filter(d => state.completed[`w${w.week}-${d}`]).length;
-    const allDone = done === workouts.length && workouts.length > 0;
-    const isActive = state.currentWeek === w.week;
-    const pill = document.createElement("div");
-    pill.className = "week-pill" + (isActive ? " active" : allDone ? " done" : "");
-    pill.innerHTML = `<div class="wk">WK</div><div class="num">${w.week}</div>`;
-    pill.onclick = () => { state.currentWeek = w.week; saveState(); render(); };
-    pillsEl.appendChild(pill);
-  });
-
-  // Active week
-  const wk = PLAN[state.currentWeek - 1];
-  document.getElementById("week-label").textContent = `Week ${wk.week} of 12`;
-  document.getElementById("week-focus").textContent = wk.focus;
-
-  let weekTotal = 0, weekDone = 0;
-  DAYS.forEach(d => {
-    const w = wk[d];
-    if (isWorkout(w)) {
-      weekTotal += workoutMiles(w);
-      if (state.completed[`w${wk.week}-${d}`]) weekDone += workoutMiles(w);
-    }
-  });
-  document.getElementById("week-done").textContent = weekDone.toFixed(1);
-  document.getElementById("week-total").textContent = "/" + weekTotal;
-
-  // Header "this week" stat — selected week's running mileage total
-  document.getElementById("this-week-miles").textContent = weekTotal.toFixed(1);
-
-  // Days
-  const daysEl = document.getElementById("days");
-  daysEl.innerHTML = "";
-  DAYS.forEach(d => {
-    const w = wk[d];
-    const key = `w${wk.week}-${d}`;
-    const isDone = !!state.completed[key];
-    const isRest = w === "Rest";
-    const row = document.createElement("div");
-    row.className = "day-row" + (isRest ? " rest" : isDone ? " done" : "");
-
-    if (isRest) {
-      row.innerHTML = `
-        <div class="dow">${LBL[d]}</div>
-        <div class="rest-label">Rest day</div>
-        <div></div>
-      `;
-    } else {
-      const lbl = workoutLabel(w);
-      row.innerHTML = `
-        <div class="dow">${LBL[d]}</div>
-        <div class="day-info">
-          <span class="pill ${w.type}">${w.type}</span>
-          <div class="day-distance">${lbl.value}<span class="mi">${lbl.unit}</span></div>
-        </div>
-        <button class="check-btn ${isDone ? 'done' : ''}" aria-label="Mark done">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        </button>
-      `;
-      row.querySelector(".day-info").onclick = () => openModal(w, d);
-      row.querySelector(".check-btn").onclick = (e) => {
-        e.stopPropagation();
-        state.completed[key] = !state.completed[key];
-        saveState();
-        render();
-      };
-    }
-    daysEl.appendChild(row);
-  });
-
-  // Legend — show all workout types in a sensible order
-  const legendEl = document.getElementById("legend");
-  legendEl.innerHTML = "";
-  const legendOrder = ["Easy","Tempo","Long","Recovery","Strength","Swimming","Shakeout","Intervals"];
-  legendOrder.forEach(type => {
-    if (!DESC[type]) return;
-    const row = document.createElement("div");
-    row.className = "legend-row";
-    row.innerHTML = `<span class="pill ${type}">${type}</span><span class="desc">${DESC[type]}</span>`;
-    legendEl.appendChild(row);
-  });
-}
-
-function exerciseListHtml(items) {
-  return `<div class="exercise-list">` + items.map((ex, i) => `
-    <div class="exercise">
-      <div class="num">${String(i+1).padStart(2,'0')}</div>
-      <div class="name">${ex.name}<span class="target">${ex.target}</span></div>
-      <div class="reps">${ex.reps}</div>
-    </div>`).join("") + `</div>`;
-}
-function tipsHtml(tips) {
-  return `<ul class="tip-list">` + tips.map(t => `<li>${t}</li>`).join("") + `</ul>`;
-}
-
-function openModal(w, d) {
-  document.getElementById("modal-eyebrow").textContent = `${LBL[d]} · Week ${state.currentWeek}`;
-  const titleEl = document.getElementById("modal-title");
-  const distEl = document.getElementById("modal-dist");
-  const descEl = document.getElementById("modal-desc");
-  const bodyEl = document.getElementById("modal-body");
-
-  if (w.type === "Strength") {
-    titleEl.textContent = "Strength Training";
-    distEl.textContent = `${w.duration} min · 2–3 rounds`;
-    descEl.textContent = DESC.Strength.replace(" Tap to see the routine.", "");
-    bodyEl.innerHTML = `
-      <div class="modal-section">
-        <h4>▸ The Routine</h4>
-        ${exerciseListHtml(STRENGTH_ROUTINE)}
-      </div>
-      <div class="modal-section">
-        <h4>▸ How to do it well</h4>
-        ${tipsHtml(STRENGTH_TIPS)}
-      </div>`;
-  } else if (w.type === "Swimming") {
-    titleEl.textContent = "Swimming";
-    distEl.textContent = `${w.duration} min · easy effort`;
-    descEl.textContent = DESC.Swimming;
-    bodyEl.innerHTML = `
-      <div class="modal-section">
-        <h4>▸ Suggested workout</h4>
-        ${exerciseListHtml(SWIM_WORKOUT)}
-      </div>
-      <div class="modal-section">
-        <h4>▸ Tips</h4>
-        ${tipsHtml(SWIM_TIPS)}
-      </div>`;
-  } else {
-    titleEl.textContent = `${w.type} Run`;
-    distEl.textContent = `${w.dist} miles`;
-    descEl.textContent = DESC[w.type];
-    bodyEl.innerHTML = "";
-  }
-
-  document.getElementById("modal").classList.add("show");
-}
-function closeModal() {
-  document.getElementById("modal").classList.remove("show");
-}
-document.getElementById("modal").addEventListener("click", (e) => {
-  if (e.target.id === "modal") closeModal();
-});
-
-// PWA install prompt
-let deferredPrompt;
-const installBtn = document.getElementById("install-btn");
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.classList.add("show");
-});
-installBtn.addEventListener("click", async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  installBtn.classList.remove("show");
-});
-
-// Service worker for offline support (inlined via blob)
-if ("serviceWorker" in navigator) {
-  const swCode = `
-    const CACHE = "thirteen-one-v1";
-    self.addEventListener("install", (e) => {
-      self.skipWaiting();
-    });
-    self.addEventListener("activate", (e) => {
-      e.waitUntil(self.clients.claim());
-    });
-    self.addEventListener("fetch", (e) => {
-      e.respondWith(
-        caches.open(CACHE).then(async (cache) => {
-          try {
-            const fresh = await fetch(e.request);
-            if (e.request.method === "GET" && fresh.ok) cache.put(e.request, fresh.clone());
-            return fresh;
-          } catch (err) {
-            const cached = await cache.match(e.request);
-            return cached || new Response("Offline", { status: 503 });
-          }
-        })
-      );
-    });
-  `;
-  const blob = new Blob([swCode], { type: "application/javascript" });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
-}
-
-// Init
-loadState();
-render();
-</script>
 </body>
 </html>
