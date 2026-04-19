@@ -62,7 +62,7 @@
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
-    padding-bottom: calc(80px + var(--safe-bottom));
+    padding-bottom: calc(32px + var(--safe-bottom));
     padding-top: var(--safe-top);
   }
 
@@ -82,6 +82,31 @@
     overflow: hidden;
     border-bottom: 2px solid var(--stone-900);
   }
+  .info-btn {
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid var(--stone-600);
+    background: transparent;
+    color: var(--stone-300);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.15s;
+    z-index: 5;
+  }
+  .info-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .info-btn:active { transform: scale(0.92); }
   .eyebrow {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -163,8 +188,8 @@
   .week-pills::-webkit-scrollbar { display: none; }
   .week-pill {
     flex: 0 0 64px;
-    height: 80px;
-    border-radius: 12px;
+    height: 96px;
+    border-radius: 14px;
     border: 2px solid var(--stone-200);
     background: white;
     display: flex;
@@ -354,32 +379,12 @@
   .principle .icon { color: var(--orange); flex-shrink: 0; margin-top: 3px; }
   .principle strong { color: var(--stone-50); }
 
-  /* Bottom nav (install prompt area) */
-  .bottom-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: white;
-    border-top: 1px solid var(--stone-200);
-    padding: 12px 20px calc(12px + var(--safe-bottom));
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    z-index: 40;
-    backdrop-filter: blur(10px);
-    background: rgba(255,255,255,0.92);
-  }
-  .footer-note {
-    font-size: 11px;
-    color: var(--stone-500);
-    font-style: italic;
-    flex: 1;
-  }
+  /* Install button (only shown inside info modal when supported) */
   .install-btn {
     background: var(--stone-900);
     color: white;
     border: none;
-    padding: 10px 18px;
+    padding: 12px 18px;
     border-radius: 99px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -388,6 +393,8 @@
     text-transform: uppercase;
     cursor: pointer;
     display: none;
+    width: 100%;
+    margin-top: 12px;
   }
   .install-btn.show { display: block; }
   .install-btn:active { transform: scale(0.96); }
@@ -513,9 +520,9 @@
 <body>
 
 <header class="grain">
-  <div class="eyebrow">Training Journal</div>
+  <button class="info-btn" onclick="openInfoModal()" aria-label="Info">i</button>
+  <div class="eyebrow">Alex's Training Journal</div>
   <h1 class="wordmark">Forward<span class="arrow">→</span></h1>
-  <div class="tagline">A twelve-week path to the start line</div>
   <div class="header-stats">
     <div>
       <div class="stat-value"><span id="runs-done">0</span><span class="frac" id="runs-total">/0</span></div>
@@ -545,8 +552,8 @@
   <div class="week-card">
     <div class="week-header">
       <div>
-        <div class="label" id="week-label">Week 1 of 12</div>
-        <h3><span class="dash">—</span> <span id="week-focus">Base Building</span></h3>
+        <div class="label">Current week</div>
+        <h3>Week <span id="week-num">1</span> <span class="dash">of 12</span></h3>
       </div>
       <div class="week-miles">
         <div class="num"><span id="week-done">0.0</span><span class="frac" id="week-total">/0</span></div>
@@ -555,28 +562,7 @@
     </div>
     <div class="days" id="days"></div>
   </div>
-
-  <div class="info-grid">
-    <div class="info-card">
-      <h4>▸ Workout Types</h4>
-      <div id="legend"></div>
-    </div>
-    <div class="info-card dark grain">
-      <h4>▸ Training Principles</h4>
-      <div style="position:relative">
-        <div class="principle"><span class="icon">◉</span><span><strong>80/20 rule.</strong> Most of your miles should feel easy. Save the hard efforts for tempo and interval days.</span></div>
-        <div class="principle"><span class="icon">↗</span><span><strong>Respect cutback weeks.</strong> Weeks 4 and 8 drop volume on purpose — let your body absorb the training.</span></div>
-        <div class="principle"><span class="icon">⚡</span><span><strong>Trust the taper.</strong> Weeks 11 and 12 will feel too easy. That's the point — you're storing it up.</span></div>
-        <div class="principle"><span class="icon">✦</span><span><strong>Skip, don't stack.</strong> Miss a run? Move on. Never cram two hard days back-to-back to catch up.</span></div>
-      </div>
-    </div>
-  </div>
 </main>
-
-<div class="bottom-bar">
-  <div class="footer-note">Progress saves automatically. Lace up and go.</div>
-  <button class="install-btn" id="install-btn">Install</button>
-</div>
 
 <div class="modal-backdrop" id="modal">
   <div class="modal">
@@ -587,6 +573,33 @@
     <p id="modal-desc">—</p>
     <div id="modal-body"></div>
     <button class="close-btn" onclick="closeModal()">Got it</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="info-modal">
+  <div class="modal">
+    <div class="grabber"></div>
+    <div class="eyebrow">▸ About this app</div>
+    <h3>How training works</h3>
+    <p>A reference for the workout types and the principles behind the plan.</p>
+
+    <div class="modal-section">
+      <h4>▸ Workout Types</h4>
+      <div id="legend"></div>
+    </div>
+
+    <div class="modal-section">
+      <h4>▸ Training Principles</h4>
+      <ul class="tip-list">
+        <li><strong>80/20 rule.</strong> Most of your miles should feel easy. Save the hard efforts for tempo and interval days.</li>
+        <li><strong>Respect cutback weeks.</strong> Weeks 4 and 8 drop volume on purpose — let your body absorb the training.</li>
+        <li><strong>Trust the taper.</strong> Weeks 11 and 12 will feel too easy. That's the point — you're storing it up.</li>
+        <li><strong>Skip, don't stack.</strong> Miss a run? Move on. Never cram two hard days back-to-back to catch up.</li>
+      </ul>
+    </div>
+
+    <button class="install-btn" id="install-btn">Install on Home Screen</button>
+    <button class="close-btn" onclick="closeInfoModal()">Close</button>
   </div>
 </div>
 
@@ -715,8 +728,7 @@ function render() {
 
   // Active week
   const wk = PLAN[state.currentWeek - 1];
-  document.getElementById("week-label").textContent = `Week ${wk.week} of 12`;
-  document.getElementById("week-focus").textContent = wk.focus;
+  document.getElementById("week-num").textContent = wk.week;
 
   let weekTotal = 0, weekDone = 0;
   DAYS.forEach(d => {
@@ -844,6 +856,16 @@ function closeModal() {
 }
 document.getElementById("modal").addEventListener("click", (e) => {
   if (e.target.id === "modal") closeModal();
+});
+
+function openInfoModal() {
+  document.getElementById("info-modal").classList.add("show");
+}
+function closeInfoModal() {
+  document.getElementById("info-modal").classList.remove("show");
+}
+document.getElementById("info-modal").addEventListener("click", (e) => {
+  if (e.target.id === "info-modal") closeInfoModal();
 });
 
 // PWA install prompt
