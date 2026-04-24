@@ -551,6 +551,22 @@
   .toggle.on { background: var(--green); }
   .toggle.on::after { left: 23px; }
 
+  .test-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--green-dark);
+    transition: all 0.1s;
+  }
+  .test-btn:active { box-shadow: 0 1px 0 var(--green-dark); transform: translateY(2px); }
+
   /* ============= BOTTOM NAV ============= */
   .bottom-nav {
     position: fixed;
@@ -1017,7 +1033,7 @@
         <span class="lbl-emoji">🔊</span>
         <div>
           <div class="lbl-text">Sound</div>
-          <div class="lbl-sub">Pops and celebrations</div>
+          <div class="lbl-sub">iPhone? Silent switch must be off</div>
         </div>
       </div>
       <button class="toggle" id="soundToggle" onclick="toggleSound()"></button>
@@ -1027,10 +1043,20 @@
         <span class="lbl-emoji">📳</span>
         <div>
           <div class="lbl-text">Haptics</div>
-          <div class="lbl-sub">Subtle phone vibration</div>
+          <div class="lbl-sub">Android only — iOS doesn't allow it</div>
         </div>
       </div>
       <button class="toggle" id="hapticToggle" onclick="toggleHaptic()"></button>
+    </div>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">🧪</span>
+        <div>
+          <div class="lbl-text">Test sound</div>
+          <div class="lbl-sub">Tap to play the celebration tone</div>
+        </div>
+      </div>
+      <button class="test-btn" onclick="Sound.prime(); Sound.playComplete();">Play</button>
     </div>
   </div>
 
@@ -1419,47 +1445,115 @@ function onMascotTap() {
   renderMascot();
 }
 
-/* ============= SOUND + HAPTICS ============= */
+/* ============= SOUND + HAPTICS =============
+   iOS quirks handled here:
+   - AudioContext often starts in 'suspended' state and re-suspends
+     when a PWA loses focus, comes back to foreground, etc. Always
+     call resume() before playing.
+   - Silent (mute) switch on iPhone overrides Web Audio entirely;
+     no software workaround. We use a tiny silent <audio> element
+     with playsinline to nudge iOS into "playback" mode, which
+     lets WebAudio sound play even on background.
+============================================= */
+
+// Tiny silent audio data URI (~1KB, 0.05s of silence) — playing this
+// from a user gesture flips iOS into a more permissive audio session.
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+let silentAudio = null;
+
 const Sound = {
   ctx: null,
+  primed: false,
+
   getCtx() {
     if (!this.ctx) {
       try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
       catch (e) { this.ctx = null; }
     }
+    // Always try to resume — iOS suspends aggressively
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
     return this.ctx;
   },
-  tone(freq, dur, vol = 0.18, type = 'sine') {
+
+  // Call from a user gesture to fully unlock iOS audio
+  prime() {
+    if (this.primed) return;
+    const ctx = this.getCtx();
+    if (!ctx) return;
+    // Play a near-silent buffer to unlock the context
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) {}
+    // Also play silent <audio> element (helps in standalone PWA mode)
+    if (!silentAudio) {
+      silentAudio = new Audio(SILENT_WAV);
+      silentAudio.setAttribute('playsinline', '');
+      silentAudio.setAttribute('webkit-playsinline', '');
+      silentAudio.loop = false;
+      silentAudio.volume = 0.001;
+    }
+    silentAudio.play().catch(() => {});
+    this.primed = true;
+  },
+
+  tone(freq, dur, vol = 0.18, type = 'sine', delay = 0) {
     if (!state.soundOn) return;
     const ctx = this.getCtx();
     if (!ctx) return;
+    const t0 = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.setValueAtTime(freq, t0);
     osc.type = type;
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
     osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + dur);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
   },
-  playPop() { this.tone(700, 0.07, 0.12, 'triangle'); },
+
+  playPop() { this.tone(700, 0.07, 0.14, 'triangle'); },
+
   playComplete() {
-    this.tone(523, 0.13, 0.18);                     // C5
-    setTimeout(() => this.tone(659, 0.13, 0.18), 90);  // E5
-    setTimeout(() => this.tone(784, 0.22, 0.18), 180); // G5
+    // Schedule all notes at once on the audio context's clock (more
+    // reliable on iOS than setTimeout)
+    this.tone(523, 0.13, 0.20, 'sine', 0.00);    // C5
+    this.tone(659, 0.13, 0.20, 'sine', 0.10);    // E5
+    this.tone(784, 0.22, 0.20, 'sine', 0.20);    // G5
   },
+
   playBadge() {
     [523, 659, 784, 1046, 1319].forEach((n, i) =>
-      setTimeout(() => this.tone(n, 0.18, 0.16, 'triangle'), i * 90));
+      this.tone(n, 0.18, 0.16, 'triangle', i * 0.09));
   },
+
   playRest() { this.tone(440, 0.15, 0.12, 'sine'); }
 };
 
 function vibrate(pattern) {
   if (!state.hapticOn) return;
+  // Note: navigator.vibrate is NOT supported on iOS Safari at all.
+  // This will silently no-op on iPhone — that's an Apple limitation.
   if (navigator.vibrate) navigator.vibrate(pattern);
 }
+
+// Resume audio context when app comes back to foreground (iOS PWA)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && Sound.ctx && Sound.ctx.state === 'suspended') {
+    Sound.ctx.resume().catch(() => {});
+  }
+});
+window.addEventListener('focus', () => {
+  if (Sound.ctx && Sound.ctx.state === 'suspended') {
+    Sound.ctx.resume().catch(() => {});
+  }
+});
 
 /* ============= BADGES ============= */
 const BADGES = [
@@ -1974,12 +2068,13 @@ function rerender() {
   }
 }
 
-// Wake up audio context on first user gesture (iOS requirement)
-['touchstart','click','keydown'].forEach(evt => {
+// Unlock iOS audio on first user gesture
+['touchstart','touchend','click','keydown'].forEach(evt => {
   document.addEventListener(evt, function init() {
-    Sound.getCtx();
-    document.removeEventListener(evt, init);
-  }, { once: true });
+    Sound.prime();
+    ['touchstart','touchend','click','keydown'].forEach(e =>
+      document.removeEventListener(e, init));
+  }, { once: true, passive: true });
 });
 
 // Initial badge check (in case user reset state etc)
