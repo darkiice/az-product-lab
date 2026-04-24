@@ -115,8 +115,8 @@
   }
   .mascot {
     flex-shrink: 0;
-    width: 84px;
-    height: 84px;
+    width: 88px;
+    height: 88px;
     background: var(--green-light);
     border: 3px solid var(--green);
     border-radius: 50%;
@@ -135,12 +135,13 @@
     25% { transform: scale(1.08) rotate(-3deg); }
     75% { transform: scale(1.08) rotate(3deg); }
   }
-  .mascot svg { width: 92%; height: 92%; display: block; }
-  .mascot.shake { animation: mascot-shake 0.3s; }
-  @keyframes mascot-shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
+  .mascot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    -webkit-user-drag: none;
   }
   .speech {
     flex: 1;
@@ -1368,78 +1369,24 @@ function todayWorkoutInfo() {
   return null;
 }
 
-/* ============= MILEO SVG MASCOT ============= */
-const EYES = {
-  default: `<g><circle cx="51" cy="40" r="3.5" fill="#3c3c3c"/><circle cx="69" cy="40" r="3.5" fill="#3c3c3c"/><circle cx="52.2" cy="38.8" r="1.2" fill="white"/><circle cx="70.2" cy="38.8" r="1.2" fill="white"/></g>`,
-  cheer:   `<g><path d="M 47 41 Q 51 36 55 41" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 65 41 Q 69 36 73 41" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`,
-  sleep:   `<g><path d="M 47 40 Q 51 43 55 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 65 40 Q 69 43 73 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`,
-  pumped:  `<g><circle cx="51" cy="40" r="4.5" fill="#3c3c3c"/><circle cx="69" cy="40" r="4.5" fill="#3c3c3c"/><circle cx="52.5" cy="38.5" r="1.5" fill="white"/><circle cx="70.5" cy="38.5" r="1.5" fill="white"/></g>`,
-  rest:    `<g><path d="M 47 40 Q 51 42 55 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 65 40 Q 69 42 73 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`
-};
-const MOUTHS = {
-  smile:   `<path d="M 53 52 Q 60 56 67 52" stroke="#3c3c3c" stroke-width="2" fill="none" stroke-linecap="round"/>`,
-  grin:    `<path d="M 51 50 Q 60 60 69 50 Q 60 56 51 50 Z" fill="#3c3c3c"/>`,
-  small:   `<path d="M 56 53 Q 60 55 64 53" stroke="#3c3c3c" stroke-width="2" fill="none" stroke-linecap="round"/>`,
-  o:       `<ellipse cx="60" cy="54" rx="3" ry="3.5" fill="#3c3c3c"/>`,
-  relaxed: `<path d="M 55 53 Q 60 55 65 53" stroke="#3c3c3c" stroke-width="2" fill="none" stroke-linecap="round"/>`
-};
-const ACCESSORIES = {
-  cheer: `<g font-family="serif" font-weight="900"><text x="14" y="32" font-size="16" fill="#ffc800">✦</text><text x="98" y="42" font-size="13" fill="#ff86c8">✦</text><text x="10" y="78" font-size="11" fill="#1cb0f6">✦</text><text x="100" y="92" font-size="14" fill="#ffc800">✦</text></g>`,
-  sleep: `<g font-family="-apple-system,sans-serif" font-weight="900" fill="#1cb0f6"><text x="80" y="22" font-size="14" opacity="0.85">z</text><text x="92" y="14" font-size="11" opacity="0.6">z</text><text x="102" y="8" font-size="8" opacity="0.4">z</text></g>`,
-  race:  `<g><rect x="40" y="98" width="40" height="14" rx="2" fill="white" stroke="#3c3c3c" stroke-width="1.5"/><text x="60" y="109" font-size="9" font-weight="900" fill="#ff4b4b" text-anchor="middle" font-family="-apple-system,sans-serif">13.1</text></g>`
-};
-const MOODS = {
-  default: { eyes: 'default', mouth: 'smile',   accessory: '' },
-  cheer:   { eyes: 'cheer',   mouth: 'grin',    accessory: 'cheer' },
-  sleep:   { eyes: 'sleep',   mouth: 'small',   accessory: 'sleep' },
-  pumped:  { eyes: 'pumped',  mouth: 'o',       accessory: 'race' },
-  rest:    { eyes: 'rest',    mouth: 'relaxed', accessory: '' }
+/* ============= MILEO MASCOT (image-based, 5 moods) ============= */
+const MASCOT_IMAGES = {
+  default: 'mascot-default.webp',
+  cheer:   'mascot-cheer.webp',
+  sleep:   'mascot-sleep.webp',
+  pumped:  'mascot-pumped.webp',
+  rest:    'mascot-rest.webp'
 };
 
+// Preload all mascot images so swaps are instant
+Object.values(MASCOT_IMAGES).forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
+
 function mileoSVG(mood = 'default') {
-  const m = MOODS[mood] || MOODS.default;
-  return `
-  <svg viewBox="0 0 120 135" xmlns="http://www.w3.org/2000/svg">
-    ${ACCESSORIES[m.accessory] || ''}
-    <!-- Body fluff -->
-    <ellipse cx="60" cy="100" rx="32" ry="20" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
-    <circle cx="35" cy="100" r="10" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
-    <circle cx="85" cy="100" r="10" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
-    <circle cx="48" cy="88" r="9" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
-    <circle cx="72" cy="88" r="9" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
-    <!-- Legs -->
-    <rect x="40" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
-    <rect x="54" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
-    <rect x="67" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
-    <rect x="78" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
-    <ellipse cx="43.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
-    <ellipse cx="57.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
-    <ellipse cx="70.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
-    <ellipse cx="81.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
-    <!-- Race bib goes over body -->
-    ${m.accessory === 'race' ? ACCESSORIES.race : ''}
-    <!-- Neck -->
-    <path d="M 50 88 Q 47 70 51 50 Q 56 46 64 46 Q 68 70 70 88 Z" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5" stroke-linejoin="round"/>
-    <!-- Head -->
-    <ellipse cx="60" cy="40" rx="22" ry="20" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
-    <!-- Outer ears -->
-    <path d="M 38 28 L 32 8 L 50 23 Z" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5" stroke-linejoin="round"/>
-    <path d="M 82 28 L 88 8 L 70 23 Z" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5" stroke-linejoin="round"/>
-    <!-- Inner ears (pink) -->
-    <path d="M 41 24 L 38 14 L 47 22 Z" fill="#ffc4d6"/>
-    <path d="M 79 24 L 82 14 L 73 22 Z" fill="#ffc4d6"/>
-    <!-- Tuft of hair on top -->
-    <circle cx="55" cy="22" r="3.5" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2"/>
-    <circle cx="60" cy="20" r="4" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2"/>
-    <circle cx="65" cy="22" r="3.5" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2"/>
-    <!-- Cheeks -->
-    <ellipse cx="46" cy="46" rx="4" ry="2.5" fill="#ffc4d6" opacity="0.7"/>
-    <ellipse cx="74" cy="46" rx="4" ry="2.5" fill="#ffc4d6" opacity="0.7"/>
-    <!-- Eyes -->
-    ${EYES[m.eyes]}
-    <!-- Mouth -->
-    ${MOUTHS[m.mouth]}
-  </svg>`;
+  const src = MASCOT_IMAGES[mood] || MASCOT_IMAGES.default;
+  return `<img src="${src}" alt="Mileo" draggable="false" />`;
 }
 
 /* ============= MOOD + MESSAGES ============= */
