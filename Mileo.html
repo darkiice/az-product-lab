@@ -819,14 +819,22 @@
     margin-bottom: 10px;
   }
   .exercise {
-    display: grid;
-    grid-template-columns: 28px 1fr auto;
-    gap: 10px;
-    align-items: center;
     background: var(--bg-card);
     border-radius: 12px;
-    padding: 10px 12px;
     margin-bottom: 8px;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+  .exercise.open { background: white; box-shadow: 0 0 0 2px var(--pink); }
+  .exercise.swim.open { box-shadow: 0 0 0 2px var(--blue); }
+  .exercise-head {
+    display: grid;
+    grid-template-columns: 28px 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    cursor: pointer;
+    user-select: none;
   }
   .exercise .num {
     background: var(--pink);
@@ -845,6 +853,50 @@
     font-weight: 900;
     color: var(--text);
     white-space: nowrap;
+  }
+  .exercise .chev {
+    color: var(--text-light);
+    font-size: 12px;
+    transition: transform 0.2s;
+    width: 14px;
+    text-align: center;
+  }
+  .exercise.open .chev { transform: rotate(180deg); }
+  .exercise-body {
+    display: none;
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    padding-top: 12px;
+  }
+  .exercise.open .exercise-body { display: block; animation: fadeIn 0.2s; }
+  .exercise-body .howto {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .exercise-body .yt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--red);
+    color: white;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: 0 3px 0 var(--red-dark);
+    transition: all 0.1s;
+  }
+  .exercise-body .yt-btn:active { box-shadow: 0 1px 0 var(--red-dark); transform: translateY(2px); }
+  .exercise-body .yt-btn .yt-ico {
+    font-size: 14px;
   }
   .tip-list { list-style: none; padding: 0; }
   .tip-list li {
@@ -1178,14 +1230,46 @@ const TYPE_META = {
 };
 
 const STRENGTH_ROUTINE = [
-  { name: "Goblet squats",       target: "Quads, glutes",                reps: "3 × 10" },
-  { name: "Single-leg RDLs",     target: "Hamstrings, glutes, balance",  reps: "3 × 8 ea" },
-  { name: "Walking lunges",      target: "Single-leg power",             reps: "3 × 12" },
-  { name: "Glute bridges",       target: "Glute activation",             reps: "3 × 15" },
-  { name: "Calf raises",         target: "Lower leg, prevents shin pain",reps: "3 × 15" },
-  { name: "Plank",               target: "Core stability",               reps: "3 × 45 sec" },
-  { name: "Side plank",          target: "Lateral core",                 reps: "3 × 30 sec ea" },
-  { name: "Bird dogs",           target: "Anti-rotation, balance",       reps: "3 × 10 ea" }
+  {
+    name: "Goblet squats", target: "Quads, glutes", reps: "3 × 10",
+    howTo: "Hold a dumbbell vertically against your chest. Drop your hips back and down like sitting in a chair, keeping your chest up and back straight. Drive through your heels to stand.",
+    query: "goblet squat proper form"
+  },
+  {
+    name: "Single-leg RDLs", target: "Hamstrings, glutes, balance", reps: "3 × 8 ea",
+    howTo: "Stand on one leg with a slight knee bend. Hinge forward at the hips, lowering your torso while extending the other leg straight behind you. Squeeze your glute to return upright. A dumbbell in the opposite hand adds resistance.",
+    query: "single leg romanian deadlift form"
+  },
+  {
+    name: "Walking lunges", target: "Single-leg power", reps: "3 × 12",
+    howTo: "Step forward into a deep lunge with your back knee almost touching the ground. Push off your front heel and bring your back leg through into the next lunge. Keep your front knee tracking over your toes, not caving inward.",
+    query: "walking lunges proper form"
+  },
+  {
+    name: "Glute bridges", target: "Glute activation", reps: "3 × 15",
+    howTo: "Lie on your back, knees bent, feet flat on the floor about hip-width apart. Drive through your heels to lift your hips, squeezing your glutes hard at the top. Form a straight line from knees to shoulders. Lower with control.",
+    query: "glute bridge exercise form"
+  },
+  {
+    name: "Calf raises", target: "Lower leg, prevents shin pain", reps: "3 × 15",
+    howTo: "Stand with feet hip-width apart, near a wall for balance if needed. Push up onto the balls of your feet as high as you can, pause for a second at the top, then slowly lower back down. Don't bounce.",
+    query: "calf raises exercise form"
+  },
+  {
+    name: "Plank", target: "Core stability", reps: "3 × 45 sec",
+    howTo: "Forearms on the ground, elbows directly under shoulders. Body in one straight line from head to heels. Brace your core like you're about to take a punch. Don't let your hips sag down or pike up.",
+    query: "plank exercise proper form"
+  },
+  {
+    name: "Side plank", target: "Lateral core", reps: "3 × 30 sec ea",
+    howTo: "On your side, prop up on one forearm with elbow under your shoulder. Stack your feet (or stagger for easier). Lift your hips so your body is one straight line from head to feet. Hold steady. Switch sides.",
+    query: "side plank exercise form"
+  },
+  {
+    name: "Bird dogs", target: "Anti-rotation, balance", reps: "3 × 10 ea",
+    howTo: "On hands and knees, hands under shoulders, knees under hips. Extend one arm forward and the opposite leg straight back simultaneously. Hold briefly without rotating your hips. Return and switch sides.",
+    query: "bird dog exercise form"
+  }
 ];
 const STRENGTH_TIPS = [
   "<strong>Pick a weight</strong> that feels challenging in the last 2–3 reps.",
@@ -1917,12 +2001,21 @@ function openWorkoutByKey(week, day) {
   if (t === "strength") {
     details.innerHTML = `
       <div class="modal-section">
-        <h4>💪 The Routine</h4>
+        <h4>💪 The Routine · Tap any exercise for how-to</h4>
         ${STRENGTH_ROUTINE.map((ex, i) => `
-          <div class="exercise">
-            <div class="num">${i+1}</div>
-            <div class="name">${ex.name}<span class="target">${ex.target}</span></div>
-            <div class="reps">${ex.reps}</div>
+          <div class="exercise" data-ex="${i}">
+            <div class="exercise-head" onclick="toggleExercise(this)">
+              <div class="num">${i+1}</div>
+              <div class="name">${ex.name}<span class="target">${ex.target}</span></div>
+              <div class="reps">${ex.reps}</div>
+              <div class="chev">▼</div>
+            </div>
+            <div class="exercise-body">
+              <div class="howto">${ex.howTo}</div>
+              <a class="yt-btn" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.query)}" target="_blank" rel="noopener">
+                <span class="yt-ico">▶</span> Watch demo on YouTube
+              </a>
+            </div>
           </div>
         `).join("")}
       </div>
@@ -1936,9 +2029,12 @@ function openWorkoutByKey(week, day) {
         <h4>🌊 Suggested workout</h4>
         ${SWIM_WORKOUT.map((ex, i) => `
           <div class="exercise swim">
-            <div class="num">${i+1}</div>
-            <div class="name">${ex.name}<span class="target">${ex.target}</span></div>
-            <div class="reps">${ex.reps}</div>
+            <div class="exercise-head" style="cursor:default">
+              <div class="num">${i+1}</div>
+              <div class="name">${ex.name}<span class="target">${ex.target}</span></div>
+              <div class="reps">${ex.reps}</div>
+              <div></div>
+            </div>
           </div>
         `).join("")}
       </div>
@@ -1969,6 +2065,12 @@ function openWorkoutByKey(week, day) {
 
 function closeModal() {
   document.getElementById("modal").classList.remove("show");
+}
+
+function toggleExercise(headEl) {
+  const card = headEl.closest('.exercise');
+  card.classList.toggle('open');
+  Sound.playPop();
 }
 
 function completeWorkout() {
