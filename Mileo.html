@@ -847,6 +847,8 @@
     font-weight: 900;
   }
   .exercise.swim .num { background: var(--blue); }
+  .exercise.tempo-seg .num { background: var(--orange); }
+  .exercise.long-seg .num { background: var(--purple); }
   .exercise .name { font-size: 14px; font-weight: 800; line-height: 1.2; }
   .exercise .target { display: block; font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 1px; }
   .exercise .reps {
@@ -975,6 +977,157 @@
     margin-top: 4px;
   }
 
+  /* ============= PACE PILL (in workout modal) ============= */
+  .pace-pill {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+  }
+
+  /* ============= GEAR STRIP (under mascot) ============= */
+  .mascot-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .gear-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 22px;
+    max-width: 100px;
+    align-items: center;
+    justify-content: center;
+  }
+  .gear-stick {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid white;
+    box-shadow: 0 1px 0 var(--gold-dark);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    line-height: 1;
+    animation: gear-pop 0.4s cubic-bezier(0.32, 0.72, 0.4, 1.4);
+  }
+  @keyframes gear-pop {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+
+  /* ============= ONBOARDING MODAL ============= */
+  .onb-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    padding: 4px;
+    border-radius: 12px;
+  }
+  .onb-tab {
+    flex: 1;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 10px 8px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+  }
+  .onb-tab.active {
+    background: white;
+    color: var(--text);
+    box-shadow: 0 2px 0 var(--border);
+  }
+  .onb-pane { display: none; }
+  .onb-pane.active { display: block; animation: fadeIn 0.2s; }
+
+  .pace-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0;
+  }
+  .pace-input select {
+    font-family: inherit;
+    font-size: 22px;
+    font-weight: 900;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text);
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    text-align: center;
+  }
+  .pace-input .colon { font-size: 26px; font-weight: 900; color: var(--text-light); }
+  .pace-input .unit { font-size: 12px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .pace-helper {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+  .pace-preview {
+    background: var(--green-light);
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 14px;
+    text-align: center;
+  }
+  .pace-preview .lbl {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .pace-preview .val { font-size: 14px; font-weight: 900; color: var(--text); line-height: 1.5; }
+  .pace-preview .val .ptype { color: var(--text-muted); font-weight: 700; }
+
+  /* ============= PACE CARD (Profile) ============= */
+  .pace-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pace-card-row:last-child { border-bottom: none; }
+  .pace-card-row .pcr-name { font-size: 13px; font-weight: 900; }
+  .pace-card-row .pcr-name .pcr-emoji { margin-right: 8px; font-size: 18px; }
+  .pace-card-row .pcr-val {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .pace-card-empty {
+    text-align: center;
+    padding: 12px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
   /* ============= TOAST / CONFETTI ============= */
   .toast {
     position: fixed;
@@ -1037,7 +1190,10 @@
 <section class="panel active" id="path-panel">
   <main>
     <div class="mascot-section">
-      <div class="mascot" id="mascotEl" onclick="onMascotTap()"></div>
+      <div class="mascot-col">
+        <div class="mascot" id="mascotEl" onclick="onMascotTap()"></div>
+        <div class="gear-strip" id="gearStrip"></div>
+      </div>
       <div class="speech" id="speech">¡Vamos! Let's get you to 13.1 miles.</div>
     </div>
 
@@ -1086,6 +1242,22 @@
 <section class="panel" id="profile-panel">
   <h2>Alex Zhou 🏃</h2>
   <p class="sub">Training for your half marathon</p>
+
+  <div class="legend-card">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🎯 Your Paces</span>
+      <button class="badge-stat" id="paceEditBtn" onclick="openPaceModal('edit')" style="background:var(--green);border:none;cursor:pointer;">Edit</button>
+    </h3>
+    <div id="paceCard"></div>
+  </div>
+
+  <div class="legend-card">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🦙 Mileo's Closet</span>
+      <span class="badge-stat" id="gearCount" style="background:var(--purple);">0/0</span>
+    </h3>
+    <div class="badge-grid" id="gearGrid"></div>
+  </div>
 
   <div class="legend-card">
     <h3 style="display:flex;justify-content:space-between;align-items:center;">
@@ -1167,6 +1339,7 @@
       <div class="pill" id="modalDay">DAY · WEEK</div>
       <h3 id="modalTitle">Workout</h3>
       <div class="dist" id="modalDist">—</div>
+      <div class="pace-pill" id="modalPace" style="display:none;">—</div>
     </div>
     <div class="modal-body">
       <p id="modalDesc">—</p>
@@ -1179,11 +1352,74 @@
   </div>
 </div>
 
+<!-- ONBOARDING / EDIT PACE MODAL -->
+<div class="modal-backdrop" id="paceModal">
+  <div class="modal">
+    <div class="modal-header" style="background:var(--green);">
+      <button class="close-x" id="paceCloseBtn" onclick="closePaceModal()" style="display:none;">✕</button>
+      <div class="big-icon">🎯</div>
+      <div class="pill" id="paceModalPill">FIRST · LET'S DIAL IT IN</div>
+      <h3 id="paceModalTitle">What's your goal pace?</h3>
+      <div class="dist">Mileo will calibrate every workout for you</div>
+    </div>
+    <div class="modal-body">
+      <div class="onb-tabs">
+        <button class="onb-tab active" id="onbTabPace" onclick="onbSwitchTab('pace')">Goal pace</button>
+        <button class="onb-tab" id="onbTabRace" onclick="onbSwitchTab('race')">Recent race</button>
+      </div>
+
+      <div class="onb-pane active" id="onbPanePace">
+        <p style="font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;margin-bottom:6px;">
+          Set the pace you want to <strong style="color:var(--text);">average on race day</strong>.
+        </p>
+        <div class="pace-input">
+          <select id="paceMin" onchange="onbPaceChanged()"></select>
+          <span class="colon">:</span>
+          <select id="paceSec" onchange="onbPaceChanged()"></select>
+          <span class="unit">/ mi</span>
+        </div>
+        <div class="pace-helper">
+          A 9:00/mi half marathon = 1:58:18.<br>
+          Not sure? Try the <strong style="color:var(--green);">Recent race</strong> tab.
+        </div>
+      </div>
+
+      <div class="onb-pane" id="onbPaneRace">
+        <p style="font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;margin-bottom:6px;">
+          Enter a recent <strong style="color:var(--text);">5K or 10K time</strong> — Mileo will project your half pace.
+        </p>
+        <div class="pace-input">
+          <select id="raceDist" onchange="onbRaceChanged()">
+            <option value="3.1">5K</option>
+            <option value="6.2">10K</option>
+          </select>
+          <select id="raceMin" onchange="onbRaceChanged()"></select>
+          <span class="colon">:</span>
+          <select id="raceSec" onchange="onbRaceChanged()"></select>
+          <span class="unit">min</span>
+        </div>
+        <div class="pace-helper">
+          We use the <strong style="color:var(--text);">Riegel formula</strong> to project your half marathon pace.
+        </div>
+      </div>
+
+      <div class="pace-preview" id="pacePreview">
+        <div class="lbl">Your projected paces</div>
+        <div class="val" id="pacePreviewVal">—</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d" id="paceSaveBtn" onclick="savePaceFromOnboarding()">Save pace</button>
+      <button class="btn-secondary" id="paceSkipBtn" onclick="skipPaceOnboarding()">Skip — I'll set later</button>
+    </div>
+  </div>
+</div>
+
 <!-- BADGE UNLOCK CARD -->
 <div class="badge-unlock" id="badgeUnlock">
   <div class="be" id="bue">🏆</div>
   <div class="bi">
-    <div class="bt">Achievement Unlocked!</div>
+    <div class="bt" id="but">Achievement Unlocked!</div>
     <div class="bn" id="bun">Badge Name</div>
     <div class="bd" id="bud">Description</div>
   </div>
@@ -1200,6 +1436,8 @@ const defaultState = {
   completed: {},
   restCompleted: {},
   badges: {},
+  gear: {},
+  goalPaceSec: null,
   soundOn: true,
   hapticOn: true,
   lastCompleteAt: 0,
@@ -1314,10 +1552,64 @@ const SWIM_TIPS = [
   "<strong>No pool?</strong> Substitute 30 min easy bike, elliptical, or brisk walk."
 ];
 
+const TEMPO_TIPS = [
+  "<strong>Don't sprint.</strong> Tempo is controlled discomfort — you should be able to gasp out 3–4 words at a time.",
+  "<strong>Settle in.</strong> The first half mile of the work segment will feel too easy. That's normal.",
+  "<strong>If your goal pace feels off,</strong> trust effort over the watch — wind, hills, and heat all matter."
+];
+
 /* ============= HELPERS ============= */
 function isWorkout(w) { return typeof w === "object"; }
 function workoutMiles(w) { return (w && typeof w.dist === "number") ? w.dist : 0; }
 function workoutKey(week, day) { return `w${week}-${day}`; }
+
+/* ============= PACE HELPERS ============= */
+function fmtPace(s) {
+  if (s == null || isNaN(s)) return "—";
+  const m = Math.floor(s / 60);
+  const sec = Math.round(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function fromRiegel(distMi, timeSec) {
+  // Riegel: T2 = T1 * (D2/D1)^1.06 → returns goal half pace seconds/mile
+  const halfSec = timeSec * Math.pow(13.1 / distMi, 1.06);
+  return Math.round(halfSec / 13.1);
+}
+
+function paceZones(goal) {
+  if (goal == null) return null;
+  const range = (lo, hi) => `${fmtPace(goal + lo)}–${fmtPace(goal + hi)}`;
+  return {
+    easy:     range(90, 150),    // +1:30 to +2:30
+    tempo:    range(-20, 0),     // -0:20 to goal
+    long:     range(45, 90),     // +0:45 to +1:30
+    recovery: range(120, 180),   // +2:00 to +3:00
+    shakeout: range(90, 120),
+    race:     fmtPace(goal),
+    strength: null,
+    swimming: null
+  };
+}
+
+function paceForType(type) {
+  const zones = paceZones(state.goalPaceSec);
+  if (!zones) return null;
+  return zones[type] || null;
+}
+
+function tempoSegments(distMi) {
+  const zones = paceZones(state.goalPaceSec);
+  const easyP = zones ? `@ ${zones.easy} /mi` : 'easy effort';
+  const tempoP = zones ? `@ ${zones.tempo} /mi` : 'tempo effort';
+  // Aim for 1 mi warmup + tempo work + 1 mi cooldown
+  const tempoMi = Math.max(1, distMi - 2);
+  return [
+    { name: 'Warmup',   target: 'Easy, conversational — get the legs moving', reps: `1 mi ${easyP}` },
+    { name: 'Tempo',    target: 'Comfortably hard — 80–85% effort',           reps: `${tempoMi} mi ${tempoP}` },
+    { name: 'Cooldown', target: 'Easy, breathe deep — flush the legs',        reps: `1 mi ${easyP}` }
+  ];
+}
 
 function workoutXP(w) {
   if (!isWorkout(w)) return 0;
@@ -1632,6 +1924,29 @@ const BADGES = [
   { id: 'plan-complete', emoji: '🏆', name: 'Trained',          desc: 'Finish all 12 weeks',           check: s => s.allComplete }
 ];
 
+/* ============= GEAR (unlockable mascot accessories) ============= */
+const GEAR = [
+  { id: 'shoes',     emoji: '👟', name: 'Running Shoes', desc: 'Run 10 miles total',         check: s => s.miles >= 10 },
+  { id: 'shades',    emoji: '🕶️', name: 'Cool Shades',   desc: 'Complete your first long run', check: s => s.longRuns >= 1 },
+  { id: 'sweatband', emoji: '🎽', name: 'Sweatband',     desc: 'Run 50 miles total',         check: s => s.miles >= 50 },
+  { id: 'bib',       emoji: '🏁', name: 'Race Bib',      desc: 'Reach race week',            check: s => s.atRaceWeek },
+  { id: 'medal',     emoji: '🥇', name: 'Gold Medal',    desc: 'Cross the finish line',      check: s => s.allComplete },
+  { id: 'sash',      emoji: '🎗️', name: 'Finisher Sash', desc: 'Complete the entire plan',   check: s => s.allComplete }
+];
+
+function checkGear() {
+  const stats = badgeStats();
+  const newly = [];
+  GEAR.forEach(g => {
+    if (!state.gear[g.id] && g.check(stats)) {
+      state.gear[g.id] = Date.now();
+      newly.push(g);
+    }
+  });
+  if (newly.length) saveState();
+  return newly;
+}
+
 function badgeStats() {
   let workouts = 0, miles = 0, longRuns = 0, tempos = 0, strengths = 0, swims = 0, weeksDone = 0;
   let allComplete = true;
@@ -1673,24 +1988,37 @@ function checkBadges() {
   return newly;
 }
 
-let badgeQueue = [];
+let unlockQueue = [];
 function showBadgeUnlocks(badges) {
-  badgeQueue.push(...badges);
-  if (badgeQueue.length === badges.length) processBadgeQueue();
+  showUnlocks(badges.map(b => ({ ...b, kind: 'badge' })));
 }
-function processBadgeQueue() {
-  if (badgeQueue.length === 0) return;
-  const b = badgeQueue.shift();
+function showGearUnlocks(gear) {
+  showUnlocks(gear.map(g => ({ ...g, kind: 'gear' })));
+}
+function showUnlocks(items) {
+  const wasEmpty = unlockQueue.length === 0;
+  unlockQueue.push(...items);
+  if (wasEmpty) processUnlockQueue();
+}
+function processUnlockQueue() {
+  if (unlockQueue.length === 0) return;
+  const item = unlockQueue.shift();
   const card = document.getElementById('badgeUnlock');
-  document.getElementById('bue').textContent = b.emoji;
-  document.getElementById('bun').textContent = b.name;
-  document.getElementById('bud').textContent = b.desc;
+  const isGear = item.kind === 'gear';
+  card.style.borderColor = isGear ? 'var(--purple)' : 'var(--gold)';
+  document.getElementById('bue').style.background = isGear ? 'var(--purple)' : 'var(--gold)';
+  document.getElementById('bue').style.boxShadow = isGear ? '0 4px 0 var(--purple-dark)' : '0 4px 0 var(--gold-dark)';
+  document.getElementById('but').style.color = isGear ? 'var(--purple-dark)' : 'var(--gold-dark)';
+  document.getElementById('but').textContent = isGear ? 'New Gear Unlocked!' : 'Achievement Unlocked!';
+  document.getElementById('bue').textContent = item.emoji;
+  document.getElementById('bun').textContent = item.name;
+  document.getElementById('bud').textContent = item.desc;
   card.classList.add('show');
   Sound.playBadge();
   vibrate([15, 60, 15, 60, 30]);
   setTimeout(() => {
     card.classList.remove('show');
-    setTimeout(processBadgeQueue, 400);
+    setTimeout(processUnlockQueue, 400);
   }, 3200);
 }
 
@@ -1704,8 +2032,10 @@ function markRestDone(week, day) {
   Sound.playRest();
   vibrate(20);
   const newly = checkBadges();
+  const newGear = checkGear();
   rerender();
   if (newly.length) showBadgeUnlocks(newly);
+  if (newGear.length) setTimeout(() => showGearUnlocks(newGear), newly.length ? 600 : 0);
 }
 
 /* ============= TOGGLES ============= */
@@ -1742,6 +2072,57 @@ function renderBadges() {
     `);
   });
   document.getElementById("badgeCount").textContent = `${unlocked}/${BADGES.length}`;
+}
+
+function renderGearGallery() {
+  const grid = document.getElementById("gearGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  let unlocked = 0;
+  GEAR.forEach(g => {
+    const isUnlocked = !!state.gear[g.id];
+    if (isUnlocked) unlocked++;
+    grid.insertAdjacentHTML("beforeend", `
+      <div class="badge-cell ${isUnlocked ? 'unlocked' : ''}" onclick="alert('${g.name}\\n\\n${g.desc}\\n\\n${isUnlocked ? '✓ Unlocked' : '🔒 Locked'}')">
+        <div class="b-emoji">${g.emoji}</div>
+        <div class="b-name">${g.name}</div>
+      </div>
+    `);
+  });
+  document.getElementById("gearCount").textContent = `${unlocked}/${GEAR.length}`;
+}
+
+function renderGearStrip() {
+  const strip = document.getElementById("gearStrip");
+  if (!strip) return;
+  const owned = GEAR.filter(g => state.gear[g.id]);
+  if (!owned.length) { strip.innerHTML = ""; return; }
+  strip.innerHTML = owned
+    .map(g => `<div class="gear-stick" title="${g.name}">${g.emoji}</div>`)
+    .join("");
+}
+
+function renderPaceCard() {
+  const card = document.getElementById("paceCard");
+  if (!card) return;
+  const zones = paceZones(state.goalPaceSec);
+  if (!zones) {
+    card.innerHTML = `<div class="pace-card-empty">No goal pace set yet — tap <strong style="color:var(--green);">Edit</strong> to dial it in.</div>`;
+    return;
+  }
+  const rows = [
+    { type: 'race',     emoji: '🏆', label: 'Goal Half Pace',    val: zones.race + ' /mi' },
+    { type: 'easy',     emoji: '🏃', label: 'Easy',              val: zones.easy + ' /mi' },
+    { type: 'tempo',    emoji: '🔥', label: 'Tempo',             val: zones.tempo + ' /mi' },
+    { type: 'long',     emoji: '🏔️', label: 'Long Run',          val: zones.long + ' /mi' },
+    { type: 'recovery', emoji: '🌿', label: 'Recovery',          val: zones.recovery + ' /mi' }
+  ];
+  card.innerHTML = rows.map(r => `
+    <div class="pace-card-row">
+      <div class="pcr-name"><span class="pcr-emoji">${r.emoji}</span>${r.label}</div>
+      <div class="pcr-val">${r.val}</div>
+    </div>
+  `).join("");
 }
 
 
@@ -1794,12 +2175,14 @@ function renderTodayHero() {
   const t = today.workout.type;
   const meta = TYPE_META[t];
   const dist = today.workout.dist != null ? `${today.workout.dist} mi` : `${today.workout.duration} min`;
+  const pace = paceForType(t);
+  const meta2 = pace ? `${dist} · target ${pace} /mi` : dist;
   wrap.innerHTML = `<div class="today-hero" onclick="openWorkoutByKey('${today.week}', '${today.day}')">
     <div class="day-icon" style="background:var(--${typeColor(t)});color:white">${meta.icon}</div>
     <div class="info">
       <div class="label">Up next · ${DAY_LBL[today.day]} · Week ${today.week}</div>
       <div class="name">${meta.name}</div>
-      <div class="meta">${dist}</div>
+      <div class="meta">${meta2}</div>
     </div>
     <button class="start">Start</button>
   </div>`;
@@ -1934,12 +2317,14 @@ function renderStats() {
   legend.innerHTML = "";
   ["easy","tempo","long","recovery","strength","swimming","race"].forEach(t => {
     const meta = TYPE_META[t];
+    const pace = paceForType(t);
+    const paceText = pace ? ` <span style="color:var(--text);font-weight:900;">· ${pace} /mi</span>` : "";
     legend.insertAdjacentHTML("beforeend", `
       <div class="legend-row">
         <div class="legend-dot ${t}">${meta.icon}</div>
         <div>
           <div class="name">${meta.name}</div>
-          <div class="desc">${meta.desc}</div>
+          <div class="desc">${meta.desc}${paceText}</div>
         </div>
       </div>
     `);
@@ -1964,6 +2349,16 @@ function openWorkoutByKey(week, day) {
 
   const dist = w.dist != null ? `${w.dist} miles` : `${w.duration} min · easy effort`;
   document.getElementById("modalDist").textContent = dist;
+
+  // Pace pill (only for run-based workouts when a goal pace is set)
+  const pacePill = document.getElementById("modalPace");
+  const pace = paceForType(t);
+  if (pace) {
+    pacePill.textContent = t === "race" ? `Goal pace ${pace} /mi` : `Target pace ${pace} /mi`;
+    pacePill.style.display = "inline-block";
+  } else {
+    pacePill.style.display = "none";
+  }
 
   document.getElementById("modalDesc").textContent = meta.desc;
 
@@ -2014,6 +2409,41 @@ function openWorkoutByKey(week, day) {
         <h4>💡 Tips</h4>
         <ul class="tip-list">${SWIM_TIPS.map(t => `<li>${t}</li>`).join("")}</ul>
       </div>`;
+  } else if (t === "tempo") {
+    const segs = tempoSegments(w.dist);
+    details.innerHTML = `
+      <div class="modal-section">
+        <h4>🔥 The Workout</h4>
+        ${segs.map((seg, i) => `
+          <div class="exercise tempo-seg">
+            <div class="exercise-head" style="cursor:default">
+              <div class="num">${i+1}</div>
+              <div class="name">${seg.name}<span class="target">${seg.target}</span></div>
+              <div class="reps">${seg.reps}</div>
+              <div></div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="modal-section">
+        <h4>💡 How to nail it</h4>
+        <ul class="tip-list">${TEMPO_TIPS.map(tip => `<li>${tip}</li>`).join("")}</ul>
+      </div>`;
+  } else if (t === "long" && w.dist >= 10) {
+    const zones = paceZones(state.goalPaceSec);
+    const racePace = zones ? zones.race : 'half marathon pace';
+    details.innerHTML = `
+      <div class="modal-section">
+        <h4>🏔️ Optional progression</h4>
+        <div class="exercise long-seg">
+          <div class="exercise-head" style="cursor:default">
+            <div class="num">★</div>
+            <div class="name">Last 2 miles<span class="target">Drop into race pace if the legs feel good</span></div>
+            <div class="reps">@ ${racePace} /mi</div>
+            <div></div>
+          </div>
+        </div>
+      </div>`;
   }
 
   // Footer button state
@@ -2039,6 +2469,140 @@ function closeModal() {
   document.getElementById("modal").classList.remove("show");
 }
 
+/* ============= ONBOARDING / EDIT PACE MODAL ============= */
+let onbMode = 'first'; // 'first' or 'edit'
+let onbTab = 'pace';
+let onbPendingPaceSec = null;
+
+function populatePaceSelects() {
+  // Min selects (7..12 for goal pace, 14..40 for race time minutes)
+  const paceMin = document.getElementById('paceMin');
+  if (!paceMin.options.length) {
+    for (let m = 6; m <= 13; m++) {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      paceMin.appendChild(opt);
+    }
+    paceMin.value = 9;
+  }
+  const paceSec = document.getElementById('paceSec');
+  if (!paceSec.options.length) {
+    for (let s = 0; s < 60; s += 5) {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = String(s).padStart(2, '0');
+      paceSec.appendChild(opt);
+    }
+    paceSec.value = 0;
+  }
+  const raceMin = document.getElementById('raceMin');
+  if (!raceMin.options.length) {
+    for (let m = 12; m <= 75; m++) {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      raceMin.appendChild(opt);
+    }
+    raceMin.value = 25;
+  }
+  const raceSec = document.getElementById('raceSec');
+  if (!raceSec.options.length) {
+    for (let s = 0; s < 60; s += 5) {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = String(s).padStart(2, '0');
+      raceSec.appendChild(opt);
+    }
+    raceSec.value = 0;
+  }
+}
+
+function openPaceModal(mode = 'first') {
+  populatePaceSelects();
+  onbMode = mode;
+  onbTab = 'pace';
+
+  // Pre-fill from existing pace if editing
+  if (mode === 'edit' && state.goalPaceSec) {
+    document.getElementById('paceMin').value = Math.floor(state.goalPaceSec / 60);
+    const sec = state.goalPaceSec % 60;
+    document.getElementById('paceSec').value = Math.round(sec / 5) * 5;
+  }
+
+  document.getElementById('paceModalTitle').textContent =
+    mode === 'edit' ? 'Update your goal pace' : "What's your goal pace?";
+  document.getElementById('paceModalPill').textContent =
+    mode === 'edit' ? 'EDIT · YOUR PACE' : "FIRST · LET'S DIAL IT IN";
+  document.getElementById('paceCloseBtn').style.display = mode === 'edit' ? 'flex' : 'none';
+  document.getElementById('paceCloseBtn').style.alignItems = 'center';
+  document.getElementById('paceCloseBtn').style.justifyContent = 'center';
+  document.getElementById('paceSkipBtn').style.display = mode === 'edit' ? 'none' : 'block';
+  document.getElementById('paceSaveBtn').textContent = mode === 'edit' ? 'Save changes' : 'Save pace';
+
+  onbSwitchTab('pace');
+  document.getElementById('paceModal').classList.add('show');
+}
+
+function closePaceModal() {
+  document.getElementById('paceModal').classList.remove('show');
+}
+
+function onbSwitchTab(tab) {
+  onbTab = tab;
+  document.getElementById('onbTabPace').classList.toggle('active', tab === 'pace');
+  document.getElementById('onbTabRace').classList.toggle('active', tab === 'race');
+  document.getElementById('onbPanePace').classList.toggle('active', tab === 'pace');
+  document.getElementById('onbPaneRace').classList.toggle('active', tab === 'race');
+  if (tab === 'pace') onbPaceChanged(); else onbRaceChanged();
+}
+
+function onbPaceChanged() {
+  const m = parseInt(document.getElementById('paceMin').value, 10);
+  const s = parseInt(document.getElementById('paceSec').value, 10);
+  onbPendingPaceSec = m * 60 + s;
+  renderPacePreview();
+}
+
+function onbRaceChanged() {
+  const dist = parseFloat(document.getElementById('raceDist').value);
+  const m = parseInt(document.getElementById('raceMin').value, 10);
+  const s = parseInt(document.getElementById('raceSec').value, 10);
+  const totalSec = m * 60 + s;
+  onbPendingPaceSec = fromRiegel(dist, totalSec);
+  renderPacePreview();
+}
+
+function renderPacePreview() {
+  const zones = paceZones(onbPendingPaceSec);
+  if (!zones) {
+    document.getElementById('pacePreviewVal').textContent = '—';
+    return;
+  }
+  document.getElementById('pacePreviewVal').innerHTML = `
+    <div><span class="ptype">Easy</span> ${zones.easy} · <span class="ptype">Tempo</span> ${zones.tempo}</div>
+    <div style="margin-top:2px"><span class="ptype">Long</span> ${zones.long} · <span class="ptype">Recovery</span> ${zones.recovery}</div>
+  `;
+}
+
+function savePaceFromOnboarding() {
+  if (!onbPendingPaceSec) return;
+  state.goalPaceSec = onbPendingPaceSec;
+  saveState();
+  Sound.playComplete();
+  vibrate([15, 50, 15]);
+  closePaceModal();
+  showToast(`🎯 Pace set: ${fmtPace(state.goalPaceSec)} /mi`, 'gold');
+  rerender();
+}
+
+function skipPaceOnboarding() {
+  state.goalPaceSec = 540; // 9:00/mi default so UI works
+  saveState();
+  closePaceModal();
+  rerender();
+}
+
+document.getElementById('paceModal').addEventListener('click', e => {
+  if (e.target.id === 'paceModal' && onbMode === 'edit') closePaceModal();
+});
+
 function toggleExercise(headEl) {
   const card = headEl.closest('.exercise');
   card.classList.toggle('open');
@@ -2058,9 +2622,11 @@ function completeWorkout() {
   closeModal();
   celebrate(xp);
   const newly = checkBadges();
+  const newGear = checkGear();
   rerender();
-  // Stagger badge unlocks AFTER the celebration toast (~2.2s)
+  // Stagger unlock cards AFTER the celebration toast (~2.2s)
   if (newly.length) setTimeout(() => showBadgeUnlocks(newly), 2400);
+  if (newGear.length) setTimeout(() => showGearUnlocks(newGear), 2400 + (newly.length * 3600));
 }
 
 function uncompleteWorkout() {
@@ -2132,12 +2698,15 @@ function rerender() {
   renderTopBar();
   renderTodayHero();
   renderMascot();
+  renderGearStrip();
   renderPath();
   if (document.getElementById('stats-panel').classList.contains('active')) {
     renderStats();
   }
   if (document.getElementById('profile-panel').classList.contains('active')) {
     renderBadges();
+    renderGearGallery();
+    renderPaceCard();
     renderToggles();
   }
 }
@@ -2151,10 +2720,16 @@ function rerender() {
   }, { once: true, passive: true });
 });
 
-// Initial badge check (in case user reset state etc)
+// Initial badge + gear check (in case user reset state etc)
 checkBadges();
+checkGear();
 
 rerender();
+
+// First-run onboarding: ask for goal pace if not set
+if (state.goalPaceSec == null) {
+  setTimeout(() => openPaceModal('first'), 400);
+}
 </script>
 </body>
 </html>
