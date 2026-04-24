@@ -113,16 +113,32 @@
   }
   .mascot {
     flex-shrink: 0;
-    width: 72px;
-    height: 72px;
+    width: 84px;
+    height: 84px;
     background: var(--green-light);
     border: 3px solid var(--green);
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 44px;
-    line-height: 1;
     user-select: none;
+    cursor: pointer;
+    transition: transform 0.15s;
+    overflow: hidden;
+    position: relative;
+  }
+  .mascot:active { transform: scale(0.94); }
+  .mascot.bounce { animation: mascot-bounce 0.5s; }
+  @keyframes mascot-bounce {
+    0%, 100% { transform: scale(1) rotate(0); }
+    25% { transform: scale(1.08) rotate(-3deg); }
+    75% { transform: scale(1.08) rotate(3deg); }
+  }
+  .mascot svg { width: 92%; height: 92%; display: block; }
+  .mascot.shake { animation: mascot-shake 0.3s; }
+  @keyframes mascot-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
   }
   .speech {
     flex: 1;
@@ -361,13 +377,177 @@
   .node.done + .node-label { color: var(--gold-dark); }
   .node.today ~ .node-label { color: var(--green-dark); }
 
-  /* Rest days as small dots between nodes */
-  .rest-dot {
-    width: 8px; height: 8px;
+  /* Rest day nodes - small tappable circles */
+  .rest-node {
+    width: 38px; height: 38px;
     border-radius: 50%;
-    background: var(--border-strong);
-    margin: 6px 0;
+    background: var(--bg-card);
+    border: 2px dashed var(--border-strong);
+    display: grid; place-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-light);
+    box-shadow: 0 3px 0 var(--locked-dark);
+    transition: all 0.1s;
+    margin-top: 4px;
   }
+  .rest-node:active { box-shadow: 0 1px 0 var(--locked-dark); transform: translateY(2px); }
+  .rest-node.done {
+    background: var(--green-light);
+    border: 2px solid var(--green);
+    border-style: solid;
+    color: var(--green-dark);
+    box-shadow: 0 3px 0 var(--green-dark);
+  }
+  .rest-node.done:active { box-shadow: 0 1px 0 var(--green-dark); }
+  .rest-label {
+    margin-top: 4px;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-light);
+  }
+  .rest-node.done + .rest-label { color: var(--green-dark); }
+
+  /* ============= BADGES ============= */
+  .badge-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .badge-cell {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 4px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+  }
+  .badge-cell:active { transform: scale(0.95); }
+  .badge-cell .b-emoji {
+    font-size: 26px;
+    line-height: 1;
+    filter: grayscale(1);
+    opacity: 0.35;
+    transition: all 0.2s;
+  }
+  .badge-cell .b-name {
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 4px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .badge-cell.unlocked {
+    background: white;
+    border-color: var(--gold);
+    box-shadow: 0 3px 0 var(--gold-dark);
+  }
+  .badge-cell.unlocked .b-emoji { filter: none; opacity: 1; }
+  .badge-cell.unlocked .b-name { color: var(--text); }
+
+  .badge-stat {
+    background: var(--gold);
+    color: white;
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  /* Badge unlock card (drops from top) */
+  .badge-unlock {
+    position: fixed;
+    top: calc(var(--safe-top) + var(--topbar-h) + 12px);
+    left: 16px; right: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    background: white;
+    border: 3px solid var(--gold);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    padding: 16px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+    z-index: 350;
+    animation: badge-drop 0.5s cubic-bezier(0.32, 0.72, 0.4, 1.4);
+  }
+  .badge-unlock.show { display: flex; }
+  @keyframes badge-drop {
+    from { transform: translateY(-200%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .badge-unlock .be {
+    width: 56px; height: 56px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 0 var(--gold-dark);
+  }
+  .badge-unlock .bt {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold-dark);
+    margin-bottom: 2px;
+  }
+  .badge-unlock .bn { font-size: 16px; font-weight: 900; }
+  .badge-unlock .bd { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
+
+  /* ============= TOGGLES ============= */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-row .lbl-grp { display: flex; align-items: center; gap: 10px; }
+  .toggle-row .lbl-emoji { font-size: 22px; }
+  .toggle-row .lbl-text {
+    font-size: 14px;
+    font-weight: 900;
+  }
+  .toggle-row .lbl-sub { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+  .toggle {
+    width: 50px;
+    height: 30px;
+    background: var(--locked);
+    border-radius: 99px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 24px; height: 24px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: left 0.2s;
+  }
+  .toggle.on { background: var(--green); }
+  .toggle.on::after { left: 23px; }
 
   /* ============= BOTTOM NAV ============= */
   .bottom-nav {
@@ -770,7 +950,7 @@
 <section class="panel active" id="path-panel">
   <main>
     <div class="mascot-section">
-      <div class="mascot" onclick="cycleMascotMessage()">🦙</div>
+      <div class="mascot" id="mascotEl" onclick="onMascotTap()"></div>
       <div class="speech" id="speech">¡Vamos! Let's get you to 13.1 miles.</div>
     </div>
 
@@ -821,6 +1001,38 @@
   <p class="sub">Training for your half marathon</p>
 
   <div class="legend-card">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🏆 Achievements</span>
+      <span class="badge-stat" id="badgeCount">0/0</span>
+    </h3>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </div>
+
+  <div class="legend-card">
+    <h3>⚙️ Settings</h3>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">🔊</span>
+        <div>
+          <div class="lbl-text">Sound</div>
+          <div class="lbl-sub">Pops and celebrations</div>
+        </div>
+      </div>
+      <button class="toggle" id="soundToggle" onclick="toggleSound()"></button>
+    </div>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">📳</span>
+        <div>
+          <div class="lbl-text">Haptics</div>
+          <div class="lbl-sub">Subtle phone vibration</div>
+        </div>
+      </div>
+      <button class="toggle" id="hapticToggle" onclick="toggleHaptic()"></button>
+    </div>
+  </div>
+
+  <div class="legend-card">
     <h3>🎯 Training Principles</h3>
     <ul class="tip-list">
       <li><strong>80/20 rule.</strong> Most miles should feel easy. Save the hard efforts for tempo days.</li>
@@ -831,8 +1043,8 @@
   </div>
 
   <div class="legend-card">
-    <h3>⚙️ Settings</h3>
-    <button class="btn-3d gray" onclick="resetProgress()" style="margin-top:4px;background:var(--red);box-shadow:0 4px 0 var(--red-dark);color:white;">Reset Progress</button>
+    <h3>⚠️ Reset</h3>
+    <button class="btn-3d" onclick="resetProgress()" style="background:var(--red);box-shadow:0 4px 0 var(--red-dark);color:white;">Reset All Progress</button>
   </div>
 </section>
 
@@ -870,14 +1082,32 @@
   </div>
 </div>
 
+<!-- BADGE UNLOCK CARD -->
+<div class="badge-unlock" id="badgeUnlock">
+  <div class="be" id="bue">🏆</div>
+  <div class="bi">
+    <div class="bt">Achievement Unlocked!</div>
+    <div class="bn" id="bun">Badge Name</div>
+    <div class="bd" id="bud">Description</div>
+  </div>
+</div>
+
 <!-- TOAST + CONFETTI -->
 <div class="toast" id="toast"></div>
 <div class="confetti" id="confetti"></div>
 
 <script>
 /* ============= STATE ============= */
-const STORAGE_KEY = 'mileo-state-v1';
-const defaultState = { completed: {}, lastSeen: null };
+const STORAGE_KEY = 'mileo-state-v2';
+const defaultState = {
+  completed: {},
+  restCompleted: {},
+  badges: {},
+  soundOn: true,
+  hapticOn: true,
+  lastCompleteAt: 0,
+  lastSeen: null
+};
 let state = loadState();
 let activeWorkout = null;
 
@@ -974,6 +1204,8 @@ function totalStats() {
       }
     });
   });
+  // Bonus XP for honored rest days
+  xp += Object.keys(state.restCompleted || {}).length * 20;
   return { xp, miles, workouts };
 }
 
@@ -1000,35 +1232,367 @@ function todayWorkoutInfo() {
   return null;
 }
 
-/* ============= MASCOT MESSAGES ============= */
-function mascotMessage() {
-  const stats = totalStats();
-  const today = todayWorkoutInfo();
-  if (stats.workouts === 0) {
-    return "¡Vamos! I'm Mileo. Let's get you to 13.1 miles. 🦙";
-  }
-  if (!today) {
-    return "🎉 You finished the entire plan! Race day, baby!";
-  }
-  const t = today.workout.type;
-  const meta = TYPE_META[t];
-  const messages = [
-    `Up next: <strong>${meta.name}</strong> ${meta.icon}. You got this!`,
-    `Vamos! Tap the glowing node to start your <strong>${meta.name}</strong>.`,
-    `Stats: <strong>${stats.miles.toFixed(1)} mi</strong> · <strong>${stats.xp} XP</strong>. Keep going!`,
-    `${stats.workouts} workouts done. Your llama is proud 🦙`
-  ];
-  return messages[stats.workouts % messages.length];
+/* ============= MILEO SVG MASCOT ============= */
+const EYES = {
+  default: `<g><circle cx="51" cy="40" r="3.5" fill="#3c3c3c"/><circle cx="69" cy="40" r="3.5" fill="#3c3c3c"/><circle cx="52.2" cy="38.8" r="1.2" fill="white"/><circle cx="70.2" cy="38.8" r="1.2" fill="white"/></g>`,
+  cheer:   `<g><path d="M 47 41 Q 51 36 55 41" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 65 41 Q 69 36 73 41" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`,
+  sleep:   `<g><path d="M 47 40 Q 51 43 55 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 65 40 Q 69 43 73 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`,
+  pumped:  `<g><circle cx="51" cy="40" r="4.5" fill="#3c3c3c"/><circle cx="69" cy="40" r="4.5" fill="#3c3c3c"/><circle cx="52.5" cy="38.5" r="1.5" fill="white"/><circle cx="70.5" cy="38.5" r="1.5" fill="white"/></g>`,
+  rest:    `<g><path d="M 47 40 Q 51 42 55 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 65 40 Q 69 42 73 40" stroke="#3c3c3c" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`
+};
+const MOUTHS = {
+  smile:   `<path d="M 53 52 Q 60 56 67 52" stroke="#3c3c3c" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+  grin:    `<path d="M 51 50 Q 60 60 69 50 Q 60 56 51 50 Z" fill="#3c3c3c"/>`,
+  small:   `<path d="M 56 53 Q 60 55 64 53" stroke="#3c3c3c" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+  o:       `<ellipse cx="60" cy="54" rx="3" ry="3.5" fill="#3c3c3c"/>`,
+  relaxed: `<path d="M 55 53 Q 60 55 65 53" stroke="#3c3c3c" stroke-width="2" fill="none" stroke-linecap="round"/>`
+};
+const ACCESSORIES = {
+  cheer: `<g font-family="serif" font-weight="900"><text x="14" y="32" font-size="16" fill="#ffc800">✦</text><text x="98" y="42" font-size="13" fill="#ff86c8">✦</text><text x="10" y="78" font-size="11" fill="#1cb0f6">✦</text><text x="100" y="92" font-size="14" fill="#ffc800">✦</text></g>`,
+  sleep: `<g font-family="-apple-system,sans-serif" font-weight="900" fill="#1cb0f6"><text x="80" y="22" font-size="14" opacity="0.85">z</text><text x="92" y="14" font-size="11" opacity="0.6">z</text><text x="102" y="8" font-size="8" opacity="0.4">z</text></g>`,
+  race:  `<g><rect x="40" y="98" width="40" height="14" rx="2" fill="white" stroke="#3c3c3c" stroke-width="1.5"/><text x="60" y="109" font-size="9" font-weight="900" fill="#ff4b4b" text-anchor="middle" font-family="-apple-system,sans-serif">13.1</text></g>`
+};
+const MOODS = {
+  default: { eyes: 'default', mouth: 'smile',   accessory: '' },
+  cheer:   { eyes: 'cheer',   mouth: 'grin',    accessory: 'cheer' },
+  sleep:   { eyes: 'sleep',   mouth: 'small',   accessory: 'sleep' },
+  pumped:  { eyes: 'pumped',  mouth: 'o',       accessory: 'race' },
+  rest:    { eyes: 'rest',    mouth: 'relaxed', accessory: '' }
+};
+
+function mileoSVG(mood = 'default') {
+  const m = MOODS[mood] || MOODS.default;
+  return `
+  <svg viewBox="0 0 120 135" xmlns="http://www.w3.org/2000/svg">
+    ${ACCESSORIES[m.accessory] || ''}
+    <!-- Body fluff -->
+    <ellipse cx="60" cy="100" rx="32" ry="20" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
+    <circle cx="35" cy="100" r="10" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
+    <circle cx="85" cy="100" r="10" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
+    <circle cx="48" cy="88" r="9" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
+    <circle cx="72" cy="88" r="9" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
+    <!-- Legs -->
+    <rect x="40" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
+    <rect x="54" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
+    <rect x="67" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
+    <rect x="78" y="112" width="6.5" height="14" rx="3" fill="#a89070"/>
+    <ellipse cx="43.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
+    <ellipse cx="57.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
+    <ellipse cx="70.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
+    <ellipse cx="81.2" cy="127" rx="4.5" ry="1.8" fill="#5a4a30"/>
+    <!-- Race bib goes over body -->
+    ${m.accessory === 'race' ? ACCESSORIES.race : ''}
+    <!-- Neck -->
+    <path d="M 50 88 Q 47 70 51 50 Q 56 46 64 46 Q 68 70 70 88 Z" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Head -->
+    <ellipse cx="60" cy="40" rx="22" ry="20" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5"/>
+    <!-- Outer ears -->
+    <path d="M 38 28 L 32 8 L 50 23 Z" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M 82 28 L 88 8 L 70 23 Z" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Inner ears (pink) -->
+    <path d="M 41 24 L 38 14 L 47 22 Z" fill="#ffc4d6"/>
+    <path d="M 79 24 L 82 14 L 73 22 Z" fill="#ffc4d6"/>
+    <!-- Tuft of hair on top -->
+    <circle cx="55" cy="22" r="3.5" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2"/>
+    <circle cx="60" cy="20" r="4" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2"/>
+    <circle cx="65" cy="22" r="3.5" fill="#faf3e0" stroke="#d4c2a0" stroke-width="2"/>
+    <!-- Cheeks -->
+    <ellipse cx="46" cy="46" rx="4" ry="2.5" fill="#ffc4d6" opacity="0.7"/>
+    <ellipse cx="74" cy="46" rx="4" ry="2.5" fill="#ffc4d6" opacity="0.7"/>
+    <!-- Eyes -->
+    ${EYES[m.eyes]}
+    <!-- Mouth -->
+    ${MOUTHS[m.mouth]}
+  </svg>`;
 }
 
+/* ============= MOOD + MESSAGES ============= */
+function pickMood() {
+  const hour = new Date().getHours();
+  if (hour >= 22 || hour < 6) return 'sleep';
+  if (Date.now() - (state.lastCompleteAt || 0) < 8000) return 'cheer';
+  if (currentWeekIdx() === 11) return 'pumped';
+  const today = todayWorkoutInfo();
+  if (!today) return 'cheer'; // plan complete
+  // Today is a rest day
+  if (isTodayRestDay()) return 'rest';
+  return 'default';
+}
+
+function isTodayRestDay() {
+  // We don't have real calendar days, so define rest day as: when the next workout
+  // is not "today" in the typical week pattern. Simpler: never assume. Rest mood
+  // when user has just completed all workouts in current week.
+  const wIdx = currentWeekIdx();
+  const week = PLAN[wIdx];
+  const total = DAYS.filter(d => isWorkout(week[d])).length;
+  const done = DAYS.filter(d => isWorkout(week[d]) && state.completed[workoutKey(week.week, d)]).length;
+  return total > 0 && done === total;
+}
+
+const MILEO_MESSAGES = {
+  start: [
+    "¡Hola! I'm Mileo 🦙 Let's run!",
+    "12 weeks. One llama. Vamos!",
+    "Tap a glowing node to begin."
+  ],
+  upNext: [
+    (m) => `Up next: <strong>${m.name}</strong> ${m.icon}. Vamos!`,
+    (m) => `Time for <strong>${m.name}</strong>! My little llama legs are ready 🦙`,
+    (m) => `<strong>${m.name}</strong> day! You got this.`
+  ],
+  midPlan: [
+    (s) => `${s.workouts} workouts done. Mileo is impressed 🦙`,
+    (s) => `<strong>${s.miles.toFixed(1)} mi</strong> in the bank. Keep going!`,
+    (s) => `Streak: <strong>${s.streak}</strong> 🔥 Don't break it!`
+  ],
+  longDone: [
+    "<strong>Long run done!</strong> My little llama legs hurt just watching.",
+    "That was a LOT of miles. ¡Increíble!",
+    "Long run survivors club 🏔️"
+  ],
+  cheer: [
+    "✨ Boom! Workout done. ¡Vamos!",
+    "🎉 Crushing it. Mileo approves.",
+    "💪 That's the stuff. One step closer."
+  ],
+  sleep: [
+    "ZZZ... oh hi! Get some sleep too 💤",
+    "Llamas need rest. So do you.",
+    "Tomorrow we run. Tonight we recover."
+  ],
+  rest: [
+    "Rest day. Recovery counts too 🌿",
+    "I'm chilling. You should too.",
+    "No miles today. Just vibes."
+  ],
+  raceWeek: [
+    "🏁 RACE WEEK! The hard work is done.",
+    "Trust the taper. Trust your llama.",
+    "13.1 is calling. Almost there!"
+  ],
+  done: [
+    "🏆 You finished the plan! Llama legends only.",
+    "Congrats! From all 4 of my hooves 🦙",
+    "Plan complete. Time to race!"
+  ]
+};
+
 let mascotMsgIdx = 0;
-function cycleMascotMessage() {
-  mascotMsgIdx = (mascotMsgIdx + 1) % 4;
+function pickMessage() {
+  const stats = badgeStats();
+  const today = todayWorkoutInfo();
+  const mood = pickMood();
+
+  let pool;
+  if (!today) pool = MILEO_MESSAGES.done;
+  else if (mood === 'sleep') pool = MILEO_MESSAGES.sleep;
+  else if (mood === 'rest') pool = MILEO_MESSAGES.rest;
+  else if (mood === 'pumped') pool = MILEO_MESSAGES.raceWeek;
+  else if (mood === 'cheer') pool = MILEO_MESSAGES.cheer;
+  else if (stats.workouts === 0) pool = MILEO_MESSAGES.start;
+  else if (mascotMsgIdx % 2 === 0 && today) pool = MILEO_MESSAGES.upNext;
+  else pool = MILEO_MESSAGES.midPlan;
+
+  const item = pool[mascotMsgIdx % pool.length];
+  if (typeof item === 'function') {
+    if (today) return item(TYPE_META[today.workout.type]);
+    return item(stats);
+  }
+  return item;
+}
+
+function renderMascot() {
+  const mood = pickMood();
+  document.getElementById("mascotEl").innerHTML = mileoSVG(mood);
+  document.getElementById("speech").innerHTML = pickMessage();
+}
+
+function onMascotTap() {
+  mascotMsgIdx = (mascotMsgIdx + 1);
+  const el = document.getElementById("mascotEl");
+  el.classList.add("bounce");
+  setTimeout(() => el.classList.remove("bounce"), 500);
+  Sound.playPop();
   renderMascot();
 }
-function renderMascot() {
-  document.getElementById("speech").innerHTML = mascotMessage();
+
+/* ============= SOUND + HAPTICS ============= */
+const Sound = {
+  ctx: null,
+  getCtx() {
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { this.ctx = null; }
+    }
+    return this.ctx;
+  },
+  tone(freq, dur, vol = 0.18, type = 'sine') {
+    if (!state.soundOn) return;
+    const ctx = this.getCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.type = type;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + dur);
+  },
+  playPop() { this.tone(700, 0.07, 0.12, 'triangle'); },
+  playComplete() {
+    this.tone(523, 0.13, 0.18);                     // C5
+    setTimeout(() => this.tone(659, 0.13, 0.18), 90);  // E5
+    setTimeout(() => this.tone(784, 0.22, 0.18), 180); // G5
+  },
+  playBadge() {
+    [523, 659, 784, 1046, 1319].forEach((n, i) =>
+      setTimeout(() => this.tone(n, 0.18, 0.16, 'triangle'), i * 90));
+  },
+  playRest() { this.tone(440, 0.15, 0.12, 'sine'); }
+};
+
+function vibrate(pattern) {
+  if (!state.hapticOn) return;
+  if (navigator.vibrate) navigator.vibrate(pattern);
 }
+
+/* ============= BADGES ============= */
+const BADGES = [
+  { id: 'first-step',    emoji: '🎯', name: 'First Step',       desc: 'Complete your first workout',   check: s => s.workouts >= 1 },
+  { id: 'first-long',    emoji: '🏔️', name: 'First Long Run',   desc: 'Complete your first long run',  check: s => s.longRuns >= 1 },
+  { id: 'first-tempo',   emoji: '🌶️', name: 'First Tempo',      desc: 'Complete your first tempo run', check: s => s.tempos >= 1 },
+  { id: 'double-digits', emoji: '🔟', name: 'Double Digits',    desc: 'Run 10 miles total',            check: s => s.miles >= 10 },
+  { id: 'half-century',  emoji: '🎖️', name: 'Half Century',     desc: 'Run 50 miles total',            check: s => s.miles >= 50 },
+  { id: 'centennial',    emoji: '💯', name: 'Centennial',       desc: 'Run 100 miles total',           check: s => s.miles >= 100 },
+  { id: 'streak-3',      emoji: '🔥', name: 'On a Roll',        desc: '3-workout streak',              check: s => s.streak >= 3 },
+  { id: 'streak-7',      emoji: '⚡', name: 'Week Warrior',     desc: '7-workout streak',              check: s => s.streak >= 7 },
+  { id: 'streak-14',     emoji: '💪', name: 'Two Weeks Strong', desc: '14-workout streak',             check: s => s.streak >= 14 },
+  { id: 'tempo-5',       emoji: '🏎️', name: 'Tempo Master',    desc: 'Complete 5 tempo runs',         check: s => s.tempos >= 5 },
+  { id: 'iron-legs',     emoji: '🦵', name: 'Iron Legs',        desc: 'Complete 5 strength sessions',  check: s => s.strengths >= 5 },
+  { id: 'fish',          emoji: '🐟', name: 'Fish',             desc: 'Complete 5 swims',              check: s => s.swims >= 5 },
+  { id: 'rest-master',   emoji: '😴', name: 'Rest Master',      desc: 'Honor 5 rest days',             check: s => s.rests >= 5 },
+  { id: 'week-1',        emoji: '✅', name: 'Base Layer',       desc: 'Complete week 1',               check: s => s.weeksDone >= 1 },
+  { id: 'week-4',        emoji: '🪜', name: 'Quarter Pole',     desc: 'Complete week 4',               check: s => s.weeksDone >= 4 },
+  { id: 'week-8',        emoji: '🚀', name: 'Two-Thirds',       desc: 'Complete week 8',               check: s => s.weeksDone >= 8 },
+  { id: 'race-week',     emoji: '🏁', name: 'Race Week!',       desc: 'Reach race week',               check: s => s.atRaceWeek },
+  { id: 'plan-complete', emoji: '🏆', name: 'Trained',          desc: 'Finish all 12 weeks',           check: s => s.allComplete }
+];
+
+function badgeStats() {
+  let workouts = 0, miles = 0, longRuns = 0, tempos = 0, strengths = 0, swims = 0, weeksDone = 0;
+  let allComplete = true;
+  PLAN.forEach((week, wIdx) => {
+    let wDone = 0, wTotal = 0;
+    DAYS.forEach(d => {
+      const w = week[d];
+      if (!isWorkout(w)) return;
+      wTotal++;
+      if (state.completed[workoutKey(week.week, d)]) {
+        wDone++;
+        workouts++;
+        miles += workoutMiles(w);
+        if (w.type === 'long') longRuns++;
+        if (w.type === 'tempo') tempos++;
+        if (w.type === 'strength') strengths++;
+        if (w.type === 'swimming') swims++;
+      }
+    });
+    if (wTotal > 0 && wDone === wTotal) weeksDone++;
+    else allComplete = false;
+  });
+  const atRaceWeek = currentWeekIdx() === 11;
+  const rests = Object.keys(state.restCompleted || {}).length;
+  const streak = computeStreak();
+  return { workouts, miles, longRuns, tempos, strengths, swims, weeksDone, atRaceWeek, allComplete, rests, streak };
+}
+
+function checkBadges() {
+  const stats = badgeStats();
+  const newly = [];
+  BADGES.forEach(b => {
+    if (!state.badges[b.id] && b.check(stats)) {
+      state.badges[b.id] = Date.now();
+      newly.push(b);
+    }
+  });
+  if (newly.length) saveState();
+  return newly;
+}
+
+let badgeQueue = [];
+function showBadgeUnlocks(badges) {
+  badgeQueue.push(...badges);
+  if (badgeQueue.length === badges.length) processBadgeQueue();
+}
+function processBadgeQueue() {
+  if (badgeQueue.length === 0) return;
+  const b = badgeQueue.shift();
+  const card = document.getElementById('badgeUnlock');
+  document.getElementById('bue').textContent = b.emoji;
+  document.getElementById('bun').textContent = b.name;
+  document.getElementById('bud').textContent = b.desc;
+  card.classList.add('show');
+  Sound.playBadge();
+  vibrate([15, 60, 15, 60, 30]);
+  setTimeout(() => {
+    card.classList.remove('show');
+    setTimeout(processBadgeQueue, 400);
+  }, 3200);
+}
+
+/* ============= REST DAYS ============= */
+function markRestDone(week, day) {
+  const key = workoutKey(week, day);
+  if (state.restCompleted[key]) return;
+  state.restCompleted[key] = true;
+  saveState();
+  showToast("🌿 Rest respected · +20 XP", "");
+  Sound.playRest();
+  vibrate(20);
+  const newly = checkBadges();
+  rerender();
+  if (newly.length) showBadgeUnlocks(newly);
+}
+
+/* ============= TOGGLES ============= */
+function toggleSound() {
+  state.soundOn = !state.soundOn;
+  saveState();
+  if (state.soundOn) Sound.playPop();
+  renderToggles();
+}
+function toggleHaptic() {
+  state.hapticOn = !state.hapticOn;
+  saveState();
+  if (state.hapticOn) vibrate(30);
+  renderToggles();
+}
+function renderToggles() {
+  document.getElementById("soundToggle").classList.toggle("on", state.soundOn);
+  document.getElementById("hapticToggle").classList.toggle("on", state.hapticOn);
+}
+
+/* ============= PROFILE / BADGE GALLERY ============= */
+function renderBadges() {
+  const grid = document.getElementById("badgeGrid");
+  grid.innerHTML = "";
+  let unlocked = 0;
+  BADGES.forEach(b => {
+    const isUnlocked = !!state.badges[b.id];
+    if (isUnlocked) unlocked++;
+    grid.insertAdjacentHTML("beforeend", `
+      <div class="badge-cell ${isUnlocked ? 'unlocked' : ''}" onclick="alert('${b.name}\\n\\n${b.desc}\\n\\n${isUnlocked ? '✓ Unlocked' : '🔒 Locked'}')">
+        <div class="b-emoji">${b.emoji}</div>
+        <div class="b-name">${b.name}</div>
+      </div>
+    `);
+  });
+  document.getElementById("badgeCount").textContent = `${unlocked}/${BADGES.length}`;
+}
+
 
 /* ============= RENDER TOP BAR ============= */
 function renderTopBar() {
@@ -1135,10 +1699,22 @@ function renderPath() {
     DAYS.forEach((d, dIdx) => {
       const w = week[d];
       if (!isWorkout(w)) {
-        // Rest day: small dot
+        // Rest day: tappable small node
+        const restKey = workoutKey(week.week, d);
+        const restDone = !!state.restCompleted[restKey];
         const rest = document.createElement('div');
         rest.className = 'node-row';
-        rest.innerHTML = '<div class="rest-dot"></div>';
+        rest.innerHTML = `
+          <div class="node-wrap">
+            <div class="rest-node ${restDone ? 'done' : ''}" data-rest="${restKey}">
+              ${restDone ? '✓' : '😴'}
+            </div>
+            <div class="rest-label">${DAY_LBL[d]} · Rest</div>
+          </div>
+        `;
+        rest.querySelector('.rest-node').onclick = () => {
+          if (!restDone) markRestDone(week.week, d);
+        };
         weekDiv.appendChild(rest);
         return;
       }
@@ -1304,11 +1880,17 @@ function completeWorkout() {
   const key = workoutKey(activeWorkout.week, activeWorkout.day);
   if (state.completed[key]) return;
   state.completed[key] = true;
+  state.lastCompleteAt = Date.now();
   saveState();
   const xp = workoutXP(activeWorkout.workout);
+  Sound.playComplete();
+  vibrate([15, 50, 15]);
   closeModal();
   celebrate(xp);
+  const newly = checkBadges();
   rerender();
+  // Stagger badge unlocks AFTER the celebration toast (~2.2s)
+  if (newly.length) setTimeout(() => showBadgeUnlocks(newly), 2400);
 }
 
 function uncompleteWorkout() {
@@ -1360,6 +1942,8 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
     if (btn.dataset.tab === 'stats') renderStats();
+    if (btn.dataset.tab === 'profile') { renderBadges(); renderToggles(); }
+    Sound.playPop();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
@@ -1382,7 +1966,22 @@ function rerender() {
   if (document.getElementById('stats-panel').classList.contains('active')) {
     renderStats();
   }
+  if (document.getElementById('profile-panel').classList.contains('active')) {
+    renderBadges();
+    renderToggles();
+  }
 }
+
+// Wake up audio context on first user gesture (iOS requirement)
+['touchstart','click','keydown'].forEach(evt => {
+  document.addEventListener(evt, function init() {
+    Sound.getCtx();
+    document.removeEventListener(evt, init);
+  }, { once: true });
+});
+
+// Initial badge check (in case user reset state etc)
+checkBadges();
 
 rerender();
 </script>
