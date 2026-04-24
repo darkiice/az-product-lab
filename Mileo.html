@@ -327,8 +327,63 @@
     background: var(--locked);
     box-shadow: 0 6px 0 var(--locked-dark);
     color: var(--text-light);
+    cursor: not-allowed;
   }
   .node.locked .icon-inner { opacity: 0.4; }
+  .node.locked:active {
+    transform: none;
+    box-shadow: 0 6px 0 var(--locked-dark);
+  }
+  .node.locked::before {
+    content: '🔒';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 24px; height: 24px;
+    background: white;
+    border: 2px solid var(--border-strong);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  /* Skipped: keep the type icon visible (so you remember what it was)
+     but desaturate, and show a small skip-forward badge in the corner. */
+  .node.skipped {
+    background: var(--locked);
+    box-shadow: 0 6px 0 var(--locked-dark);
+  }
+  .node.skipped:active { box-shadow: 0 2px 0 var(--locked-dark); }
+  .node.skipped .icon-inner {
+    opacity: 0.55;
+    filter: grayscale(0.7);
+  }
+  .node.skipped::after {
+    content: '⏭';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 26px; height: 26px;
+    background: white;
+    border: 2px solid var(--locked-dark);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text-muted);
+  }
+
+  .shake { animation: shake-x 0.32s; }
+  @keyframes shake-x {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
 
   .node.today {
     transform: scale(1.06);
@@ -403,6 +458,11 @@
     box-shadow: 0 3px 0 var(--green-dark);
   }
   .rest-node.done:active { box-shadow: 0 1px 0 var(--green-dark); }
+  .rest-node.locked {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  .rest-node.locked:active { box-shadow: 0 3px 0 var(--locked-dark); transform: none; }
   .rest-label {
     margin-top: 4px;
     font-size: 9px;
@@ -1348,6 +1408,8 @@
     <div class="modal-footer">
       <button class="btn-3d" id="modalAction" onclick="completeWorkout()">Mark Complete</button>
       <button class="btn-secondary" id="modalUndo" onclick="uncompleteWorkout()" style="display:none;">Undo Complete</button>
+      <button class="btn-secondary" id="modalSkip" onclick="skipWorkout()" style="display:none;">Skip workout</button>
+      <button class="btn-secondary" id="modalUnskip" onclick="unskipWorkout()" style="display:none;">Unskip — bring it back</button>
     </div>
   </div>
 </div>
@@ -1434,6 +1496,7 @@
 const STORAGE_KEY = 'mileo-state-v2';
 const defaultState = {
   completed: {},
+  skipped: {},
   restCompleted: {},
   badges: {},
   gear: {},
@@ -1638,23 +1701,30 @@ function totalStats() {
   return { xp, miles, workouts };
 }
 
+// A workout is "resolved" if it's been completed OR explicitly skipped.
+// Resolved workouts no longer block week progression.
+function isWorkoutResolved(week, day) {
+  const key = workoutKey(week, day);
+  return !!(state.completed[key] || state.skipped[key]);
+}
+
 function currentWeekIdx() {
   for (let i = 0; i < PLAN.length; i++) {
     const w = PLAN[i];
     const total = DAYS.filter(d => isWorkout(w[d])).length;
-    const done = DAYS.filter(d => state.completed[workoutKey(w.week, d)]).length;
+    const done = DAYS.filter(d => isWorkout(w[d]) && isWorkoutResolved(w.week, d)).length;
     if (done < total) return i;
   }
   return PLAN.length - 1;
 }
 
 function todayWorkoutInfo() {
-  // Find first incomplete workout in current week
+  // Find first unresolved (not completed and not skipped) workout in current week
   const wIdx = currentWeekIdx();
   const week = PLAN[wIdx];
   for (const d of DAYS) {
     const w = week[d];
-    if (isWorkout(w) && !state.completed[workoutKey(week.week, d)]) {
+    if (isWorkout(w) && !isWorkoutResolved(week.week, d)) {
       return { week: week.week, day: d, workout: w };
     }
   }
@@ -2038,6 +2108,20 @@ function markRestDone(week, day) {
   if (newGear.length) setTimeout(() => showGearUnlocks(newGear), newly.length ? 600 : 0);
 }
 
+function toggleRestDone(week, day) {
+  const key = workoutKey(week, day);
+  if (state.restCompleted[key]) {
+    delete state.restCompleted[key];
+    saveState();
+    Sound.playPop();
+    vibrate(10);
+    showToast("Rest day untoggled", "red");
+    rerender();
+  } else {
+    markRestDone(week, day);
+  }
+}
+
 /* ============= TOGGLES ============= */
 function toggleSound() {
   state.soundOn = !state.soundOn;
@@ -2138,7 +2222,9 @@ function renderTopBar() {
 }
 
 function computeStreak() {
-  // Streak = consecutive completed workouts (counting back from most recent)
+  // Streak = consecutive completed workouts (counting back from most recent).
+  // Skipped workouts are neutral: they don't extend the streak, but they
+  // also don't break it (skip is opt-in, not a missed workout).
   let count = 0;
   for (let i = PLAN.length - 1; i >= 0; i--) {
     const week = PLAN[i];
@@ -2146,10 +2232,13 @@ function computeStreak() {
       const d = DAYS[j];
       const w = week[d];
       if (!isWorkout(w)) continue;
-      if (state.completed[workoutKey(week.week, d)]) {
+      const key = workoutKey(week.week, d);
+      if (state.completed[key]) {
         count++;
+      } else if (state.skipped[key]) {
+        continue; // neutral — keep walking
       } else {
-        // First missed = stop, but only stop counting once we've found at least one completed
+        // First truly missed workout = stop, once we've found at least one completed
         if (count > 0) return count;
       }
     }
@@ -2200,21 +2289,27 @@ function renderPath() {
   const today = todayWorkoutInfo();
   const todayKey = today ? workoutKey(today.week, today.day) : null;
 
+  const curIdx = currentWeekIdx();
+
   PLAN.forEach((week, wIdx) => {
     const workouts = DAYS.filter(d => isWorkout(week[d]));
     const total = workouts.length;
     const done = workouts.filter(d => state.completed[workoutKey(week.week, d)]).length;
-    const isCurrentWeek = wIdx === currentWeekIdx();
-    const isCompleted = done === total && total > 0;
-    const isFuture = wIdx > currentWeekIdx();
+    const skippedCount = workouts.filter(d => state.skipped[workoutKey(week.week, d)]).length;
+    const resolved = done + skippedCount;
+    const isCurrentWeek = wIdx === curIdx;
+    const isCompleted = resolved === total && total > 0 && done === total;
+    const isFuture = wIdx > curIdx;
+    const weekLocked = isFuture;
 
     const totalMiles = DAYS.reduce((s, d) => s + workoutMiles(week[d]), 0);
 
     const unitClass = isCompleted ? 'completed' : isFuture ? 'future' : '';
     const chestEmoji = isCompleted ? '🏆' : (week.week === 12 ? '🏁' : (isFuture ? '🔒' : '🎯'));
+    const skipText = skippedCount > 0 ? ` · ${skippedCount} skipped` : '';
     const subText = totalMiles > 0
-      ? `${totalMiles.toFixed(0)} mi · ${done}/${total} done`
-      : `${done}/${total} done`;
+      ? `${totalMiles.toFixed(0)} mi · ${done}/${total} done${skipText}`
+      : `${done}/${total} done${skipText}`;
     path.insertAdjacentHTML('beforeend', `
       <div class="unit ${unitClass}">
         <div class="left">
@@ -2233,21 +2328,26 @@ function renderPath() {
     DAYS.forEach((d, dIdx) => {
       const w = week[d];
       if (!isWorkout(w)) {
-        // Rest day: tappable small node
+        // Rest day: tappable small node (now toggleable)
         const restKey = workoutKey(week.week, d);
         const restDone = !!state.restCompleted[restKey];
         const rest = document.createElement('div');
         rest.className = 'node-row';
         rest.innerHTML = `
           <div class="node-wrap">
-            <div class="rest-node ${restDone ? 'done' : ''}" data-rest="${restKey}">
+            <div class="rest-node ${restDone ? 'done' : ''} ${weekLocked ? 'locked' : ''}" data-rest="${restKey}">
               ${restDone ? '✓' : '😴'}
             </div>
             <div class="rest-label">${DAY_LBL[d]} · Rest</div>
           </div>
         `;
-        rest.querySelector('.rest-node').onclick = () => {
-          if (!restDone) markRestDone(week.week, d);
+        const restEl = rest.querySelector('.rest-node');
+        restEl.onclick = () => {
+          if (weekLocked) {
+            shakeAndToast(restEl, `Finish Week ${curIdx + 1} first 🔒`);
+            return;
+          }
+          toggleRestDone(week.week, d);
         };
         weekDiv.appendChild(rest);
         return;
@@ -2255,6 +2355,7 @@ function renderPath() {
 
       const key = workoutKey(week.week, d);
       const isDone = !!state.completed[key];
+      const isSkipped = !!state.skipped[key];
       const isToday = key === todayKey;
       const t = w.type;
       const meta = TYPE_META[t];
@@ -2263,24 +2364,47 @@ function renderPath() {
       const offset = Math.sin((nodeIdx / Math.max(total - 1, 1)) * Math.PI * 1.6) * 90;
       nodeIdx++;
 
+      const nodeClasses = [
+        'node', t,
+        isDone ? 'done' : '',
+        isSkipped ? 'skipped' : '',
+        isToday ? 'today' : '',
+        weekLocked ? 'locked' : ''
+      ].filter(Boolean).join(' ');
+
       const row = document.createElement('div');
       row.className = 'node-row';
       row.style.transform = `translateX(${offset}px)`;
       row.innerHTML = `
         <div class="node-wrap">
-          ${isToday && !isDone ? '<div class="start-bubble">START</div>' : ''}
-          <div class="node ${t} ${isDone ? 'done' : ''} ${isToday ? 'today' : ''}" data-key="${key}">
+          ${isToday && !isDone && !isSkipped ? '<div class="start-bubble">START</div>' : ''}
+          <div class="${nodeClasses}" data-key="${key}">
             <span class="icon-inner">${meta.icon}</span>
           </div>
           <div class="node-label">${DAY_LBL[d]}</div>
         </div>
       `;
-      row.querySelector('.node').onclick = () => openWorkoutByKey(week.week, d);
+      const nodeEl = row.querySelector('.node');
+      nodeEl.onclick = () => {
+        if (weekLocked) {
+          shakeAndToast(nodeEl, `Finish Week ${curIdx + 1} first 🔒`);
+          return;
+        }
+        openWorkoutByKey(week.week, d);
+      };
       weekDiv.appendChild(row);
     });
 
     path.appendChild(weekDiv);
   });
+}
+
+function shakeAndToast(el, msg) {
+  el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 320);
+  Sound.playPop();
+  vibrate(15);
+  showToast(msg, 'red');
 }
 
 /* ============= RENDER STATS ============= */
@@ -2341,10 +2465,12 @@ function openWorkoutByKey(week, day) {
   const meta = TYPE_META[t];
   const key = workoutKey(week, day);
   const isDone = !!state.completed[key];
+  const isSkipped = !!state.skipped[key];
 
   document.getElementById("modalHeader").className = `modal-header ${t}`;
   document.getElementById("modalIcon").textContent = meta.icon;
-  document.getElementById("modalDay").textContent = `${DAY_LBL[day]} · Week ${week}`;
+  const dayPill = isSkipped ? `${DAY_LBL[day]} · Wk ${week} · ⏭ SKIPPED` : `${DAY_LBL[day]} · Week ${week}`;
+  document.getElementById("modalDay").textContent = dayPill;
   document.getElementById("modalTitle").textContent = meta.name;
 
   const dist = w.dist != null ? `${w.dist} miles` : `${w.duration} min · easy effort`;
@@ -2446,20 +2572,33 @@ function openWorkoutByKey(week, day) {
       </div>`;
   }
 
-  // Footer button state
+  // Footer button state — 3 modes: pending / completed / skipped
   const action = document.getElementById("modalAction");
   const undo = document.getElementById("modalUndo");
+  const skip = document.getElementById("modalSkip");
+  const unskip = document.getElementById("modalUnskip");
+  const xp = workoutXP(w);
   if (isDone) {
-    action.textContent = `Completed! +${workoutXP(w)} XP`;
+    action.textContent = `Completed! +${xp} XP`;
     action.className = "btn-3d gold";
     action.disabled = true;
     undo.style.display = "block";
-  } else {
-    const xp = workoutXP(w);
+    skip.style.display = "none";
+    unskip.style.display = "none";
+  } else if (isSkipped) {
     action.textContent = `Mark Complete · +${xp} XP`;
     action.className = "btn-3d";
     action.disabled = false;
     undo.style.display = "none";
+    skip.style.display = "none";
+    unskip.style.display = "block";
+  } else {
+    action.textContent = `Mark Complete · +${xp} XP`;
+    action.className = "btn-3d";
+    action.disabled = false;
+    undo.style.display = "none";
+    skip.style.display = "block";
+    unskip.style.display = "none";
   }
 
   document.getElementById("modal").classList.add("show");
@@ -2614,6 +2753,7 @@ function completeWorkout() {
   const key = workoutKey(activeWorkout.week, activeWorkout.day);
   if (state.completed[key]) return;
   state.completed[key] = true;
+  delete state.skipped[key]; // completing always supersedes a prior skip
   state.lastCompleteAt = Date.now();
   saveState();
   const xp = workoutXP(activeWorkout.workout);
@@ -2636,6 +2776,29 @@ function uncompleteWorkout() {
   saveState();
   closeModal();
   showToast("Marked incomplete", "red");
+  rerender();
+}
+
+function skipWorkout() {
+  if (!activeWorkout) return;
+  const key = workoutKey(activeWorkout.week, activeWorkout.day);
+  if (state.completed[key]) return;
+  state.skipped[key] = Date.now();
+  saveState();
+  Sound.playPop();
+  vibrate(15);
+  closeModal();
+  showToast("⏭ Skipped — moving on", "");
+  rerender();
+}
+
+function unskipWorkout() {
+  if (!activeWorkout) return;
+  const key = workoutKey(activeWorkout.week, activeWorkout.day);
+  delete state.skipped[key];
+  saveState();
+  closeModal();
+  showToast("Workout restored", "");
   rerender();
 }
 
