@@ -169,6 +169,7 @@
     transform: rotate(45deg);
   }
   .speech strong { font-weight: 900; }
+  .speech .speech-text { display: block; width: 100%; }
 
   /* ============= TODAY HERO ============= */
   .today-hero {
@@ -627,6 +628,50 @@
     transition: all 0.1s;
   }
   .test-btn:active { box-shadow: 0 1px 0 var(--green-dark); transform: translateY(2px); }
+
+  /* ============= REMINDER TIME PICKER ============= */
+  .time-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+  }
+  .time-picker select {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 900;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    text-align: center;
+    padding: 0 2px;
+  }
+  .time-picker .colon { font-weight: 900; color: var(--text-muted); }
+  .time-picker .ampm {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .notif-help {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 700;
+    line-height: 1.4;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--bg-card);
+    border-radius: 10px;
+  }
+  .notif-help strong { color: var(--text); font-weight: 900; }
 
   /* ============= BOTTOM NAV ============= */
   .bottom-nav {
@@ -1254,7 +1299,7 @@
         <div class="mascot" id="mascotEl" onclick="onMascotTap()"></div>
         <div class="gear-strip" id="gearStrip"></div>
       </div>
-      <div class="speech" id="speech">¡Vamos! Let's get you to 13.1 miles.</div>
+      <div class="speech" id="speech"><span class="speech-text">¡Vamos! Let's get you to 13.1 miles.</span></div>
     </div>
 
     <div id="todayHero"></div>
@@ -1359,6 +1404,46 @@
       </div>
       <button class="test-btn" onclick="Sound.prime(); Sound.playComplete();">Play</button>
     </div>
+  </div>
+
+  <div class="legend-card">
+    <h3>🔔 Reminders</h3>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">🦙</span>
+        <div>
+          <div class="lbl-text">Daily Mileo nudge</div>
+          <div class="lbl-sub">Emotional reminders to keep your streak alive</div>
+        </div>
+      </div>
+      <button class="toggle" id="remindersToggle" onclick="toggleReminders()"></button>
+    </div>
+    <div class="toggle-row" id="reminderTimeRow">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">⏰</span>
+        <div>
+          <div class="lbl-text">Remind me at</div>
+          <div class="lbl-sub">Mileo will say hi every day</div>
+        </div>
+      </div>
+      <div class="time-picker">
+        <select id="reminderHourSel" onchange="onReminderTimeChanged()"></select>
+        <span class="colon">:</span>
+        <select id="reminderMinSel" onchange="onReminderTimeChanged()"></select>
+        <select id="reminderAmPmSel" onchange="onReminderTimeChanged()" class="ampm"></select>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">🧪</span>
+        <div>
+          <div class="lbl-text">Send a test now</div>
+          <div class="lbl-sub">Make sure it works on your device</div>
+        </div>
+      </div>
+      <button class="test-btn" onclick="sendTestNotification()">Test</button>
+    </div>
+    <div class="notif-help" id="notifHelp"></div>
   </div>
 
   <div class="legend-card">
@@ -1503,6 +1588,10 @@ const defaultState = {
   goalPaceSec: null,
   soundOn: true,
   hapticOn: true,
+  remindersOn: false,
+  reminderHour: 18,        // 6pm default
+  reminderMin: 0,
+  lastNotifiedDate: null,  // YYYY-MM-DD of last fired notification
   lastCompleteAt: 0,
   lastSeen: null
 };
@@ -1820,17 +1909,40 @@ const MILEO_MESSAGES = {
     "🏆 You finished the plan! Llama legends only.",
     "Congrats! From all 4 of my hooves 🦙",
     "Plan complete. Time to race!"
+  ],
+  // Returns from absence — emotional Mileo. Pool selected by daysAway tier.
+  missedYouShort: [
+    (s) => `¡Hola again! Mileo's been waiting all day 🦙`,
+    (s) => `There you are! I was about to send a search party.`,
+    (s) => `Back in action — your <strong>${s.streak}-day streak</strong> 🔥 says hi.`
+  ],
+  missedYouMedium: [
+    (s) => `🥺 Two whole days! I missed you. Let's run.`,
+    (s) => `Mileo did a little llama sigh of relief. Welcome back.`,
+    (s) => `A few days off is okay. We pick up right where we left off.`
+  ],
+  missedYouLong: [
+    (s) => `🥺 Five days?! Mileo was about to eat all the carbs alone.`,
+    (s) => `Long time! Don't worry — your plan is still here for you.`,
+    (s) => `Hey stranger 🦙 The path is still walkable. One step at a time.`
   ]
 };
 
 let mascotMsgIdx = 0;
+// Set on init by maybeShowWelcomeBack(); if non-null, pickMessage shows
+// a "missed you" line for the first render this session.
+let pendingWelcomeBackPool = null;
+
 function pickMessage() {
   const stats = badgeStats();
   const today = todayWorkoutInfo();
   const mood = pickMood();
 
   let pool;
-  if (!today) pool = MILEO_MESSAGES.done;
+  // First render after a long absence wins over everything except plan-done.
+  if (today && pendingWelcomeBackPool && mascotMsgIdx === 0) {
+    pool = pendingWelcomeBackPool;
+  } else if (!today) pool = MILEO_MESSAGES.done;
   else if (mood === 'sleep') pool = MILEO_MESSAGES.sleep;
   else if (mood === 'rest') pool = MILEO_MESSAGES.rest;
   else if (mood === 'pumped') pool = MILEO_MESSAGES.raceWeek;
@@ -1841,16 +1953,37 @@ function pickMessage() {
 
   const item = pool[mascotMsgIdx % pool.length];
   if (typeof item === 'function') {
-    if (today) return item(TYPE_META[today.workout.type]);
+    // upNext functions take TYPE_META for the next workout; everything else takes stats.
+    if (pool === MILEO_MESSAGES.upNext && today) {
+      return item(TYPE_META[today.workout.type]);
+    }
     return item(stats);
   }
   return item;
 }
 
+function maybeShowWelcomeBack() {
+  const last = state.lastSeen;
+  // Always touch lastSeen so the next return is measured from now.
+  const now = Date.now();
+  state.lastSeen = now;
+  saveState();
+  if (!last) return; // first ever session — no welcome-back
+
+  const hoursAway = (now - last) / (1000 * 60 * 60);
+  if (hoursAway >= 16 && hoursAway < 48) {
+    pendingWelcomeBackPool = MILEO_MESSAGES.missedYouShort;
+  } else if (hoursAway >= 48 && hoursAway < 96) {
+    pendingWelcomeBackPool = MILEO_MESSAGES.missedYouMedium;
+  } else if (hoursAway >= 96) {
+    pendingWelcomeBackPool = MILEO_MESSAGES.missedYouLong;
+  }
+}
+
 function renderMascot() {
   const mood = pickMood();
   document.getElementById("mascotEl").innerHTML = mileoSVG(mood);
-  document.getElementById("speech").innerHTML = pickMessage();
+  document.getElementById("speech").innerHTML = `<span class="speech-text">${pickMessage()}</span>`;
 }
 
 function onMascotTap() {
@@ -2138,6 +2271,83 @@ function toggleHaptic() {
 function renderToggles() {
   document.getElementById("soundToggle").classList.toggle("on", state.soundOn);
   document.getElementById("hapticToggle").classList.toggle("on", state.hapticOn);
+  const remToggle = document.getElementById("remindersToggle");
+  if (remToggle) remToggle.classList.toggle("on", state.remindersOn);
+  populateReminderTimeSelects();
+  renderNotifHelp();
+}
+
+function populateReminderTimeSelects() {
+  const hourSel = document.getElementById('reminderHourSel');
+  const minSel = document.getElementById('reminderMinSel');
+  const ampmSel = document.getElementById('reminderAmPmSel');
+  if (!hourSel || hourSel.options.length) {
+    if (hourSel) syncReminderTimeSelects();
+    return;
+  }
+  for (let h = 1; h <= 12; h++) {
+    const o = document.createElement('option');
+    o.value = h; o.textContent = h;
+    hourSel.appendChild(o);
+  }
+  for (let m = 0; m < 60; m += 15) {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = String(m).padStart(2, '0');
+    minSel.appendChild(o);
+  }
+  ['AM', 'PM'].forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    ampmSel.appendChild(o);
+  });
+  syncReminderTimeSelects();
+}
+
+function syncReminderTimeSelects() {
+  const hourSel = document.getElementById('reminderHourSel');
+  const minSel = document.getElementById('reminderMinSel');
+  const ampmSel = document.getElementById('reminderAmPmSel');
+  if (!hourSel || !minSel || !ampmSel) return;
+  const h24 = state.reminderHour;
+  const ampm = h24 >= 12 ? 'PM' : 'AM';
+  let h12 = h24 % 12;
+  if (h12 === 0) h12 = 12;
+  hourSel.value = h12;
+  // Snap minutes to nearest 15
+  const m = Math.round(state.reminderMin / 15) * 15;
+  minSel.value = (m === 60 ? 45 : m);
+  ampmSel.value = ampm;
+}
+
+function onReminderTimeChanged() {
+  const h12 = parseInt(document.getElementById('reminderHourSel').value, 10);
+  const m = parseInt(document.getElementById('reminderMinSel').value, 10);
+  const ampm = document.getElementById('reminderAmPmSel').value;
+  let h24 = h12 % 12;
+  if (ampm === 'PM') h24 += 12;
+  setReminderTime(h24, m);
+  renderNotifHelp();
+}
+
+function renderNotifHelp() {
+  const help = document.getElementById('notifHelp');
+  if (!help) return;
+  if (!NOTIF_SUPPORTED) {
+    help.innerHTML = `<strong>Heads up:</strong> this browser doesn't support notifications. Add Mileo to your home screen on a supported device for the full nudge experience.`;
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    help.innerHTML = `<strong>🔕 Notifications blocked.</strong> Enable them in your browser/site settings, then come back and toggle reminders.`;
+    return;
+  }
+  const triggerSupport = ('Notification' in window) && ('showTrigger' in Notification.prototype);
+  if (state.remindersOn && triggerSupport) {
+    help.innerHTML = `<strong>You're set.</strong> Mileo will tap your shoulder daily — even when the app is closed.`;
+  } else if (state.remindersOn) {
+    help.innerHTML = `<strong>iOS / Safari note:</strong> background reminders only fire reliably when this PWA is added to your home screen. While you have Mileo open, you'll always get the nudge.`;
+  } else {
+    help.innerHTML = `Toggle this on and Mileo will send you a daily, personality-filled nudge — streak warnings, race week hype, the whole thing.`;
+  }
 }
 
 /* ============= PROFILE / BADGE GALLERY ============= */
@@ -2856,6 +3066,233 @@ function resetProgress() {
   showToast("Progress reset", "red");
 }
 
+/* ============= NOTIFICATIONS (Duolingo-style nudges) ============= */
+// Pools of emotional, llama-voiced reminder copy. Picked contextually
+// based on streak, today's workout, and how long the user has been away.
+const NOTIF_POOLS = {
+  // Streak in danger (last completion was yesterday-ish, streak > 0)
+  streakRisk: [
+    (s) => ({ title: `🔥 Don't lose your ${s.streak}-day streak!`, body: `Mileo's getting nervous. ${s.upNextName ? "Today: " + s.upNextName + "." : "Quick run today?"}` }),
+    (s) => ({ title: `Your streak needs you 🦙`, body: `${s.streak} days strong. One more workout keeps it alive.` }),
+    (s) => ({ title: `🥺 5 hours left on your streak`, body: `Mileo is doing puppy eyes from across the path.` })
+  ],
+  // Has a today, no streak risk
+  todayWaiting: [
+    (s) => ({ title: `${s.upNextIcon || '🏃'} ${s.upNextName || 'Workout'} day`, body: `Mileo's already stretching. Let's go!` }),
+    (s) => ({ title: `🦙 ¡Vamos!`, body: `${s.upNextName || 'Your workout'} is waiting. ${s.upNextDist || ''}`.trim() }),
+    (s) => ({ title: `Time to lace up`, body: `${s.upNextName || 'Today'}'s on the path. Mileo's coming with you.` })
+  ],
+  // Race week — extra hype
+  raceWeek: [
+    (s) => ({ title: `🏁 RACE WEEK!`, body: `Trust the taper. Mileo can't wait.` }),
+    (s) => ({ title: `Almost 13.1 🦙`, body: `Your llama is wearing the bib already.` }),
+    (s) => ({ title: `Last few miles before race day`, body: `You've earned this. Keep it light.` })
+  ],
+  // Long absence — emotional re-engagement
+  longAway: [
+    (s) => ({ title: `🥺 Mileo misses you`, body: `It's been ${s.daysAway} days. Your plan's still here.` }),
+    (s) => ({ title: `Hey stranger 🦙`, body: `Mileo's been waiting. One step today is all it takes.` }),
+    (s) => ({ title: `Where'd you go?`, body: `${s.daysAway} days, but the path doesn't move without you.` })
+  ],
+  // Plan complete or rest day — gentle check-in
+  chill: [
+    (s) => ({ title: `🌿 Rest day, llama style`, body: `Recovery counts. Eat well. See you tomorrow.` }),
+    (s) => ({ title: `Mileo says hi 🦙`, body: `Just checking in. No pressure today.` })
+  ]
+};
+
+function buildNotifContext() {
+  const stats = badgeStats();
+  const today = todayWorkoutInfo();
+  const streak = computeStreak();
+  const daysAway = state.lastSeen
+    ? Math.floor((Date.now() - state.lastSeen) / (1000 * 60 * 60 * 24))
+    : 0;
+  const ctx = {
+    streak,
+    daysAway,
+    workouts: stats.workouts,
+    miles: stats.miles,
+    upNextName: today ? TYPE_META[today.workout.type].name : null,
+    upNextIcon: today ? TYPE_META[today.workout.type].icon : null,
+    upNextDist: today
+      ? (today.workout.dist != null ? `${today.workout.dist} mi` : `${today.workout.duration} min`)
+      : null
+  };
+  return ctx;
+}
+
+function pickNotification() {
+  const ctx = buildNotifContext();
+  const today = todayWorkoutInfo();
+  const inRaceWeek = currentWeekIdx() === 11;
+  let pool;
+  if (!today) pool = NOTIF_POOLS.chill;
+  else if (inRaceWeek) pool = NOTIF_POOLS.raceWeek;
+  else if (ctx.daysAway >= 4) pool = NOTIF_POOLS.longAway;
+  else if (ctx.streak >= 3) pool = NOTIF_POOLS.streakRisk;
+  else pool = NOTIF_POOLS.todayWaiting;
+  const item = pool[Math.floor(Math.random() * pool.length)];
+  return item(ctx);
+}
+
+/* ============= NOTIFICATION SCHEDULING + SETTINGS ============= */
+const NOTIF_SUPPORTED = 'Notification' in window;
+const SW_SUPPORTED = 'serviceWorker' in navigator;
+let mileoSWReg = null;
+
+async function registerMileoSW() {
+  if (!SW_SUPPORTED) return null;
+  if (mileoSWReg) return mileoSWReg;
+  try {
+    mileoSWReg = await navigator.serviceWorker.register('mileo-sw.js');
+    return mileoSWReg;
+  } catch (e) {
+    console.warn('Mileo SW registration failed:', e);
+    return null;
+  }
+}
+
+function ymd(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function nextReminderTime() {
+  const now = new Date();
+  const next = new Date();
+  next.setHours(state.reminderHour, state.reminderMin, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  return next;
+}
+
+function showLocalNotification() {
+  if (!NOTIF_SUPPORTED || Notification.permission !== 'granted') return;
+  const { title, body } = pickNotification();
+  const opts = {
+    body,
+    icon: 'mileo-icon-512.png',
+    badge: 'mileo-icon-192.png',
+    tag: 'mileo-daily',
+    renotify: true
+  };
+  // Prefer SW (works when app is in background); fall back to direct.
+  if (mileoSWReg && mileoSWReg.showNotification) {
+    mileoSWReg.showNotification(title, opts);
+  } else {
+    new Notification(title, opts);
+  }
+  state.lastNotifiedDate = ymd(new Date());
+  saveState();
+}
+
+// Try the experimental Notification Triggers API (Chrome). Falls back to
+// in-app setTimeout while page is open.
+async function scheduleNextReminder() {
+  if (!state.remindersOn) return;
+  if (!NOTIF_SUPPORTED || Notification.permission !== 'granted') return;
+  const reg = await registerMileoSW();
+  const fireAt = nextReminderTime();
+  const { title, body } = pickNotification();
+  const opts = {
+    body,
+    icon: 'mileo-icon-512.png',
+    badge: 'mileo-icon-192.png',
+    tag: 'mileo-daily',
+    renotify: true
+  };
+  // Path A: Notification Triggers API (Chromium-based browsers, behind a flag in some)
+  if (reg && 'showTrigger' in Notification.prototype && typeof TimestampTrigger !== 'undefined') {
+    try {
+      // Cancel any prior scheduled trigger so we don't pile up
+      const existing = await reg.getNotifications({ tag: 'mileo-daily', includeTriggered: false });
+      existing.forEach(n => n.close());
+      await reg.showNotification(title, { ...opts, showTrigger: new TimestampTrigger(fireAt.getTime()) });
+      return;
+    } catch (e) {
+      console.warn('showTrigger failed:', e);
+    }
+  }
+  // Path B: in-app fallback. Only fires while the page stays open.
+  scheduleInPageReminder(fireAt);
+}
+
+let inPageReminderTimer = null;
+function scheduleInPageReminder(fireAt) {
+  if (inPageReminderTimer) clearTimeout(inPageReminderTimer);
+  const delay = Math.max(0, fireAt.getTime() - Date.now());
+  // Cap at ~24h for safety
+  const safeDelay = Math.min(delay, 24 * 60 * 60 * 1000);
+  inPageReminderTimer = setTimeout(() => {
+    // Don't double-fire on the same day
+    const today = ymd(new Date());
+    if (state.lastNotifiedDate !== today) showLocalNotification();
+    // Reschedule for tomorrow
+    scheduleInPageReminder(nextReminderTime());
+  }, safeDelay);
+}
+
+async function enableReminders() {
+  if (!NOTIF_SUPPORTED) {
+    showToast("This browser doesn't support notifications", "red");
+    return false;
+  }
+  let perm = Notification.permission;
+  if (perm === 'default') perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    showToast("Notifications blocked — enable in browser settings", "red");
+    state.remindersOn = false;
+    saveState();
+    renderToggles();
+    return false;
+  }
+  state.remindersOn = true;
+  saveState();
+  await scheduleNextReminder();
+  showToast("🔔 Reminders on — Mileo will nudge you", "");
+  return true;
+}
+
+function disableReminders() {
+  state.remindersOn = false;
+  saveState();
+  if (inPageReminderTimer) { clearTimeout(inPageReminderTimer); inPageReminderTimer = null; }
+  if (mileoSWReg && mileoSWReg.getNotifications) {
+    mileoSWReg.getNotifications({ tag: 'mileo-daily' }).then(ns => ns.forEach(n => n.close()));
+  }
+  showToast("Reminders off", "");
+}
+
+async function toggleReminders() {
+  if (state.remindersOn) {
+    disableReminders();
+  } else {
+    await enableReminders();
+  }
+  renderToggles();
+}
+
+async function sendTestNotification() {
+  if (!NOTIF_SUPPORTED) {
+    showToast("This browser doesn't support notifications", "red");
+    return;
+  }
+  let perm = Notification.permission;
+  if (perm === 'default') perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    showToast("Permission denied", "red");
+    return;
+  }
+  await registerMileoSW();
+  showLocalNotification();
+}
+
+function setReminderTime(hour, min) {
+  state.reminderHour = hour;
+  state.reminderMin = min;
+  saveState();
+  if (state.remindersOn) scheduleNextReminder();
+}
+
 /* ============= MAIN ============= */
 function rerender() {
   renderTopBar();
@@ -2887,12 +3324,34 @@ function rerender() {
 checkBadges();
 checkGear();
 
+// Detect "welcome back" before the first render so the speech bubble
+// can show an emotional return message if the user's been gone a while.
+maybeShowWelcomeBack();
+
 rerender();
 
 // First-run onboarding: ask for goal pace if not set
 if (state.goalPaceSec == null) {
   setTimeout(() => openPaceModal('first'), 400);
 }
+
+// Notifications: pre-register the SW (no permission prompt yet) and reschedule
+// reminders on every app load so the next nudge is up-to-date.
+if (SW_SUPPORTED) {
+  registerMileoSW().then(() => {
+    if (state.remindersOn && NOTIF_SUPPORTED && Notification.permission === 'granted') {
+      scheduleNextReminder();
+    }
+  });
+}
+
+// Re-arm the reminder when the app returns to foreground (in case it was
+// closed and the user re-opened — keeps the in-page fallback warm).
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.remindersOn && NOTIF_SUPPORTED && Notification.permission === 'granted') {
+    scheduleNextReminder();
+  }
+});
 </script>
 </body>
 </html>
