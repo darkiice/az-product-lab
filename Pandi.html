@@ -1545,6 +1545,171 @@
   @keyframes fall {
     to { transform: translateY(110vh) rotate(720deg); }
   }
+
+  /* ============================================================
+     iPAD / TABLET RESPONSIVE  (kid uses iPad primarily)
+     ============================================================ */
+
+  /* --- Tablet portrait & up (~700px+) --- */
+  @media (min-width: 700px) {
+    :root { --topbar-h: 64px; --bottomnav-h: 72px; }
+
+    /* Cap topbar + bottomnav inner content on wide screens but keep
+       the bar background full-width so it still looks anchored. */
+    .topbar {
+      padding-left: max(24px, calc(50% - 340px));
+      padding-right: max(24px, calc(50% - 340px));
+    }
+    .bottom-nav {
+      padding-left: max(8px, calc(50% - 340px));
+      padding-right: max(8px, calc(50% - 340px));
+    }
+    .stat-pill { font-size: 20px; }
+    .stat-pill .icon { font-size: 26px; }
+
+    main, .panel { max-width: 700px; }
+
+    /* Bigger mascot + speech bubble at this size */
+    .mascot { width: 110px; height: 110px; font-size: 70px; border-width: 4px; }
+    .mascot .accessory { font-size: 26px; }
+    .speech { font-size: 16px; padding: 16px 18px; }
+    .speech::before { top: 28px; }
+
+    /* Today hero: more comfortable */
+    .today-hero { padding: 18px 20px; }
+    .today-hero .day-icon { width: 72px; height: 72px; font-size: 36px; }
+    .today-hero .name { font-size: 20px; }
+    .today-hero .meta { font-size: 14px; }
+
+    /* Quest cards a touch larger */
+    .quest { padding: 16px 18px; }
+    .quest .q-icon { width: 64px; height: 64px; font-size: 32px; border-radius: 18px; }
+    .quest .q-name { font-size: 18px; }
+    .quest .q-meta { font-size: 13px; }
+    .quest .q-check { width: 42px; height: 42px; font-size: 22px; }
+
+    /* Choice card bigger icons */
+    .choice-card { padding: 16px 12px; }
+    .choice-card .cc-icon { width: 60px; height: 60px; font-size: 30px; }
+    .choice-card .cc-name { font-size: 16px; }
+
+    /* Sticker album 6 columns on tablet */
+    .album-grid { grid-template-columns: repeat(6, 1fr); gap: 12px; }
+    .sticker .s-emoji { font-size: 32px; }
+    .sticker .s-name { font-size: 10px; }
+
+    /* Reward catalog 2 columns on tablet */
+    #rewardList {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    #rewardList .reward-card { margin-bottom: 0; }
+
+    /* Calendar a touch bigger */
+    .cal-day { font-size: 14px; }
+    .cal-dow { font-size: 11px; padding: 6px 0; }
+
+    /* Modals: more room */
+    .modal { max-width: 560px; }
+
+    /* Today hero modal/big-stat fonts */
+    .big-stat .value { font-size: 36px; }
+
+    /* Bucks balance card more dramatic */
+    .bucks-balance-card { padding: 22px 24px; }
+    .bucks-balance-card .bb-amount { font-size: 56px; }
+
+    /* Body padding so content centers nicely */
+    main { padding: 0 8px; }
+  }
+
+  /* --- iPad landscape & big iPad (~1024px+): two-column dashboard --- */
+  @media (min-width: 1024px) {
+    main, .panel { max-width: 980px; }
+
+    .topbar {
+      padding-left: max(24px, calc(50% - 480px));
+      padding-right: max(24px, calc(50% - 480px));
+    }
+    .bottom-nav {
+      padding-left: max(8px, calc(50% - 480px));
+      padding-right: max(8px, calc(50% - 480px));
+    }
+
+    /* Today panel becomes a 2-column grid: primary actions left, info right.
+       Use dense flow so right-column items fill row 1+ even when left column
+       has more rows of content. */
+    #today-panel main {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      column-gap: 24px;
+      row-gap: 12px;
+      align-items: start;
+      grid-auto-flow: dense;
+    }
+    /* Empty banner containers shouldn't reserve a grid row */
+    #today-panel main > #reminderBanner:empty,
+    #today-panel main > #freezeBanner:empty {
+      display: none;
+    }
+    #today-panel main > .mascot-section,
+    #today-panel main > #todayHero,
+    #today-panel main > .quests-wrap {
+      grid-column: 1;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    #today-panel main > #reminderBanner,
+    #today-panel main > #freezeBanner,
+    #today-panel main > #streakBanner,
+    #today-panel main > .week-strip-wrap {
+      grid-column: 2;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    /* Override the existing horizontal margins on these so they fit the grid cell */
+    #today-panel .today-hero { margin: 0 0 12px; }
+    #today-panel .quests-wrap { padding: 0; }
+    #today-panel .mascot-section { padding: 8px 0 16px; }
+    #today-panel #streakBanner > .streak-banner { margin: 0 0 12px; }
+    #today-panel .week-strip-wrap { margin: 0; }
+    #today-panel #reminderBanner > .reminder-banner,
+    #today-panel #freezeBanner > .reminder-banner { margin: 0 0 12px; }
+
+    /* Sticker album 8 columns on big iPad */
+    .album-grid { grid-template-columns: repeat(8, 1fr); }
+
+    /* Mascot a bit bigger */
+    .mascot { width: 120px; height: 120px; font-size: 76px; }
+
+    /* Modal slightly wider */
+    .modal { max-width: 600px; }
+    .modal-header h3 { font-size: 30px; }
+    .modal-header .big-icon { font-size: 64px; }
+
+    /* Bigger calendar on landscape */
+    .cal-day { font-size: 15px; }
+    .cal-day::after { font-size: 12px; }
+  }
+
+  /* --- iPad Pro 12.9" / desktop ---*/
+  @media (min-width: 1200px) {
+    main, .panel { max-width: 1080px; }
+    #today-panel main { grid-template-columns: 1fr 400px; }
+
+    .topbar {
+      padding-left: max(24px, calc(50% - 540px));
+      padding-right: max(24px, calc(50% - 540px));
+    }
+    .bottom-nav {
+      padding-left: max(8px, calc(50% - 540px));
+      padding-right: max(8px, calc(50% - 540px));
+    }
+
+    /* Sticker album: 10 columns on huge iPad */
+    .album-grid { grid-template-columns: repeat(10, 1fr); }
+  }
 </style>
 </head>
 <body>
