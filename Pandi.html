@@ -41,6 +41,9 @@
     --blue: #1cb0f6;
     --blue-dark: #1899d6;
     --blue-light: #d8effd;
+    --teal: #4cc9f0;
+    --teal-dark: #3eb1d4;
+    --teal-light: #e0f4fb;
     --red: #ff4b4b;
     --red-dark: #e84141;
 
@@ -325,6 +328,7 @@
   .quest.reading  .q-icon { background: var(--blue); }
   .quest.math     .q-icon { background: var(--orange); }
   .quest.badminton .q-icon { background: var(--pink); }
+  .quest.cleanup  .q-icon { background: var(--teal); }
   .quest .q-info { flex: 1; min-width: 0; }
   .quest .q-row {
     display: flex;
@@ -349,6 +353,7 @@
   }
   .quest .q-tag.choice { background: var(--purple); }
   .quest .q-tag.bonus { background: var(--yellow); color: var(--text); }
+  .quest .q-tag.weekly { background: var(--teal); color: white; }
   .quest .q-meta {
     font-size: 12px;
     color: var(--text-muted);
@@ -367,6 +372,16 @@
     margin-top: 4px;
   }
   .quest.done .q-extra { display: none; }
+  .quest .q-extra.cleanup-status.normal { color: var(--teal-dark); }
+  .quest .q-extra.cleanup-status.warn { color: var(--orange-dark); }
+  .quest .q-extra.cleanup-status.locked {
+    color: white;
+    background: var(--red);
+    padding: 4px 8px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+  .quest .q-extra.cleanup-status.ok { color: var(--green-dark); }
   .quest .q-check {
     width: 36px; height: 36px;
     border-radius: 50%;
@@ -1525,8 +1540,77 @@
     white-space: nowrap;
   }
   .reward-card.affordable .rw-cost { background: var(--green); color: white; }
-  .reward-card.locked { opacity: 0.6; }
-  .reward-card.locked .rw-cost { background: var(--locked); color: var(--text-muted); }
+  .reward-card.locked {
+    opacity: 0.55;
+    background: var(--bg-card);
+    cursor: pointer;
+    position: relative;
+  }
+  .reward-card.locked .rw-cost {
+    background: var(--locked);
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 4px 14px;
+  }
+  .reward-card.locked .rw-emoji { filter: grayscale(0.7); }
+
+  /* === Lock banner (Bucks tab top, when cleanup overdue or close) === */
+  .lock-banner {
+    background: linear-gradient(135deg, #ffe2e2, white);
+    border: 2px solid var(--red);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 0 var(--red-dark);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.3s;
+  }
+  .lock-banner.warn {
+    background: linear-gradient(135deg, #fff4cc, white);
+    border-color: var(--orange);
+    box-shadow: 0 3px 0 var(--orange-dark);
+  }
+  .lock-banner .lb-icon {
+    font-size: 30px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .lock-banner .lb-text {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .lock-banner.warn .lb-text { color: var(--orange-dark); }
+  .lock-banner:not(.warn) .lb-text { color: var(--red-dark); }
+  .lock-banner .lb-text strong { font-weight: 900; color: inherit; }
+  .lock-banner .lb-sub {
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0.75;
+    margin-top: 2px;
+    color: inherit;
+  }
+
+  /* Cash Out CTA when locked */
+  .bucks-cta.cashout.locked {
+    background: var(--locked);
+    color: var(--text-muted);
+    box-shadow: 0 4px 0 var(--locked-dark);
+    cursor: not-allowed;
+  }
+  .bucks-cta.cashout.locked:active { transform: none; box-shadow: 0 4px 0 var(--locked-dark); }
+  .bucks-cta.cashout.locked .cta-pin { display: none; }
+  .bucks-cta.cashout.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 12px;
+  }
 
   .ledger-row {
     display: flex;
@@ -1993,6 +2077,8 @@
   <h2>💰 Daddy Bucks</h2>
   <p class="sub" id="bucksSub">Practice now, brag later.</p>
 
+  <div id="lockBanner"></div>
+
   <div class="bucks-balance-card">
     <div class="bb-label">Your balance</div>
     <div class="bb-amount"><span id="bucksBalance">0</span><span class="bb-unit">DB</span></div>
@@ -2168,6 +2254,7 @@
       <li><strong>Piano + Reading every day.</strong> They're the two heartbeats of your routine.</li>
       <li><strong>Pick one: Math or Badminton.</strong> Switch it up — variety keeps it fresh.</li>
       <li><strong>Bonus stickers</strong> if you do <strong>both</strong> Math AND Badminton in one day. 🦋</li>
+      <li><strong>Tidy your play area at least once a week 🧹.</strong> If you don't, the reward shop and cash out lock up until you clean. Earning bucks still works — but spending pauses.</li>
       <li><strong>Streak</strong> 🔥 grows when you finish all required quests in a day.</li>
       <li><strong>Stickers</strong> 🌟 unlock as you reach milestones — fill the album!</li>
     </ul>
@@ -2474,7 +2561,8 @@ const defaultState = {
   cloud: {
     syncId: null,             // blob UUID — acts as the sync code
     lastPushAt: 0,
-    lastPullAt: 0
+    lastPullAt: 0,
+    lastChangeAt: 0           // bumped on every saveState() — drives last-writer-wins
   }
 };
 let state = loadState();
@@ -2510,17 +2598,26 @@ function loadState() {
     if (raw) {
       const parsed = JSON.parse(raw);
       // Deep-merge nested defaults so v1-state users get new structures (parent, cloud)
-      return {
+      const merged = {
         ...defaultState,
         ...parsed,
         parent: { ...defaultState.parent, ...(parsed.parent || {}) },
         cloud:  { ...defaultState.cloud,  ...(parsed.cloud  || {}) }
       };
+      // Migration: existing sync users had no `lastChangeAt`. Seed it from
+      // `lastPushAt` so the first auto-pull doesn't redundantly "adopt" the
+      // same state we last pushed.
+      if (merged.cloud.syncId && !merged.cloud.lastChangeAt && merged.cloud.lastPushAt) {
+        merged.cloud.lastChangeAt = merged.cloud.lastPushAt;
+      }
+      return merged;
     }
   } catch (e) {}
   return JSON.parse(JSON.stringify(defaultState));
 }
 function saveState() {
+  if (!state.cloud) state.cloud = { ...defaultState.cloud };
+  state.cloud.lastChangeAt = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   scheduleCloudPush();
 }
@@ -2617,23 +2714,47 @@ async function changeParentPin() {
 /* ============= CLOUD SYNC (via api.jsonblob.com) ============= */
 const CLOUD_API = 'https://api.jsonblob.com';
 
+// Shared "directory" blob mapping short user-facing codes -> real blob UUIDs.
+// One-time bootstrap: created 2026-04-26 with body { _pandi_directory: true, codes: {} }.
+const DIRECTORY_BLOB_ID = '019dcbb9-7eea-7995-95b5-79b4bb9d2575';
+
+// Unambiguous alphabet — no 0/O, 1/I/L. 31 chars. 6 chars => ~887M combos.
+const SHORT_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const SHORT_CODE_LEN = 6;
+
+function generateShortCode() {
+  let s = '';
+  for (let i = 0; i < SHORT_CODE_LEN; i++) {
+    s += SHORT_CODE_ALPHABET[Math.floor(Math.random() * SHORT_CODE_ALPHABET.length)];
+  }
+  return s;
+}
+
 let _cloudPushTimer = null;
 function scheduleCloudPush() {
   if (!state.cloud || !state.cloud.syncId) return;
   clearTimeout(_cloudPushTimer);
-  _cloudPushTimer = setTimeout(() => { cloudPush().catch(e => console.warn('Cloud push failed:', e)); }, 1500);
+  _cloudPushTimer = setTimeout(() => {
+    _cloudPushTimer = null;
+    cloudPush().catch(e => console.warn('Cloud push failed:', e));
+  }, 1500);
 }
 
 function cloudPayload() {
   // Wrap the state in a small envelope so future format changes are easy.
+  // updatedAt reflects the actual local edit time (not the push time) so
+  // last-writer-wins comparisons work correctly across devices.
   return {
     pandiState: state,
-    updatedAt: Date.now(),
+    updatedAt: (state.cloud && state.cloud.lastChangeAt) || Date.now(),
     schemaVersion: 1
   };
 }
 
 async function cloudCreate() {
+  // Stamp lastChangeAt so the cloud's updatedAt matches what we persist locally,
+  // letting auto-pull comparisons correctly treat this state as "already synced".
+  state.cloud.lastChangeAt = Date.now();
   const res = await fetch(CLOUD_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -2645,7 +2766,8 @@ async function cloudCreate() {
   if (!id) throw new Error('No sync ID returned');
   state.cloud.syncId = id;
   state.cloud.lastPushAt = Date.now();
-  saveState();
+  // Persist directly — we just uploaded, no need to schedule another push.
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   return id;
 }
 
@@ -2668,7 +2790,51 @@ async function cloudPull(syncId) {
   if (!res.ok) throw new Error('Sync code not found (HTTP ' + res.status + ')');
   const data = await res.json();
   if (!data || !data.pandiState) throw new Error('Sync data is invalid');
-  return data.pandiState;
+  return { pandiState: data.pandiState, updatedAt: data.updatedAt || 0 };
+}
+
+// Periodic / event-driven pull. Last-writer-wins by `updatedAt`.
+async function cloudAutoPull({ silent = true } = {}) {
+  if (!state.cloud || !state.cloud.syncId) return;
+  // Don't clobber unflushed local edits — let the debounced push run first.
+  if (_cloudPushTimer) return;
+  try {
+    const res = await fetch(`${CLOUD_API}/${state.cloud.syncId}`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.pandiState || !data.updatedAt) return;
+
+    const localChangeAt = state.cloud.lastChangeAt || 0;
+    if (data.updatedAt <= localChangeAt) return;
+
+    // Remote wins. Preserve this device's parent PIN + unlock window so the
+    // user can't get locked out by a sync from a device that hadn't set one.
+    const localPin = state.parent ? state.parent.pinHash : null;
+    const localUnlockedUntil = state.parent ? state.parent.unlockedUntil : 0;
+    state = {
+      ...defaultState,
+      ...data.pandiState,
+      parent: {
+        ...defaultState.parent,
+        ...(data.pandiState.parent || {}),
+        pinHash: localPin || (data.pandiState.parent && data.pandiState.parent.pinHash) || null,
+        unlockedUntil: localUnlockedUntil
+      },
+      cloud: {
+        ...defaultState.cloud,
+        syncId: state.cloud.syncId,
+        lastPushAt: state.cloud.lastPushAt,
+        lastPullAt: Date.now(),
+        lastChangeAt: data.updatedAt
+      }
+    };
+    // Write directly so we don't bump lastChangeAt or schedule a push.
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    rerender();
+    showToast(silent ? '☁️ Updated from cloud' : '✓ Synced from another device', 'gold');
+  } catch (e) {
+    console.warn('Auto-pull failed:', e);
+  }
 }
 
 async function setupCloudSync() {
@@ -2697,15 +2863,18 @@ async function restoreFromCloud() {
   const syncId = m ? m[0] : code;
   try {
     showToast('☁️ Pulling progress…', '');
-    const cloudState = await cloudPull(syncId);
+    const { pandiState: cloudState, updatedAt: cloudUpdatedAt } = await cloudPull(syncId);
     if (!confirm('Replace this device\'s progress with cloud progress?\n\nThis can\'t be undone.')) return;
     // Apply: keep parent PIN of this device (so user doesn't get locked out)
     const localPin = state.parent ? state.parent.pinHash : null;
+    // Match lastChangeAt to the cloud's updatedAt so we don't immediately
+    // re-push (or trigger an auto-pull bounce) right after restoring.
+    const restoredChangeAt = cloudUpdatedAt || Date.now();
     state = {
       ...defaultState,
       ...cloudState,
       parent: { ...defaultState.parent, ...(cloudState.parent || {}), pinHash: localPin || (cloudState.parent && cloudState.parent.pinHash) || null, unlockedUntil: Date.now() + PARENT_UNLOCK_MS },
-      cloud:  { ...defaultState.cloud, syncId, lastPullAt: Date.now() }
+      cloud:  { ...defaultState.cloud, syncId, lastPullAt: Date.now(), lastChangeAt: restoredChangeAt }
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     showToast('✓ Progress restored from cloud', 'gold');
@@ -2815,6 +2984,10 @@ function submitDeposit() {
 
 /* ============= CASH OUT (kid redeems bucks for real $) ============= */
 async function openCashOutModal() {
+  if (rewardsLocked()) {
+    showToast('🧹 Tidy your play area first to unlock cash out!', 'red');
+    return;
+  }
   const ok = await requireParent();
   if (!ok) return;
   const balance = state.bucks || 0;
@@ -2896,6 +3069,7 @@ function pickWiseWords() {
   const stats = stickerStats();
   const bucks = state.bucks || 0;
   // Context-aware overrides for special moments
+  if (rewardsLocked())     return '🧹 A tidy room is a tidy mind. Clean up to spend!';
   if (stats.streak >= 100) return '🏆 100 days strong — you\'re a Pandi legend.';
   if (stats.streak >= 30)  return '🌟 A month of magic. Pandi is proud.';
   if (stats.streak >= 14)  return '💪 Two weeks strong. Keep going.';
@@ -2994,6 +3168,30 @@ const QUESTS = {
       "<strong>Cool down</strong> with stretches — hamstrings, calves, shoulders."
     ]
     // routine is built dynamically per day from BADMINTON_ROTATION
+  },
+  cleanup: {
+    id: 'cleanup',
+    name: 'Tidy your play area',
+    icon: '🧹',
+    color: 'teal',
+    required: false,
+    xp: 30,
+    suggested: '5–10 minutes',
+    desc: "Clean up your play area! A tidy space = a clear mind. Plus: rewards stay unlocked when you tidy at least once a week.",
+    tips: [
+      "<strong>Start with the biggest stuff.</strong> Pick up the things on the floor first — the room transforms fast.",
+      "<strong>Sort like with like.</strong> Books with books, art with art, dolls with dolls.",
+      "<strong>Trash + recycle.</strong> If it's broken or you don't use it, it can go.",
+      "<strong>Wipe surfaces.</strong> Quick swipe of your desk or table makes it feel fresh.",
+      "<strong>End with a moment.</strong> Stand back. Look at your tidy space. That's the feeling."
+    ],
+    routine: [
+      { name: 'Floor patrol',  icon: '👣', desc: 'Pick up everything off the floor — toys, books, clothes' },
+      { name: 'Sort & stash',  icon: '📦', desc: 'Books on shelves, art in the box, toys in their bins' },
+      { name: 'Trash patrol',  icon: '🗑️', desc: 'Anything broken, empty, or finished — into the bin' },
+      { name: 'Surface wipe',  icon: '🧼', desc: 'Quick swipe of the desk or table' },
+      { name: 'Admire',        icon: '✨', desc: 'Stand back and take it in. Pandi is impressed.' }
+    ]
   }
 };
 
@@ -3031,7 +3229,7 @@ function badmintonRoutine(date) {
   ];
 }
 
-const QUEST_ORDER = ['piano', 'reading', 'math', 'badminton'];
+const QUEST_ORDER = ['piano', 'reading', 'math', 'badminton', 'cleanup'];
 
 /* ============= DATE HELPERS ============= */
 function todayKey(d) {
@@ -3144,7 +3342,7 @@ function bestStreak() {
 /* ============= XP / STATS ============= */
 function totalStats() {
   let xp = 0;
-  let counts = { piano: 0, reading: 0, math: 0, badminton: 0 };
+  let counts = { piano: 0, reading: 0, math: 0, badminton: 0, cleanup: 0 };
   let daysComplete = 0;
   let bonusDays = 0;
   Object.entries(state.log).forEach(([key, day]) => {
@@ -3223,6 +3421,16 @@ const STICKERS = [
   { id: 'bad-200', emoji: '🌟', name: 'Champion',       desc: '200 badminton sessions',        cat: 'Badminton', check: s => s.counts.badminton >= 200 },
   { id: 'bad-7s',  emoji: '🎾', name: 'Athletic Week',  desc: 'Badminton 7 days in a row',     cat: 'Badminton', check: s => s.streaks.badminton >= 7 },
 
+  // ----- CLEANUP (8) -----
+  { id: 'clean-1',   emoji: '🧹', name: 'First Tidy',     desc: 'Clean up once',                cat: 'Cleanup', check: s => s.counts.cleanup >= 1 },
+  { id: 'clean-5',   emoji: '✨', name: 'Tidy Five',      desc: '5 cleanups',                    cat: 'Cleanup', check: s => s.counts.cleanup >= 5 },
+  { id: 'clean-10',  emoji: '🧼', name: 'Sparkle Squad',  desc: '10 cleanups',                   cat: 'Cleanup', check: s => s.counts.cleanup >= 10 },
+  { id: 'clean-25',  emoji: '🌿', name: 'Clean Streak',   desc: '25 cleanups',                   cat: 'Cleanup', check: s => s.counts.cleanup >= 25 },
+  { id: 'clean-50',  emoji: '🏠', name: 'House Helper',   desc: '50 cleanups',                   cat: 'Cleanup', check: s => s.counts.cleanup >= 50 },
+  { id: 'clean-100', emoji: '👑', name: 'Cleanup Royal',  desc: '100 cleanups',                  cat: 'Cleanup', check: s => s.counts.cleanup >= 100 },
+  { id: 'clean-200', emoji: '💎', name: 'Clean Master',   desc: '200 cleanups',                  cat: 'Cleanup', check: s => s.counts.cleanup >= 200 },
+  { id: 'clean-7s',  emoji: '🧽', name: 'Tidy Week',      desc: 'Cleanup 7 days in a row',       cat: 'Cleanup', check: s => s.streaks.cleanup >= 7 },
+
   // ----- SPECIAL (12) -----
   { id: 'sp-quad',     emoji: '🦋', name: 'Quadruple!',     desc: 'All 4 quests in one day',           cat: 'Special', check: s => s.bonusDays >= 1 },
   { id: 'sp-quad5',    emoji: '🌈', name: 'Rainbow Five',   desc: 'All 4 quests, 5 different days',     cat: 'Special', check: s => s.bonusDays >= 5 },
@@ -3238,7 +3446,7 @@ const STICKERS = [
   { id: 'sp-bff',      emoji: '🐼', name: "Pandi's BFF",    desc: 'Use the app 30 days',                cat: 'Special', check: s => s.uniqueDays >= 30 }
 ];
 
-const STICKER_CATS = ['Streak', 'Piano', 'Reading', 'Math', 'Badminton', 'Special'];
+const STICKER_CATS = ['Streak', 'Piano', 'Reading', 'Math', 'Badminton', 'Cleanup', 'Special'];
 
 /* Per-quest "in a row" streaks (consecutive days where that quest was logged) */
 function questStreak(type) {
@@ -3314,7 +3522,8 @@ function stickerStats() {
     piano: questStreak('piano'),
     reading: questStreak('reading'),
     math: questStreak('math'),
-    badminton: questStreak('badminton')
+    badminton: questStreak('badminton'),
+    cleanup: questStreak('cleanup')
   };
   const uniqueDays = Object.keys(state.log).filter(k => Object.keys(state.log[k] || {}).length > 0).length;
   const special = specialStats();
@@ -3332,6 +3541,49 @@ function checkStickers() {
   });
   if (newly.length) saveState();
   return newly;
+}
+
+/* ============= CLEANUP LOCK =============
+   The kid must do cleanup at least once every 7 days, otherwise the reward
+   shop and cash-out become locked. Earning still works; only spending is
+   blocked. As soon as cleanup is done, everything unlocks immediately. */
+
+const CLEANUP_LOCK_DAYS = 7;
+const CLEANUP_WARN_DAYS = 5; // when to start warning ("3 days left to keep rewards unlocked")
+
+function lastCleanupTs() {
+  let latest = 0;
+  Object.values(state.log || {}).forEach(day => {
+    if (day && day.cleanup && day.cleanup > latest) latest = day.cleanup;
+  });
+  return latest;
+}
+
+function daysSinceLastCleanup() {
+  const last = lastCleanupTs();
+  if (last === 0) return null; // never
+  return (Date.now() - last) / (1000 * 60 * 60 * 24);
+}
+
+function rewardsLocked() {
+  const days = daysSinceLastCleanup();
+  if (days !== null) return days > CLEANUP_LOCK_DAYS;
+  // Never cleaned. Use the earliest log day as a proxy for app-start.
+  // If the kid has been using the app for >7 days without ever cleaning, lock.
+  const keys = Object.keys(state.log || {});
+  if (keys.length === 0) return false; // brand new — grace period
+  const earliest = Math.min(...keys.map(k => dateFromKey(k).getTime()));
+  return (Date.now() - earliest) / (1000 * 60 * 60 * 24) > CLEANUP_LOCK_DAYS;
+}
+
+function cleanupStatusText() {
+  const days = daysSinceLastCleanup();
+  if (days === null) return { text: 'Tidy weekly to keep rewards unlocked!', tone: 'normal' };
+  const d = Math.floor(days);
+  if (d > CLEANUP_LOCK_DAYS) return { text: `🔒 ${d} days since last clean — rewards locked!`, tone: 'locked' };
+  if (d >= CLEANUP_WARN_DAYS)  return { text: `⚠️ ${d} days since last clean — tidy soon!`, tone: 'warn' };
+  if (d === 0) return { text: '✓ Tidy today — rewards unlocked', tone: 'ok' };
+  return { text: `${d} day${d===1?'':'s'} since last clean (rewards unlock for 7)`, tone: 'normal' };
 }
 
 /* ============= DADDY BUCKS ============= */
@@ -4017,6 +4269,9 @@ function renderQuests() {
     html += questCardHTML('badminton', day.badminton, { bonus: true });
   }
 
+  // Cleanup quest — always shown, weekly tag with status
+  html += questCardHTML('cleanup', day.cleanup, { weekly: true });
+
   wrap.innerHTML = html;
 
   // Wire up taps
@@ -4038,7 +4293,9 @@ function questCardHTML(type, doneTs, opts = {}) {
   const q = QUESTS[type];
   const isDone = !!doneTs;
   let tagHTML;
-  if (opts.bonus) {
+  if (opts.weekly) {
+    tagHTML = '<span class="q-tag weekly">Weekly 🧹</span>';
+  } else if (opts.bonus) {
     tagHTML = '<span class="q-tag bonus">Bonus 🦋</span>';
   } else if (q.required) {
     tagHTML = '<span class="q-tag">Daily</span>';
@@ -4047,10 +4304,14 @@ function questCardHTML(type, doneTs, opts = {}) {
   }
 
   // For badminton, show today's rotation focus inline.
+  // For cleanup, show days-since-last-clean status with color.
   let extraLine = '';
   if (type === 'badminton' && !isDone) {
     const f = badmintonFocusForDay();
     extraLine = `<div class="q-extra">${f.icon} Today: <strong>${f.name}</strong></div>`;
+  } else if (type === 'cleanup' && !isDone) {
+    const status = cleanupStatusText();
+    extraLine = `<div class="q-extra cleanup-status ${status.tone}">${status.text}</div>`;
   }
 
   const subline = isDone
@@ -4406,6 +4667,44 @@ function renderBucksPanel() {
   }
   document.getElementById('bucksSubLabel').textContent = sub;
 
+  // Lockout banner — when no cleanup in 7+ days, show prominent lock notice + lock CTAs
+  const isLocked = rewardsLocked();
+  const lockBanner = document.getElementById('lockBanner');
+  if (lockBanner) {
+    if (isLocked) {
+      const days = daysSinceLastCleanup();
+      const daysText = days === null ? 'never' : `${Math.floor(days)} days ago`;
+      lockBanner.innerHTML = `
+        <div class="lock-banner">
+          <div class="lb-icon">🧹</div>
+          <div class="lb-text">
+            <strong>Tidy time!</strong> Clean your play area to unlock rewards.
+            <div class="lb-sub">Last cleaned: ${daysText}</div>
+          </div>
+        </div>`;
+    } else {
+      const days = daysSinceLastCleanup();
+      if (days !== null && days >= CLEANUP_WARN_DAYS) {
+        const daysLeft = Math.max(0, Math.ceil(CLEANUP_LOCK_DAYS - days));
+        lockBanner.innerHTML = `
+          <div class="lock-banner warn">
+            <div class="lb-icon">⚠️</div>
+            <div class="lb-text">
+              <strong>${daysLeft} day${daysLeft === 1 ? '' : 's'} left.</strong> Tidy your play area to keep rewards unlocked.
+            </div>
+          </div>`;
+      } else {
+        lockBanner.innerHTML = '';
+      }
+    }
+  }
+
+  // Disable Cash Out CTA when locked
+  const cashOutBtn = document.querySelector('.bucks-cta.cashout');
+  if (cashOutBtn) {
+    cashOutBtn.classList.toggle('locked', isLocked);
+  }
+
   // Reward catalog
   const list = document.getElementById('rewardList');
   const rewards = getRewards().slice().sort((a, b) => a.cost - b.cost);
@@ -4415,14 +4714,15 @@ function renderBucksPanel() {
     list.innerHTML = rewards.map(r => {
       const affordable = bucks >= r.cost;
       const isSaving = savingForRewardId === r.id;
+      const lockClass = isLocked ? 'locked' : (affordable ? 'affordable' : '');
       return `
-        <div class="reward-card ${affordable ? 'affordable' : ''}" data-id="${r.id}">
+        <div class="reward-card ${lockClass}" data-id="${r.id}">
           <div class="rw-emoji">${r.emoji}</div>
           <div class="rw-info">
             <div class="rw-name">${r.name}</div>
             ${isSaving ? `<div class="rw-saving">🎯 Saving up — ${Math.max(0, r.cost - bucks)} DB to go</div>` : ''}
           </div>
-          <div class="rw-cost">${r.cost} DB</div>
+          <div class="rw-cost">${isLocked ? '🔒' : (r.cost + ' DB')}</div>
         </div>
       `;
     }).join('');
@@ -4491,8 +4791,11 @@ function openRewardModal(id) {
 
   const bucks = state.bucks || 0;
   const canAfford = bucks >= reward.cost;
+  const isLocked = rewardsLocked();
   const body = document.getElementById('rewardBody');
-  if (canAfford) {
+  if (isLocked) {
+    body.innerHTML = `🧹 <strong>Rewards are locked.</strong> Clean your play area first to unlock the shop. (Tidy at least once a week to keep rewards available.)`;
+  } else if (canAfford) {
     body.innerHTML = `You have enough! Tap <strong>Redeem</strong> to claim it. Mom or Dad will fulfill it.`;
   } else {
     const need = reward.cost - bucks;
@@ -4513,7 +4816,11 @@ function openRewardModal(id) {
 
   const redeemBtn = document.getElementById('rewardRedeemBtn');
   const saveBtn = document.getElementById('rewardSaveBtn');
-  if (canAfford) {
+  if (isLocked) {
+    redeemBtn.textContent = '🔒 Tidy first to unlock';
+    redeemBtn.disabled = true;
+    redeemBtn.className = 'btn-3d gray';
+  } else if (canAfford) {
     redeemBtn.textContent = `Redeem · −${reward.cost} DB`;
     redeemBtn.disabled = false;
     redeemBtn.className = 'btn-3d gold';
@@ -4535,6 +4842,10 @@ function closeRewardModal() {
 
 function redeemReward() {
   if (!activeReward) return;
+  if (rewardsLocked()) {
+    showToast('🧹 Tidy your play area first to unlock rewards!', 'red');
+    return;
+  }
   const r = activeReward;
   const bucks = state.bucks || 0;
   if (bucks < r.cost) return;
@@ -5083,6 +5394,16 @@ setInterval(() => {
   renderTodayHero();
   renderMascot();
 }, 60 * 1000);
+
+// === BIDIRECTIONAL CLOUD AUTO-SYNC ===
+// Auto-pulls newer remote state on load, when the tab regains focus, and every
+// 30s while open. Uses last-writer-wins by `updatedAt` (see cloudAutoPull).
+cloudAutoPull({ silent: false });
+window.addEventListener('focus', () => cloudAutoPull());
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) cloudAutoPull();
+});
+setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 30 * 1000);
 </script>
 </body>
 </html>
