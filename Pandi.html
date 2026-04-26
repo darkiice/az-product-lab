@@ -44,6 +44,9 @@
     --teal: #4cc9f0;
     --teal-dark: #3eb1d4;
     --teal-light: #e0f4fb;
+    --mint: #3bb78f;
+    --mint-dark: #2ea374;
+    --mint-light: #d4f0e3;
     --red: #ff4b4b;
     --red-dark: #e84141;
 
@@ -296,7 +299,7 @@
   .quest.reading  .q-icon { background: var(--blue); }
   .quest.math     .q-icon { background: var(--orange); }
   .quest.badminton .q-icon { background: var(--pink); }
-  .quest.cleanup  .q-icon { background: var(--teal); }
+  .quest.cleanup  .q-icon { background: var(--mint); }
   .quest .q-info { flex: 1; min-width: 0; }
   .quest .q-row {
     display: flex;
@@ -321,7 +324,7 @@
   }
   .quest .q-tag.choice { background: var(--purple); }
   .quest .q-tag.bonus { background: var(--yellow); color: var(--text); }
-  .quest .q-tag.weekly { background: var(--teal); color: white; }
+  .quest .q-tag.weekly { background: var(--mint); color: white; }
   .quest .q-meta {
     font-size: 12px;
     color: var(--text-muted);
@@ -340,7 +343,7 @@
     margin-top: 4px;
   }
   .quest.done .q-extra { display: none; }
-  .quest .q-extra.cleanup-status.normal { color: var(--teal-dark); }
+  .quest .q-extra.cleanup-status.normal { color: var(--mint-dark); }
   .quest .q-extra.cleanup-status.warn { color: var(--orange-dark); }
   .quest .q-extra.cleanup-status.locked {
     color: white;
@@ -832,6 +835,7 @@
   .modal-header.reading  { background: var(--blue); }
   .modal-header.math     { background: var(--orange); }
   .modal-header.badminton { background: var(--pink); }
+  .modal-header.cleanup  { background: var(--mint); }
   .modal-header .close-x {
     position: absolute;
     top: 14px;
@@ -1206,6 +1210,94 @@
     letter-spacing: 0.06em;
     cursor: pointer;
     flex-shrink: 0;
+  }
+
+  /* ============= SETTINGS DIVIDER (Me content under Stats) ============= */
+  .settings-divider {
+    margin: 36px 0 18px;
+    text-align: center;
+    border-top: 2px dashed var(--border);
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--text-light);
+    height: 0;
+  }
+  .settings-divider span {
+    background: var(--bg);
+    padding: 0 14px;
+    position: relative;
+    top: -8px;
+  }
+
+  /* ============= WEEKLY MISSION SECTION (cleanup) ============= */
+  .weekly-section {
+    margin: 18px 16px 8px;
+    padding: 12px 14px 14px;
+    border-radius: 16px;
+    background: var(--mint-light);
+    border: 2px solid var(--mint);
+    box-shadow: 0 3px 0 var(--mint-dark);
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .weekly-section.warn {
+    background: var(--yellow-light);
+    border-color: var(--orange);
+    box-shadow: 0 3px 0 var(--orange-dark);
+  }
+  .weekly-section.overdue {
+    background: linear-gradient(135deg, #ffe2e2, #ffd0d0);
+    border-color: var(--red);
+    box-shadow: 0 3px 0 var(--red-dark);
+    animation: overdue-pulse 2s ease-in-out infinite;
+  }
+  @keyframes overdue-pulse {
+    0%, 100% { box-shadow: 0 3px 0 var(--red-dark); }
+    50%      { box-shadow: 0 3px 0 var(--red-dark), 0 0 0 6px rgba(255, 75, 75, 0.18); }
+  }
+
+  .weekly-section .ws-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mint-dark);
+    margin-bottom: 10px;
+  }
+  .weekly-section.warn .ws-title { color: var(--orange-dark); }
+  .weekly-section.overdue .ws-title { color: var(--red-dark); }
+
+  .weekly-section .ws-badge {
+    background: var(--mint);
+    color: white;
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+  .weekly-section .ws-badge.green  { background: var(--green); }
+  .weekly-section .ws-badge.orange { background: var(--orange); }
+  .weekly-section .ws-badge.red    { background: var(--red); }
+
+  /* The cleanup quest card sits inside .weekly-section. Override default
+     card spacing so it nests cleanly. */
+  .weekly-section .quest { margin-bottom: 0; }
+
+  /* When the section is overdue, give the inner quest card extra urgency. */
+  .weekly-section.overdue .quest .q-icon {
+    background: var(--red);
+    animation: shake-x 0.4s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+  @keyframes shake-x {
+    0%, 90%, 100% { transform: translateX(0); }
+    93% { transform: translateX(-3px); }
+    96% { transform: translateX(3px); }
   }
 
   /* ============= REMINDER BANNER ============= */
@@ -1887,6 +1979,8 @@
 
     <div class="quests-wrap" id="questsWrap"></div>
 
+    <div id="weeklySection"></div>
+
     <div id="streakBanner"></div>
 
     <div class="week-strip-wrap">
@@ -2015,12 +2109,9 @@
       <span><span class="lg-dot" style="background:var(--blue-light);"></span>❄️ Frozen</span>
     </div>
   </div>
-</section>
 
-<!-- ME PANEL -->
-<section class="panel" id="me-panel">
-  <h2 id="meTitle">Hi! 🐼</h2>
-  <p class="sub">Your daily practice journey</p>
+  <!-- === Settings & More (was: Me tab — now lives at the bottom of Stats) === -->
+  <div class="settings-divider"><span>⚙️ Settings & More</span></div>
 
   <div class="chart-card">
     <h3>👤 Your Name</h3>
@@ -2143,9 +2234,6 @@
   </button>
   <button class="nav-btn" data-tab="stats">
     <span class="ico">📊</span><span class="lbl">Stats</span>
-  </button>
-  <button class="nav-btn" data-tab="me">
-    <span class="ico">🐼</span><span class="lbl">Me</span>
   </button>
 </nav>
 
@@ -3612,35 +3700,40 @@ function renderFreezeBanner(appliedDays) {
 /* ============= MASCOT MOOD + MESSAGES ============= */
 function pickMood() {
   const hour = new Date().getHours();
-  if (hour >= 22 || hour < 6) return 'sleep';
+  // Cleanup overdue overrides most other moods (except active sleep/cheer).
   if (Date.now() - (state.lastCompleteAt || 0) < 8000) return 'cheer';
+  if (hour >= 22 || hour < 6) return 'sleep';
+  if (rewardsLocked()) return 'concerned';
   const today = todayKey();
   if (isDayComplete(today)) return 'proud';
   return 'default';
 }
 
 const MOOD_EMOJI = {
-  default: '🐼',
-  cheer:   '🐼',
-  sleep:   '🐼',
-  proud:   '🐼',
-  pumped:  '🐼'
+  default:   '🐼',
+  cheer:     '🐼',
+  sleep:     '🐼',
+  proud:     '🐼',
+  pumped:    '🐼',
+  concerned: '🐼'
 };
 
 // Optional decoration (small emoji overlay) per mood, on top of the panda.
 const MOOD_DECOR = {
-  default: null,
-  cheer:   '✨',
-  sleep:   '💤',
-  proud:   '🏆',
-  pumped:  '🔥'
+  default:   null,
+  cheer:     '✨',
+  sleep:     '💤',
+  proud:     '🏆',
+  pumped:    '🔥',
+  concerned: '🥺'
 };
 
 const MOOD_BG = {
-  default: 'linear-gradient(135deg, #ffffff 0%, #e1f4d3 100%)',
-  cheer:   'linear-gradient(135deg, #fff4cc 0%, #ffc800 100%)',
-  sleep:   'linear-gradient(135deg, #f0e1ff 0%, #ce82ff 100%)',
-  proud:   'linear-gradient(135deg, #fff4cc 0%, #ff9600 100%)'
+  default:   'linear-gradient(135deg, #ffffff 0%, #e1f4d3 100%)',
+  cheer:     'linear-gradient(135deg, #fff4cc 0%, #ffc800 100%)',
+  sleep:     'linear-gradient(135deg, #f0e1ff 0%, #ce82ff 100%)',
+  proud:     'linear-gradient(135deg, #fff4cc 0%, #ff9600 100%)',
+  concerned: 'linear-gradient(135deg, #ffd0d0 0%, #ff7575 100%)'
 };
 
 function nameOrFriend() {
@@ -3689,6 +3782,12 @@ const MESSAGES = {
     () => `Pandi is sleepy. You should be too 🐼💤`,
     () => `Tomorrow's quests are waiting!`
   ],
+  concerned: [
+    () => `🥺 Your play area needs some love, ${nameOrFriend()}…`,
+    () => `Pandi is sad. The room hasn't been tidy in a while 🥺`,
+    () => `Tidy up so we can spend bucks again 🧹`,
+    () => `A messy room is making Pandi sigh… 🐼💨`
+  ],
   midJourney: [
     (s) => `<strong>${s.daysComplete}</strong> days complete! 🎊`,
     (s) => `Streak: <strong>${s.streak}</strong> 🔥 Don't break it!`,
@@ -3721,12 +3820,15 @@ function pickMessage() {
   let pool;
   if (pendingWelcomeBackPool && mascotMsgIdx === 0) {
     pool = pendingWelcomeBackPool;
-  } else if (hour >= 22 || hour < 6) {
-    pool = MESSAGES.sleep;
-  } else if (isDayComplete(today)) {
-    pool = MESSAGES.proud;
   } else if (Date.now() - (state.lastCompleteAt || 0) < 8000) {
     pool = MESSAGES.cheer;
+  } else if (hour >= 22 || hour < 6) {
+    pool = MESSAGES.sleep;
+  } else if (rewardsLocked()) {
+    // Cleanup overdue — Pandi is sad. Override most other states.
+    pool = MESSAGES.concerned;
+  } else if (isDayComplete(today)) {
+    pool = MESSAGES.proud;
   } else if (Object.keys(day).length > 0) {
     pool = MESSAGES.partial;
   } else if (stats.daysComplete === 0 && Object.keys(state.log).length === 0) {
@@ -3991,10 +4093,10 @@ function renderQuests() {
     html += questCardHTML('badminton', day.badminton, { bonus: true });
   }
 
-  // Cleanup quest — always shown, weekly tag with status
-  html += questCardHTML('cleanup', day.cleanup, { weekly: true });
-
   wrap.innerHTML = html;
+
+  // Cleanup is rendered in its own section (renderWeeklySection)
+  renderWeeklySection();
 
   // Wire up taps
   wrap.querySelectorAll('.quest').forEach(el => {
@@ -4011,12 +4113,60 @@ function renderQuests() {
   });
 }
 
+/* ============= WEEKLY MISSION SECTION =============
+   Cleanup gets its own visual section because it's a once-a-week mission
+   with parent verification. Visual state shifts based on days-since-last:
+     - ok       → calm mint accent
+     - warn     → orange tint (5-6 days)
+     - overdue  → red tint, pulsing border (7+ days, rewards locked) */
+function renderWeeklySection() {
+  const wrap = document.getElementById('weeklySection');
+  if (!wrap) return;
+  const today = todayKey();
+  const day = state.log[today] || {};
+  const isDone = !!day.cleanup;
+  const days = daysSinceLastCleanup();
+  const overdue = rewardsLocked();
+  const warn = !overdue && days !== null && days >= CLEANUP_WARN_DAYS;
+
+  let toneClass = 'ok';
+  let titleAccent = '';
+  let badge = '';
+  if (overdue) {
+    toneClass = 'overdue';
+    const d = days === null ? 0 : Math.floor(days);
+    badge = `<span class="ws-badge red">${d}d overdue</span>`;
+  } else if (warn) {
+    toneClass = 'warn';
+    const left = Math.max(0, Math.ceil(CLEANUP_LOCK_DAYS - days));
+    badge = `<span class="ws-badge orange">${left}d left</span>`;
+  } else if (isDone) {
+    badge = `<span class="ws-badge green">Done today</span>`;
+  } else if (days !== null) {
+    const d = Math.floor(days);
+    badge = `<span class="ws-badge">${d}d ago</span>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="weekly-section ${toneClass}">
+      <div class="ws-title">
+        <span>🧹 Weekly Mission</span>
+        ${badge}
+      </div>
+      ${questCardHTML('cleanup', day.cleanup, { weekly: true })}
+    </div>
+  `;
+  wrap.querySelectorAll('.quest').forEach(el => {
+    el.onclick = () => openQuest(el.dataset.type);
+  });
+}
+
 function questCardHTML(type, doneTs, opts = {}) {
   const q = QUESTS[type];
   const isDone = !!doneTs;
   let tagHTML;
   if (opts.weekly) {
-    tagHTML = '<span class="q-tag weekly">Weekly 🧹</span>';
+    tagHTML = '<span class="q-tag weekly">Weekly</span>';
   } else if (opts.bonus) {
     tagHTML = '<span class="q-tag bonus">Bonus 🦋</span>';
   } else if (q.required) {
@@ -4185,11 +4335,23 @@ function openQuest(type) {
   if (isDone) {
     action.textContent = `Completed! +${q.xp} XP`;
     action.className = 'btn-3d gold';
+    action.style.background = '';
+    action.style.boxShadow = '';
     action.disabled = true;
     undo.style.display = 'block';
+  } else if (type === 'cleanup') {
+    // Parent must verify cleanup before kid can claim it.
+    action.textContent = `🔐 Parent verify · +${q.xp} XP`;
+    action.className = 'btn-3d';
+    action.style.background = 'var(--mint)';
+    action.style.boxShadow = '0 4px 0 var(--mint-dark)';
+    action.disabled = false;
+    undo.style.display = 'none';
   } else {
     action.textContent = `Mark complete · +${q.xp} XP`;
     action.className = 'btn-3d';
+    action.style.background = '';
+    action.style.boxShadow = '';
     action.disabled = false;
     undo.style.display = 'none';
   }
@@ -4202,11 +4364,17 @@ function closeModal() {
   activeQuest = null;
 }
 
-function completeQuest() {
+async function completeQuest() {
   if (!activeQuest) return;
   const { date, type } = activeQuest;
   const day = ensureDay(date);
   if (day[type]) return;
+
+  // Cleanup requires parent verification — kid can't self-confirm a tidy.
+  if (type === 'cleanup') {
+    const ok = await requireParent();
+    if (!ok) return;
+  }
 
   // Check completion state BEFORE we add this quest
   const wasComplete = isDayComplete(date);
@@ -4815,13 +4983,11 @@ function renderStats() {
   renderCalendar();
 }
 
-/* ============= ME ============= */
+/* ============= ME (now lives inside Stats panel) ============= */
 function renderMe() {
   const nameInput = document.getElementById('nameInput');
+  if (!nameInput) return; // panel not in DOM yet
   if (document.activeElement !== nameInput) nameInput.value = state.name || '';
-  document.getElementById('meTitle').textContent = state.name && state.name.trim()
-    ? `Hi, ${state.name.trim()}! 🐼`
-    : 'Hi! 🐼';
   document.getElementById('soundToggle').classList.toggle('on', state.soundOn);
   document.getElementById('hapticToggle').classList.toggle('on', state.hapticOn);
   const reminderInput = document.getElementById('reminderInput');
@@ -4936,9 +5102,6 @@ setTimeout(() => {
 function onNameChange() {
   state.name = document.getElementById('nameInput').value;
   saveState();
-  document.getElementById('meTitle').textContent = state.name && state.name.trim()
-    ? `Hi, ${state.name.trim()}! 🐼`
-    : 'Hi! 🐼';
 }
 
 function toggleSound() {
@@ -5008,8 +5171,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
     if (btn.dataset.tab === 'bucks') renderBucksPanel();
-    if (btn.dataset.tab === 'stats') renderStats();
-    if (btn.dataset.tab === 'me') renderMe();
+    if (btn.dataset.tab === 'stats') { renderStats(); renderMe(); }
     Sound.playPop();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
@@ -5025,8 +5187,7 @@ function rerender() {
   renderMascot();
   renderReminderBanner();
   if (document.getElementById('bucks-panel').classList.contains('active')) renderBucksPanel();
-  if (document.getElementById('stats-panel').classList.contains('active')) renderStats();
-  if (document.getElementById('me-panel').classList.contains('active')) renderMe();
+  if (document.getElementById('stats-panel').classList.contains('active')) { renderStats(); renderMe(); }
 }
 
 // Unlock iOS audio on first user gesture
