@@ -1171,6 +1171,185 @@
   .toast.red { background: var(--red); }
   .toast.purple { background: var(--purple); }
 
+  /* ============= PARENT TOOLS ============= */
+  .parent-card {
+    background: linear-gradient(135deg, #fff, var(--purple-light));
+    border: 2px solid var(--purple);
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .parent-card h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--purple-dark);
+    margin-bottom: 12px;
+  }
+  .parent-card h3 .lock-status {
+    font-size: 10px;
+    background: var(--purple);
+    color: white;
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+  .parent-card h3 .lock-status.unlocked {
+    background: var(--green);
+  }
+  .parent-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .parent-action:active {
+    transform: translateY(1px);
+  }
+  .parent-action:hover { border-color: var(--purple); }
+  .parent-action .pa-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--purple-light);
+    display: grid; place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .parent-action.danger .pa-icon { background: #fde2e2; }
+  .parent-action.danger:hover { border-color: var(--red); }
+  .parent-action .pa-info { flex: 1; min-width: 0; }
+  .parent-action .pa-name { font-size: 14px; font-weight: 900; color: var(--text); }
+  .parent-action .pa-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .parent-action .pa-arrow { color: var(--text-light); font-size: 18px; flex-shrink: 0; }
+
+  /* PIN modal numeric input */
+  .pin-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 0.4em;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .pin-input:focus { border-color: var(--purple); outline: none; }
+  .pin-row-label {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .err-msg {
+    color: var(--red);
+    font-size: 12px;
+    font-weight: 800;
+    margin-top: 6px;
+    min-height: 16px;
+    text-align: center;
+  }
+
+  /* Adjust Bucks modal */
+  .adj-dir {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .adj-btn {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .adj-btn.active {
+    background: var(--green);
+    color: white;
+    border-color: var(--green-dark);
+  }
+  .adj-btn.sub.active {
+    background: var(--red);
+    border-color: var(--red-dark);
+  }
+
+  /* Cloud sync card */
+  .sync-status {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .sync-status.on { background: var(--green-light); color: var(--green-dark); }
+  .sync-status.off { background: var(--bg-card); color: var(--text-muted); }
+  .sync-status .sync-dot {
+    width: 8px; height: 8px;
+    background: var(--text-light);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sync-status.on .sync-dot {
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(109, 191, 71, 0.2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(109, 191, 71, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(109, 191, 71, 0); }
+  }
+  .sync-code-box {
+    background: white;
+    border: 2px dashed var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sync-code-box .scb-code { flex: 1; user-select: all; }
+  .sync-code-box .scb-copy {
+    background: var(--purple);
+    color: white;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
   /* ============= REMINDER BANNER ============= */
   .reminder-banner {
     margin: 12px 16px 0;
@@ -1934,9 +2113,61 @@
     </ul>
   </div>
 
+  <div class="parent-card">
+    <h3>
+      <span>🔐 Parent Tools</span>
+      <span class="lock-status" id="parentLockStatus">Locked</span>
+    </h3>
+    <div class="parent-action" onclick="openAdjustBucks()">
+      <div class="pa-icon">💰</div>
+      <div class="pa-info">
+        <div class="pa-name">Adjust Daddy Bucks</div>
+        <div class="pa-desc">Add or subtract bucks manually</div>
+      </div>
+      <div class="pa-arrow">›</div>
+    </div>
+    <div class="parent-action" onclick="openRewardEditor()">
+      <div class="pa-icon">🛒</div>
+      <div class="pa-info">
+        <div class="pa-name">Edit Reward Shop</div>
+        <div class="pa-desc">Add, remove, or change rewards</div>
+      </div>
+      <div class="pa-arrow">›</div>
+    </div>
+    <div class="parent-action" onclick="changeParentPin()">
+      <div class="pa-icon">🔑</div>
+      <div class="pa-info">
+        <div class="pa-name" id="changePinLabel">Set Parent PIN</div>
+        <div class="pa-desc">Required to access parent tools</div>
+      </div>
+      <div class="pa-arrow">›</div>
+    </div>
+    <div class="parent-action danger" onclick="resetProgress()">
+      <div class="pa-icon">⚠️</div>
+      <div class="pa-info">
+        <div class="pa-name">Reset all progress</div>
+        <div class="pa-desc">Clears streak, XP, stickers, bucks</div>
+      </div>
+      <div class="pa-arrow">›</div>
+    </div>
+  </div>
+
   <div class="chart-card" style="margin-top:14px;">
-    <h3>⚠️ Reset</h3>
-    <button class="btn-3d red" onclick="resetProgress()">Reset all progress</button>
+    <h3>☁️ Cloud Sync</h3>
+    <div id="syncStatus"></div>
+    <div id="syncActions"></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">
+      Cloud sync stores progress online (anonymous JSON storage) so you can restore on a new device with the sync code.
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>📁 Manual Backup</h3>
+    <button class="btn-3d" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark);margin-bottom:8px;" onclick="exportProgress()">Export to file</button>
+    <button class="btn-3d gray" onclick="importProgress()">Import from file</button>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">
+      Saves a JSON file you can email or AirDrop. Import on another device to restore.
+    </div>
   </div>
 </section>
 
@@ -2058,6 +2289,65 @@
   </div>
 </div>
 
+<!-- PARENT PIN MODAL -->
+<div class="modal-backdrop" id="parentModal">
+  <div class="modal">
+    <div class="modal-header" style="background:var(--purple);">
+      <button class="close-x" onclick="closeParentPinModal()">✕</button>
+      <div class="big-icon">🔐</div>
+      <div class="pill">PARENT ACCESS</div>
+      <h3 id="parentModalTitle">Enter parent PIN</h3>
+      <div class="sub">Keep your kid out of parent settings</div>
+    </div>
+    <div class="modal-body">
+      <div id="parentSetupRow" style="display:none;">
+        <div class="pin-row-label">Set a 4–6 digit parent PIN</div>
+        <input id="parentSetPin" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="• • • •" autocomplete="off" />
+        <div class="pin-row-label">Confirm PIN</div>
+        <input id="parentSetPin2" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="• • • •" autocomplete="off" />
+      </div>
+      <div id="parentVerifyRow" style="display:none;">
+        <div class="pin-row-label">Enter parent PIN</div>
+        <input id="parentPinInput" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="• • • •" autocomplete="off" />
+      </div>
+      <div class="err-msg" id="parentModalErr"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d" id="parentSetupSubmit" style="background:var(--purple);box-shadow:0 4px 0 var(--purple-dark);" onclick="submitParentSetPin()">Set PIN</button>
+      <button class="btn-3d" id="parentVerifySubmit" style="background:var(--purple);box-shadow:0 4px 0 var(--purple-dark);display:none;" onclick="submitParentVerify()">Unlock</button>
+      <button class="btn-secondary" onclick="closeParentPinModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADJUST BUCKS MODAL -->
+<div class="modal-backdrop" id="adjustBucksModal">
+  <div class="modal">
+    <div class="modal-header" style="background:var(--yellow);color:var(--text);">
+      <button class="close-x" onclick="closeAdjustBucks()" style="background:rgba(0,0,0,0.12);">✕</button>
+      <div class="big-icon">💰</div>
+      <div class="pill" style="background:rgba(0,0,0,0.12);">PARENT TOOL</div>
+      <h3>Adjust Daddy Bucks</h3>
+      <div class="sub">Current balance: <strong id="adjustBucksCurrent">0</strong> DB</div>
+    </div>
+    <div class="modal-body">
+      <div class="adj-dir">
+        <button class="adj-btn add active" id="adjustBucksDirAdd" onclick="setAdjustDir('add')">+ Add</button>
+        <button class="adj-btn sub" id="adjustBucksDirSub" onclick="setAdjustDir('sub')">− Subtract</button>
+      </div>
+      <div class="pin-row-label">Amount</div>
+      <input id="adjustBucksAmt" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0" autocomplete="off" />
+      <div class="pin-row-label" style="margin-top:8px;">Reason (shows in ledger)</div>
+      <input id="adjustBucksReason" class="name-input" type="text" maxlength="60" placeholder="e.g. Bonus for great week" autocomplete="off" />
+      <div class="err-msg" id="adjustBucksErr"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d gold" onclick="submitAdjustBucks()">Apply</button>
+      <button class="btn-secondary" onclick="closeAdjustBucks()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- UNLOCK CARD + TOAST + CONFETTI -->
 <div class="unlock-card" id="unlockCard">
   <div class="be" id="ucEmoji">🌟</div>
@@ -2097,8 +2387,20 @@ const defaultState = {
 
   // === REMINDER ===
   reminderTime: '19:00',     // HH:MM (24h) — default 7pm
-  reminderDismissedFor: null // 'YYYY-MM-DD' — date the user dismissed today's nudge
+  reminderDismissedFor: null, // 'YYYY-MM-DD' — date the user dismissed today's nudge
 
+  // === PARENT CONTROLS ===
+  parent: {
+    pinHash: null,            // SHA-256 hex of parent PIN (null = no PIN set yet)
+    unlockedUntil: 0          // unix ms; while > now, parent actions are unlocked (5-min window)
+  },
+
+  // === CLOUD SYNC (JSONBlob — anonymous, CORS-enabled key-value) ===
+  cloud: {
+    syncId: null,             // blob UUID — acts as the sync code
+    lastPushAt: 0,
+    lastPullAt: 0
+  }
 };
 let state = loadState();
 let activeQuest = null;     // { date, type }
@@ -2110,16 +2412,15 @@ let savingForRewardId = null; // current "saving up for" target
 
 /* ============= REWARD CATALOG (default + parent-editable) ============= */
 const DEFAULT_REWARDS = [
-  { id: 'movie',       emoji: '🎬', name: 'Pick the family movie',     cost: 5  },
-  { id: 'late',        emoji: '🌙', name: 'Stay up 30 min late',        cost: 7  },
-  { id: 'icecream',    emoji: '🍦', name: 'Ice cream date with Dad',    cost: 8  },
-  { id: 'takeout',     emoji: '🍕', name: 'Pick Friday takeout',         cost: 10 },
-  { id: 'screen',      emoji: '🎮', name: 'Extra screen time (1 hour)',  cost: 12 },
-  { id: 'art',         emoji: '🎨', name: 'Art supplies bundle',         cost: 15 },
-  { id: 'book',        emoji: '📚', name: 'New book of your choice',     cost: 20 },
-  { id: 'shop25',      emoji: '🛍️', name: '$25 shopping spree',          cost: 25 },
-  { id: 'outing',      emoji: '🎟️', name: 'Special outing (movie/zoo)', cost: 40 },
-  { id: 'cash',        emoji: '🪙', name: 'Cash out — $1 per buck',      cost: 1, perBuck: true }
+  { id: 'cash',     emoji: '🪙', name: 'Cash out — $1 per buck',     cost: 1, perBuck: true },
+  { id: 'books',    emoji: '📚', name: 'Cash out on books — $10',    cost: 5  },
+  { id: 'sports',   emoji: '🎾', name: 'Sports equipment — $10',     cost: 5  },
+  { id: 'mcd',      emoji: '🍟', name: "McDonald's",                  cost: 5  },
+  { id: 'art',      emoji: '🎨', name: 'Art supplies bundle — $10',  cost: 7  },
+  { id: 'icecream', emoji: '🍦', name: 'Ice cream date with Dad',    cost: 8  },
+  { id: 'haidilao', emoji: '🍲', name: 'Haidilao',                    cost: 10 },
+  { id: 'outing',   emoji: '🎟️', name: 'Special outing (movie/zoo)', cost: 18 },
+  { id: 'shop25',   emoji: '🛍️', name: '$25 shopping spree',         cost: 25 }
 ];
 
 function getRewards() {
@@ -2130,11 +2431,348 @@ function getRewards() {
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return { ...defaultState, ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Deep-merge nested defaults so v1-state users get new structures (parent, cloud)
+      return {
+        ...defaultState,
+        ...parsed,
+        parent: { ...defaultState.parent, ...(parsed.parent || {}) },
+        cloud:  { ...defaultState.cloud,  ...(parsed.cloud  || {}) }
+      };
+    }
   } catch (e) {}
   return JSON.parse(JSON.stringify(defaultState));
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  scheduleCloudPush();
+}
+
+/* ============= PARENT PIN ============= */
+const PARENT_UNLOCK_MS = 5 * 60 * 1000; // 5 minutes after PIN entry, parent actions stay unlocked
+
+async function sha256Hex(s) {
+  const buf = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function isParentUnlocked() {
+  return state.parent && state.parent.unlockedUntil > Date.now();
+}
+function unlockParent() {
+  state.parent.unlockedUntil = Date.now() + PARENT_UNLOCK_MS;
+  saveState();
+  renderTopBar();
+}
+function lockParent() {
+  state.parent.unlockedUntil = 0;
+  saveState();
+  renderTopBar();
+}
+
+// Modal-driven parent unlock. Returns Promise<bool> — true if unlocked or PIN verified.
+let _pendingParentResolve = null;
+function requireParent() {
+  return new Promise(resolve => {
+    if (isParentUnlocked()) { resolve(true); return; }
+    _pendingParentResolve = resolve;
+    openParentPinModal();
+  });
+}
+
+function openParentPinModal() {
+  const hasPin = !!(state.parent && state.parent.pinHash);
+  const modal = document.getElementById('parentModal');
+  const setupRow = document.getElementById('parentSetupRow');
+  const verifyRow = document.getElementById('parentVerifyRow');
+  const setupBtn = document.getElementById('parentSetupSubmit');
+  const verifyBtn = document.getElementById('parentVerifySubmit');
+  const titleEl = document.getElementById('parentModalTitle');
+
+  if (hasPin) {
+    setupRow.style.display = 'none';
+    verifyRow.style.display = 'block';
+    setupBtn.style.display = 'none';
+    verifyBtn.style.display = 'block';
+    titleEl.textContent = 'Enter parent PIN';
+    document.getElementById('parentPinInput').value = '';
+    setTimeout(() => document.getElementById('parentPinInput').focus(), 200);
+  } else {
+    setupRow.style.display = 'block';
+    verifyRow.style.display = 'none';
+    setupBtn.style.display = 'block';
+    verifyBtn.style.display = 'none';
+    titleEl.textContent = 'Set parent PIN';
+    document.getElementById('parentSetPin').value = '';
+    document.getElementById('parentSetPin2').value = '';
+    setTimeout(() => document.getElementById('parentSetPin').focus(), 200);
+  }
+  document.getElementById('parentModalErr').textContent = '';
+  modal.classList.add('show');
+}
+function closeParentPinModal() {
+  document.getElementById('parentModal').classList.remove('show');
+  if (_pendingParentResolve) { _pendingParentResolve(false); _pendingParentResolve = null; }
+}
+async function submitParentSetPin() {
+  const pin = document.getElementById('parentSetPin').value.trim();
+  const pin2 = document.getElementById('parentSetPin2').value.trim();
+  const err = document.getElementById('parentModalErr');
+  if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'PIN must be 4–6 digits.'; return; }
+  if (pin !== pin2) { err.textContent = "PINs don't match. Try again."; return; }
+  state.parent.pinHash = await sha256Hex(pin);
+  unlockParent();
+  document.getElementById('parentModal').classList.remove('show');
+  showToast('🔐 Parent PIN set!', 'gold');
+  if (_pendingParentResolve) { _pendingParentResolve(true); _pendingParentResolve = null; }
+}
+async function submitParentVerify() {
+  const pin = document.getElementById('parentPinInput').value.trim();
+  const err = document.getElementById('parentModalErr');
+  const hash = await sha256Hex(pin);
+  if (hash === state.parent.pinHash) {
+    unlockParent();
+    document.getElementById('parentModal').classList.remove('show');
+    showToast('🔓 Parent unlocked', '');
+    if (_pendingParentResolve) { _pendingParentResolve(true); _pendingParentResolve = null; }
+  } else {
+    err.textContent = 'Wrong PIN. Try again.';
+    document.getElementById('parentPinInput').value = '';
+  }
+}
+async function changeParentPin() {
+  const hasPin = !!(state.parent && state.parent.pinHash);
+  if (hasPin) {
+    // Require current PIN first
+    const ok = await requireParent();
+    if (!ok) return;
+    state.parent.pinHash = null;
+  }
+  // Either no PIN (set new) or PIN was just cleared after verifying — show setup form
+  state.parent.unlockedUntil = 0;
+  saveState();
+  openParentPinModal();
+}
+
+/* ============= CLOUD SYNC (via api.jsonblob.com) ============= */
+const CLOUD_API = 'https://api.jsonblob.com';
+
+let _cloudPushTimer = null;
+function scheduleCloudPush() {
+  if (!state.cloud || !state.cloud.syncId) return;
+  clearTimeout(_cloudPushTimer);
+  _cloudPushTimer = setTimeout(() => { cloudPush().catch(e => console.warn('Cloud push failed:', e)); }, 1500);
+}
+
+function cloudPayload() {
+  // Wrap the state in a small envelope so future format changes are easy.
+  return {
+    pandiState: state,
+    updatedAt: Date.now(),
+    schemaVersion: 1
+  };
+}
+
+async function cloudCreate() {
+  const res = await fetch(CLOUD_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(cloudPayload())
+  });
+  if (!res.ok) throw new Error('Cloud create failed: ' + res.status);
+  // Prefer the X-jsonblob-id header (cleaner than parsing Location)
+  const id = res.headers.get('x-jsonblob-id') || (res.headers.get('location') || '').split('/').pop();
+  if (!id) throw new Error('No sync ID returned');
+  state.cloud.syncId = id;
+  state.cloud.lastPushAt = Date.now();
+  saveState();
+  return id;
+}
+
+async function cloudPush() {
+  if (!state.cloud.syncId) return;
+  const res = await fetch(`${CLOUD_API}/${state.cloud.syncId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cloudPayload())
+  });
+  if (!res.ok) throw new Error('Cloud push failed: ' + res.status);
+  state.cloud.lastPushAt = Date.now();
+  // Save WITHOUT re-triggering scheduleCloudPush (avoid loop)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  renderMeIfActive();
+}
+
+async function cloudPull(syncId) {
+  const res = await fetch(`${CLOUD_API}/${syncId}`);
+  if (!res.ok) throw new Error('Sync code not found (HTTP ' + res.status + ')');
+  const data = await res.json();
+  if (!data || !data.pandiState) throw new Error('Sync data is invalid');
+  return data.pandiState;
+}
+
+async function setupCloudSync() {
+  const ok = await requireParent();
+  if (!ok) return;
+  try {
+    showToast('☁️ Setting up cloud sync…', '');
+    const id = await cloudCreate();
+    showToast('☁️ Cloud sync active!', 'gold');
+    Sound.playBadge();
+    renderMeIfActive();
+    return id;
+  } catch (e) {
+    showToast('❌ Sync setup failed', 'red');
+    console.error(e);
+  }
+}
+
+async function restoreFromCloud() {
+  const ok = await requireParent();
+  if (!ok) return;
+  const code = (prompt('Paste the sync code from your other device:') || '').trim();
+  if (!code) return;
+  // Allow either full UUID or anything containing a UUID
+  const m = code.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  const syncId = m ? m[0] : code;
+  try {
+    showToast('☁️ Pulling progress…', '');
+    const cloudState = await cloudPull(syncId);
+    if (!confirm('Replace this device\'s progress with cloud progress?\n\nThis can\'t be undone.')) return;
+    // Apply: keep parent PIN of this device (so user doesn't get locked out)
+    const localPin = state.parent ? state.parent.pinHash : null;
+    state = {
+      ...defaultState,
+      ...cloudState,
+      parent: { ...defaultState.parent, ...(cloudState.parent || {}), pinHash: localPin || (cloudState.parent && cloudState.parent.pinHash) || null, unlockedUntil: Date.now() + PARENT_UNLOCK_MS },
+      cloud:  { ...defaultState.cloud, syncId, lastPullAt: Date.now() }
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('✓ Progress restored from cloud', 'gold');
+    Sound.playDayComplete();
+    rerender();
+  } catch (e) {
+    showToast('❌ ' + (e.message || 'Restore failed'), 'red');
+    console.error(e);
+  }
+}
+
+function disconnectCloudSync() {
+  if (!confirm('Disconnect cloud sync?\n\nProgress on this device will stay; the cloud copy stays where it is. You can reconnect with the same sync code later.')) return;
+  state.cloud.syncId = null;
+  state.cloud.lastPushAt = 0;
+  saveState();
+  showToast('Cloud sync disconnected', '');
+  renderMeIfActive();
+}
+
+async function copySyncCode() {
+  if (!state.cloud.syncId) return;
+  try {
+    await navigator.clipboard.writeText(state.cloud.syncId);
+    showToast('Sync code copied!', 'gold');
+  } catch (e) {
+    prompt('Copy this code:', state.cloud.syncId);
+  }
+}
+
+/* ============= MANUAL EXPORT / IMPORT ============= */
+function exportProgress() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = todayKey();
+  a.href = url;
+  a.download = `pandi-progress-${today}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('📁 Progress exported', '');
+}
+async function importProgress() {
+  const ok = await requireParent();
+  if (!ok) return;
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const imported = JSON.parse(reader.result);
+        if (!imported || !imported.log) throw new Error('Not a valid Pandi progress file');
+        if (!confirm('Replace this device\'s progress with the imported file?')) return;
+        const localPin = state.parent ? state.parent.pinHash : null;
+        state = {
+          ...defaultState,
+          ...imported,
+          parent: { ...defaultState.parent, ...(imported.parent || {}), pinHash: localPin, unlockedUntil: Date.now() + PARENT_UNLOCK_MS },
+          cloud:  { ...defaultState.cloud, ...(imported.cloud || {}) }
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        showToast('✓ Progress imported', 'gold');
+        rerender();
+      } catch (e) {
+        showToast('❌ ' + e.message, 'red');
+      }
+    };
+    reader.readAsText(f);
+  };
+  inp.click();
+}
+
+/* ============= ADJUST DADDY BUCKS ============= */
+async function openAdjustBucks() {
+  const ok = await requireParent();
+  if (!ok) return;
+  document.getElementById('adjustBucksAmt').value = '';
+  document.getElementById('adjustBucksReason').value = '';
+  document.getElementById('adjustBucksErr').textContent = '';
+  document.getElementById('adjustBucksDirAdd').classList.add('active');
+  document.getElementById('adjustBucksDirSub').classList.remove('active');
+  document.getElementById('adjustBucksCurrent').textContent = state.bucks || 0;
+  document.getElementById('adjustBucksModal').classList.add('show');
+  setTimeout(() => document.getElementById('adjustBucksAmt').focus(), 200);
+}
+function setAdjustDir(dir) {
+  document.getElementById('adjustBucksDirAdd').classList.toggle('active', dir === 'add');
+  document.getElementById('adjustBucksDirSub').classList.toggle('active', dir === 'sub');
+}
+function submitAdjustBucks() {
+  const amt = parseInt(document.getElementById('adjustBucksAmt').value, 10);
+  const reason = document.getElementById('adjustBucksReason').value.trim() || 'Parent adjustment';
+  const err = document.getElementById('adjustBucksErr');
+  const isAdd = document.getElementById('adjustBucksDirAdd').classList.contains('active');
+  if (!amt || amt <= 0 || amt > 9999) { err.textContent = 'Enter a number 1–9999.'; return; }
+  const delta = isAdd ? amt : -amt;
+  if (!isAdd && (state.bucks || 0) < amt) {
+    if (!confirm(`Subtract ${amt} DB? Balance will go below zero.`)) return;
+  }
+  state.bucks = Math.max(0, (state.bucks || 0) + delta);
+  if (isAdd) state.bucksTotalEarned = (state.bucksTotalEarned || 0) + amt;
+  state.bucksLedger = state.bucksLedger || [];
+  state.bucksLedger.unshift({
+    ts: Date.now(),
+    amount: delta,
+    reason: `${isAdd ? '👨‍👧 Adjusted +' : '👨‍👧 Adjusted −'}${amt}: ${reason}`
+  });
+  if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+  saveState();
+  document.getElementById('adjustBucksModal').classList.remove('show');
+  showToast(`${isAdd ? '+' : '−'}${amt} DB · ${reason}`, isAdd ? 'gold' : 'red');
+  Sound.playPop();
+  rerender();
+}
+function closeAdjustBucks() {
+  document.getElementById('adjustBucksModal').classList.remove('show');
+}
+
+function renderMeIfActive() {
+  if (document.getElementById('me-panel').classList.contains('active')) renderMe();
+}
 
 /* ============= QUESTS ============= */
 const QUESTS = {
@@ -3826,7 +4464,9 @@ document.getElementById('rewardModal').addEventListener('click', e => {
 /* ============= REWARD EDITOR (parent-facing) ============= */
 let editingRewards = []; // working copy
 
-function openRewardEditor() {
+async function openRewardEditor() {
+  const ok = await requireParent();
+  if (!ok) return;
   editingRewards = JSON.parse(JSON.stringify(getRewards()));
   renderRewardEditor();
   document.getElementById('rewardEditModal').classList.add('show');
@@ -4109,7 +4749,78 @@ function renderMe() {
   if (reminderInput && document.activeElement !== reminderInput) {
     reminderInput.value = state.reminderTime || '19:00';
   }
+
+  // Parent lock status
+  const lockStatus = document.getElementById('parentLockStatus');
+  if (lockStatus) {
+    if (isParentUnlocked()) {
+      lockStatus.textContent = 'Unlocked';
+      lockStatus.className = 'lock-status unlocked';
+    } else {
+      lockStatus.textContent = (state.parent && state.parent.pinHash) ? 'Locked' : 'No PIN set';
+      lockStatus.className = 'lock-status';
+    }
+  }
+  const changePinLabel = document.getElementById('changePinLabel');
+  if (changePinLabel) {
+    changePinLabel.textContent = (state.parent && state.parent.pinHash) ? 'Change parent PIN' : 'Set parent PIN';
+  }
+
+  // Cloud sync UI
+  renderSyncUI();
 }
+
+function renderSyncUI() {
+  const status = document.getElementById('syncStatus');
+  const actions = document.getElementById('syncActions');
+  if (!status || !actions) return;
+  if (state.cloud && state.cloud.syncId) {
+    const last = state.cloud.lastPushAt
+      ? `Last synced ${formatRelativeTime(state.cloud.lastPushAt)}`
+      : 'Awaiting first sync';
+    status.innerHTML = `
+      <div class="sync-status on">
+        <span class="sync-dot"></span>
+        <span>Active · ${last}</span>
+      </div>
+      <div class="pin-row-label" style="margin-top:8px;">Sync code (paste on another device)</div>
+      <div class="sync-code-box">
+        <span class="scb-code">${state.cloud.syncId}</span>
+        <span class="scb-copy" onclick="copySyncCode()">Copy</span>
+      </div>
+    `;
+    actions.innerHTML = `
+      <button class="btn-3d gray" onclick="restoreFromCloud()" style="margin-bottom:8px;">Restore from another device</button>
+      <button class="btn-3d red" onclick="disconnectCloudSync()">Disconnect sync</button>
+    `;
+  } else {
+    status.innerHTML = `
+      <div class="sync-status off">
+        <span class="sync-dot"></span>
+        <span>Off — progress only saved on this device</span>
+      </div>
+    `;
+    actions.innerHTML = `
+      <button class="btn-3d" style="background:var(--purple);box-shadow:0 4px 0 var(--purple-dark);margin-bottom:8px;" onclick="setupCloudSync()">Set up cloud sync</button>
+      <button class="btn-3d gray" onclick="restoreFromCloud()">Restore from sync code</button>
+    `;
+  }
+}
+
+// Wire Enter key on PIN inputs + backdrop click to close
+setTimeout(() => {
+  const setPin2 = document.getElementById('parentSetPin2');
+  const verifyPin = document.getElementById('parentPinInput');
+  const adjReason = document.getElementById('adjustBucksReason');
+  if (setPin2) setPin2.onkeydown = e => { if (e.key === 'Enter') submitParentSetPin(); };
+  if (verifyPin) verifyPin.onkeydown = e => { if (e.key === 'Enter') submitParentVerify(); };
+  if (adjReason) adjReason.onkeydown = e => { if (e.key === 'Enter') submitAdjustBucks(); };
+
+  const pm = document.getElementById('parentModal');
+  if (pm) pm.addEventListener('click', e => { if (e.target.id === 'parentModal') closeParentPinModal(); });
+  const am = document.getElementById('adjustBucksModal');
+  if (am) am.addEventListener('click', e => { if (e.target.id === 'adjustBucksModal') closeAdjustBucks(); });
+}, 100);
 
 function onNameChange() {
   state.name = document.getElementById('nameInput').value;
@@ -4132,15 +4843,21 @@ function toggleHaptic() {
   renderMe();
 }
 
-function resetProgress() {
-  if (!confirm('Reset all progress? This will clear your streak, XP, and stickers. Cannot be undone!')) return;
-  const keepName = state.name;
-  const keepSound = state.soundOn;
-  const keepHaptic = state.hapticOn;
+async function resetProgress() {
+  const ok = await requireParent();
+  if (!ok) return;
+  if (!confirm('Reset all progress? This will clear streak, XP, stickers, and Daddy Bucks. Cannot be undone!')) return;
+  // Preserve identity + sync settings + parent PIN through reset
+  const keep = {
+    name: state.name,
+    soundOn: state.soundOn,
+    hapticOn: state.hapticOn,
+    parent: state.parent,
+    cloud: state.cloud,
+    reminderTime: state.reminderTime
+  };
   state = JSON.parse(JSON.stringify(defaultState));
-  state.name = keepName;
-  state.soundOn = keepSound;
-  state.hapticOn = keepHaptic;
+  Object.assign(state, keep);
   saveState();
   rerender();
   showToast('Progress reset', 'red');
