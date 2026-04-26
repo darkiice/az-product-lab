@@ -1436,6 +1436,53 @@
     margin-bottom: 14px;
   }
 
+  /* Deposit / Cash Out CTAs under balance card */
+  .bucks-cta-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .bucks-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 14px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.1s;
+    color: white;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .bucks-cta:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .bucks-cta.deposit {
+    background: var(--green);
+    box-shadow: 0 4px 0 var(--green-dark);
+  }
+  .bucks-cta.deposit:active { box-shadow: 0 2px 0 var(--green-dark); }
+  .bucks-cta.cashout {
+    background: var(--yellow);
+    color: var(--text);
+    box-shadow: 0 4px 0 var(--yellow-dark);
+  }
+  .bucks-cta.cashout:active { box-shadow: 0 2px 0 var(--yellow-dark); }
+  .bucks-cta .cta-ico { font-size: 22px; line-height: 1; }
+  .bucks-cta .cta-pin {
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 11px;
+    opacity: 0.55;
+  }
+
   .reward-card {
     background: white;
     border: 2px solid var(--border);
@@ -1944,12 +1991,25 @@
 <!-- BUCKS PANEL -->
 <section class="panel" id="bucks-panel">
   <h2>💰 Daddy Bucks</h2>
-  <p class="sub" id="bucksSub">Earn by practicing. Spend on cool stuff!</p>
+  <p class="sub" id="bucksSub">Practice now, brag later.</p>
 
   <div class="bucks-balance-card">
     <div class="bb-label">Your balance</div>
     <div class="bb-amount"><span id="bucksBalance">0</span><span class="bb-unit">DB</span></div>
     <div class="bb-sub" id="bucksSubLabel">Keep going!</div>
+  </div>
+
+  <div class="bucks-cta-row">
+    <button class="bucks-cta deposit" onclick="openDepositModal()">
+      <span class="cta-ico">➕</span>
+      <span class="cta-lbl">Deposit</span>
+      <span class="cta-pin">🔐</span>
+    </button>
+    <button class="bucks-cta cashout" onclick="openCashOutModal()">
+      <span class="cta-ico">💵</span>
+      <span class="cta-lbl">Cash Out</span>
+      <span class="cta-pin">🔐</span>
+    </button>
   </div>
 
   <div class="bucks-stats-row">
@@ -2118,14 +2178,6 @@
       <span>🔐 Parent Tools</span>
       <span class="lock-status" id="parentLockStatus">Locked</span>
     </h3>
-    <div class="parent-action" onclick="openAdjustBucks()">
-      <div class="pa-icon">💰</div>
-      <div class="pa-info">
-        <div class="pa-name">Adjust Daddy Bucks</div>
-        <div class="pa-desc">Add or subtract bucks manually</div>
-      </div>
-      <div class="pa-arrow">›</div>
-    </div>
     <div class="parent-action" onclick="openRewardEditor()">
       <div class="pa-icon">🛒</div>
       <div class="pa-info">
@@ -2320,30 +2372,53 @@
   </div>
 </div>
 
-<!-- ADJUST BUCKS MODAL -->
-<div class="modal-backdrop" id="adjustBucksModal">
+<!-- DEPOSIT MODAL (parent adds bucks) -->
+<div class="modal-backdrop" id="depositModal">
   <div class="modal">
-    <div class="modal-header" style="background:var(--yellow);color:var(--text);">
-      <button class="close-x" onclick="closeAdjustBucks()" style="background:rgba(0,0,0,0.12);">✕</button>
-      <div class="big-icon">💰</div>
-      <div class="pill" style="background:rgba(0,0,0,0.12);">PARENT TOOL</div>
-      <h3>Adjust Daddy Bucks</h3>
-      <div class="sub">Current balance: <strong id="adjustBucksCurrent">0</strong> DB</div>
+    <div class="modal-header" style="background:var(--green);">
+      <button class="close-x" onclick="closeDepositModal()">✕</button>
+      <div class="big-icon">➕</div>
+      <div class="pill">PARENT TOOL</div>
+      <h3>Deposit Daddy Bucks</h3>
+      <div class="sub">Current balance: <strong id="depositCurrent">0</strong> DB</div>
     </div>
     <div class="modal-body">
-      <div class="adj-dir">
-        <button class="adj-btn add active" id="adjustBucksDirAdd" onclick="setAdjustDir('add')">+ Add</button>
-        <button class="adj-btn sub" id="adjustBucksDirSub" onclick="setAdjustDir('sub')">− Subtract</button>
-      </div>
-      <div class="pin-row-label">Amount</div>
-      <input id="adjustBucksAmt" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0" autocomplete="off" />
+      <div class="pin-row-label">Amount to deposit</div>
+      <input id="depositAmt" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0" autocomplete="off" />
       <div class="pin-row-label" style="margin-top:8px;">Reason (shows in ledger)</div>
-      <input id="adjustBucksReason" class="name-input" type="text" maxlength="60" placeholder="e.g. Bonus for great week" autocomplete="off" />
-      <div class="err-msg" id="adjustBucksErr"></div>
+      <input id="depositReason" class="name-input" type="text" maxlength="60" placeholder="e.g. Bonus for amazing week" autocomplete="off" />
+      <div class="err-msg" id="depositErr"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn-3d gold" onclick="submitAdjustBucks()">Apply</button>
-      <button class="btn-secondary" onclick="closeAdjustBucks()">Cancel</button>
+      <button class="btn-3d" style="background:var(--green);box-shadow:0 4px 0 var(--green-dark);" onclick="submitDeposit()">Deposit</button>
+      <button class="btn-secondary" onclick="closeDepositModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CASH OUT MODAL (kid redeems bucks for real money) -->
+<div class="modal-backdrop" id="cashOutModal">
+  <div class="modal">
+    <div class="modal-header" style="background:var(--yellow);color:var(--text);">
+      <button class="close-x" onclick="closeCashOutModal()" style="background:rgba(0,0,0,0.12);">✕</button>
+      <div class="big-icon">💵</div>
+      <div class="pill" style="background:rgba(0,0,0,0.12);">PARENT TOOL</div>
+      <h3>Cash Out Daddy Bucks</h3>
+      <div class="sub">Available: <strong id="cashOutCurrent">0</strong> DB</div>
+    </div>
+    <div class="modal-body">
+      <div class="pin-row-label">Daddy Bucks to cash out</div>
+      <input id="cashOutDB" class="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0" autocomplete="off" oninput="onCashOutDBChange()" />
+      <div class="pin-row-label" style="margin-top:8px;">Cash amount ($)</div>
+      <input id="cashOutCash" class="pin-input" type="text" inputmode="decimal" placeholder="0" autocomplete="off" oninput="onCashOutCashChange()" />
+      <div style="font-size:11px;color:var(--text-muted);margin-top:-4px;margin-bottom:10px;">Defaults to $1 per buck — adjust if you want to give a bonus.</div>
+      <div class="pin-row-label">Note (optional)</div>
+      <input id="cashOutReason" class="name-input" type="text" maxlength="60" placeholder="e.g. Birthday cash" autocomplete="off" />
+      <div class="err-msg" id="cashOutErr"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d gold" onclick="submitCashOut()">Cash Out</button>
+      <button class="btn-secondary" onclick="closeCashOutModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2411,8 +2486,8 @@ let calMonthOffset = 0;     // 0 = this month, -1 = last month
 let savingForRewardId = null; // current "saving up for" target
 
 /* ============= REWARD CATALOG (default + parent-editable) ============= */
+// Cash out is no longer a "reward" — it's a top-level CTA on the Bucks tab.
 const DEFAULT_REWARDS = [
-  { id: 'cash',     emoji: '🪙', name: 'Cash out — $1 per buck',     cost: 1, perBuck: true },
   { id: 'books',    emoji: '📚', name: 'Cash out on books — $10',    cost: 5  },
   { id: 'sports',   emoji: '🎾', name: 'Sports equipment — $10',     cost: 5  },
   { id: 'mcd',      emoji: '🍟', name: "McDonald's",                  cost: 5  },
@@ -2424,8 +2499,9 @@ const DEFAULT_REWARDS = [
 ];
 
 function getRewards() {
-  // null = use defaults. Otherwise use the parent-edited list.
-  return Array.isArray(state.rewards) ? state.rewards : DEFAULT_REWARDS;
+  // null = use defaults. Filter out any legacy perBuck cash rewards.
+  const list = Array.isArray(state.rewards) ? state.rewards : DEFAULT_REWARDS;
+  return list.filter(r => !r.perBuck);
 }
 
 function loadState() {
@@ -2449,8 +2525,9 @@ function saveState() {
   scheduleCloudPush();
 }
 
-/* ============= PARENT PIN ============= */
-const PARENT_UNLOCK_MS = 5 * 60 * 1000; // 5 minutes after PIN entry, parent actions stay unlocked
+/* ============= PARENT PIN =============
+   Per parent-app design: every PIN-protected action prompts for the PIN
+   every time. No auto-unlock window. */
 
 async function sha256Hex(s) {
   const buf = new TextEncoder().encode(s);
@@ -2458,25 +2535,11 @@ async function sha256Hex(s) {
   return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function isParentUnlocked() {
-  return state.parent && state.parent.unlockedUntil > Date.now();
-}
-function unlockParent() {
-  state.parent.unlockedUntil = Date.now() + PARENT_UNLOCK_MS;
-  saveState();
-  renderTopBar();
-}
-function lockParent() {
-  state.parent.unlockedUntil = 0;
-  saveState();
-  renderTopBar();
-}
-
-// Modal-driven parent unlock. Returns Promise<bool> — true if unlocked or PIN verified.
+// Modal-driven parent unlock. Returns Promise<bool> — true if PIN verified
+// (or just-set during first-time setup).
 let _pendingParentResolve = null;
 function requireParent() {
   return new Promise(resolve => {
-    if (isParentUnlocked()) { resolve(true); return; }
     _pendingParentResolve = resolve;
     openParentPinModal();
   });
@@ -2523,7 +2586,7 @@ async function submitParentSetPin() {
   if (!/^\d{4,6}$/.test(pin)) { err.textContent = 'PIN must be 4–6 digits.'; return; }
   if (pin !== pin2) { err.textContent = "PINs don't match. Try again."; return; }
   state.parent.pinHash = await sha256Hex(pin);
-  unlockParent();
+  saveState();
   document.getElementById('parentModal').classList.remove('show');
   showToast('🔐 Parent PIN set!', 'gold');
   if (_pendingParentResolve) { _pendingParentResolve(true); _pendingParentResolve = null; }
@@ -2533,9 +2596,7 @@ async function submitParentVerify() {
   const err = document.getElementById('parentModalErr');
   const hash = await sha256Hex(pin);
   if (hash === state.parent.pinHash) {
-    unlockParent();
     document.getElementById('parentModal').classList.remove('show');
-    showToast('🔓 Parent unlocked', '');
     if (_pendingParentResolve) { _pendingParentResolve(true); _pendingParentResolve = null; }
   } else {
     err.textContent = 'Wrong PIN. Try again.';
@@ -2545,13 +2606,10 @@ async function submitParentVerify() {
 async function changeParentPin() {
   const hasPin = !!(state.parent && state.parent.pinHash);
   if (hasPin) {
-    // Require current PIN first
     const ok = await requireParent();
     if (!ok) return;
     state.parent.pinHash = null;
   }
-  // Either no PIN (set new) or PIN was just cleared after verifying — show setup form
-  state.parent.unlockedUntil = 0;
   saveState();
   openParentPinModal();
 }
@@ -2724,50 +2782,127 @@ async function importProgress() {
   inp.click();
 }
 
-/* ============= ADJUST DADDY BUCKS ============= */
-async function openAdjustBucks() {
+/* ============= DEPOSIT (parent adds bucks) ============= */
+async function openDepositModal() {
   const ok = await requireParent();
   if (!ok) return;
-  document.getElementById('adjustBucksAmt').value = '';
-  document.getElementById('adjustBucksReason').value = '';
-  document.getElementById('adjustBucksErr').textContent = '';
-  document.getElementById('adjustBucksDirAdd').classList.add('active');
-  document.getElementById('adjustBucksDirSub').classList.remove('active');
-  document.getElementById('adjustBucksCurrent').textContent = state.bucks || 0;
-  document.getElementById('adjustBucksModal').classList.add('show');
-  setTimeout(() => document.getElementById('adjustBucksAmt').focus(), 200);
+  document.getElementById('depositAmt').value = '';
+  document.getElementById('depositReason').value = '';
+  document.getElementById('depositErr').textContent = '';
+  document.getElementById('depositCurrent').textContent = state.bucks || 0;
+  document.getElementById('depositModal').classList.add('show');
+  setTimeout(() => document.getElementById('depositAmt').focus(), 200);
 }
-function setAdjustDir(dir) {
-  document.getElementById('adjustBucksDirAdd').classList.toggle('active', dir === 'add');
-  document.getElementById('adjustBucksDirSub').classList.toggle('active', dir === 'sub');
+function closeDepositModal() {
+  document.getElementById('depositModal').classList.remove('show');
 }
-function submitAdjustBucks() {
-  const amt = parseInt(document.getElementById('adjustBucksAmt').value, 10);
-  const reason = document.getElementById('adjustBucksReason').value.trim() || 'Parent adjustment';
-  const err = document.getElementById('adjustBucksErr');
-  const isAdd = document.getElementById('adjustBucksDirAdd').classList.contains('active');
+function submitDeposit() {
+  const amt = parseInt(document.getElementById('depositAmt').value, 10);
+  const reason = document.getElementById('depositReason').value.trim() || 'Parent deposit';
+  const err = document.getElementById('depositErr');
   if (!amt || amt <= 0 || amt > 9999) { err.textContent = 'Enter a number 1–9999.'; return; }
-  const delta = isAdd ? amt : -amt;
-  if (!isAdd && (state.bucks || 0) < amt) {
-    if (!confirm(`Subtract ${amt} DB? Balance will go below zero.`)) return;
-  }
-  state.bucks = Math.max(0, (state.bucks || 0) + delta);
-  if (isAdd) state.bucksTotalEarned = (state.bucksTotalEarned || 0) + amt;
+  state.bucks = (state.bucks || 0) + amt;
+  state.bucksTotalEarned = (state.bucksTotalEarned || 0) + amt;
   state.bucksLedger = state.bucksLedger || [];
-  state.bucksLedger.unshift({
-    ts: Date.now(),
-    amount: delta,
-    reason: `${isAdd ? '👨‍👧 Adjusted +' : '👨‍👧 Adjusted −'}${amt}: ${reason}`
-  });
+  state.bucksLedger.unshift({ ts: Date.now(), amount: amt, reason: `👨‍👧 Deposit · ${reason}` });
   if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
   saveState();
-  document.getElementById('adjustBucksModal').classList.remove('show');
-  showToast(`${isAdd ? '+' : '−'}${amt} DB · ${reason}`, isAdd ? 'gold' : 'red');
-  Sound.playPop();
+  closeDepositModal();
+  showToast(`+${amt} DB · ${reason}`, 'gold');
+  Sound.playBadge();
   rerender();
 }
-function closeAdjustBucks() {
-  document.getElementById('adjustBucksModal').classList.remove('show');
+
+/* ============= CASH OUT (kid redeems bucks for real $) ============= */
+async function openCashOutModal() {
+  const ok = await requireParent();
+  if (!ok) return;
+  const balance = state.bucks || 0;
+  document.getElementById('cashOutDB').value = '';
+  document.getElementById('cashOutCash').value = '';
+  document.getElementById('cashOutReason').value = '';
+  document.getElementById('cashOutErr').textContent = '';
+  document.getElementById('cashOutCurrent').textContent = balance;
+  document.getElementById('cashOutModal').classList.add('show');
+  setTimeout(() => document.getElementById('cashOutDB').focus(), 200);
+}
+function closeCashOutModal() {
+  document.getElementById('cashOutModal').classList.remove('show');
+}
+// Auto-fill cash amount from DB amount (default $1 per DB) — but parent can override.
+function onCashOutDBChange() {
+  const db = parseInt(document.getElementById('cashOutDB').value, 10);
+  const cashEl = document.getElementById('cashOutCash');
+  // Only auto-fill if parent hasn't manually edited the cash field
+  if (!cashEl.dataset.touched) {
+    cashEl.value = db > 0 ? db : '';
+  }
+}
+function onCashOutCashChange() {
+  document.getElementById('cashOutCash').dataset.touched = '1';
+}
+function submitCashOut() {
+  const db = parseInt(document.getElementById('cashOutDB').value, 10);
+  const cash = parseFloat(document.getElementById('cashOutCash').value);
+  const reason = document.getElementById('cashOutReason').value.trim();
+  const err = document.getElementById('cashOutErr');
+  const balance = state.bucks || 0;
+  if (!db || db <= 0) { err.textContent = 'Enter a Daddy Bucks amount.'; return; }
+  if (db > balance) { err.textContent = `Only ${balance} DB available.`; return; }
+  if (isNaN(cash) || cash < 0) { err.textContent = 'Enter a cash amount ($0 or more).'; return; }
+  state.bucks = balance - db;
+  const cashStr = cash.toFixed(2).replace(/\.00$/, '');
+  state.bucksRedemptions = state.bucksRedemptions || [];
+  state.bucksRedemptions.unshift({
+    ts: Date.now(),
+    amount: db,
+    rewardId: 'cashout',
+    rewardName: reason ? `Cash out — $${cashStr} (${reason})` : `Cash out — $${cashStr}`,
+    emoji: '💵',
+    status: 'pending'
+  });
+  saveState();
+  closeCashOutModal();
+  showToast(`💵 Cashed out $${cashStr}`, 'gold');
+  Sound.playBadge();
+  rerender();
+}
+
+/* ============= WISE WORDS (rotating subtitle) ============= */
+const WISE_WORDS = [
+  'Hard work pays off — literally.',
+  'Practice makes Pandi proud.',
+  'Tiny daily wins build big stories.',
+  'Discipline today, dessert tomorrow.',
+  'Save it, spend it, earn it again.',
+  'The best things take time. And bucks.',
+  'Show up daily. Reward yourself wisely.',
+  'Streaks compound. So do your savings.',
+  'Earn a buck, learn a thing.',
+  'Practice now, brag later.',
+  'Pandi believes in compound interest.',
+  'Good habits = great returns.',
+  'Every quest is a coin in your jar.',
+  'What you practice, you become.',
+  'Small streaks, big rewards.',
+  'You\'re investing in future you.',
+  'Tomorrow\'s smile starts with today\'s effort.',
+  'Daily reps. Lifetime returns.',
+  'A spoonful of practice fills the jar.',
+  'Slow and steady wins the bucks.'
+];
+
+function pickWiseWords() {
+  const stats = stickerStats();
+  const bucks = state.bucks || 0;
+  // Context-aware overrides for special moments
+  if (stats.streak >= 100) return '🏆 100 days strong — you\'re a Pandi legend.';
+  if (stats.streak >= 30)  return '🌟 A month of magic. Pandi is proud.';
+  if (stats.streak >= 14)  return '💪 Two weeks strong. Keep going.';
+  if (bucks >= 50)         return '💰 That\'s a healthy stash. Save or spend wisely.';
+  if (bucks === 0 && stats.daysComplete === 0) return 'Finish a day to earn your first Daddy Buck!';
+  // Otherwise rotate at random
+  return WISE_WORDS[Math.floor(Math.random() * WISE_WORDS.length)];
 }
 
 function renderMeIfActive() {
@@ -4250,6 +4385,10 @@ function renderBucksPanel() {
   document.getElementById('bucksTotal').textContent = total;
   document.getElementById('bucksThisWeek').textContent = week;
 
+  // Rotating wise words
+  const subEl = document.getElementById('bucksSub');
+  if (subEl) subEl.textContent = pickWiseWords();
+
   // Subtitle: progress hint
   let sub = 'Keep going!';
   if (savingForRewardId) {
@@ -4347,60 +4486,44 @@ function openRewardModal(id) {
   activeReward = reward;
   document.getElementById('rewardEmoji').textContent = reward.emoji;
   document.getElementById('rewardName').textContent = reward.name;
-  document.getElementById('rewardCostLabel').textContent = `${reward.cost} DB${reward.perBuck ? ' per buck' : ''}`;
-  document.getElementById('rewardPill').textContent = reward.perBuck ? 'CASH OUT' : 'REWARD';
+  document.getElementById('rewardCostLabel').textContent = `${reward.cost} DB`;
+  document.getElementById('rewardPill').textContent = 'REWARD';
 
   const bucks = state.bucks || 0;
   const canAfford = bucks >= reward.cost;
   const body = document.getElementById('rewardBody');
-  if (reward.perBuck) {
-    body.innerHTML = `Trade your Daddy Bucks for cash — <strong>$1 per buck</strong>. You have <strong>${bucks} DB = $${bucks}</strong>.`;
-  } else if (canAfford) {
+  if (canAfford) {
     body.innerHTML = `You have enough! Tap <strong>Redeem</strong> to claim it. Mom or Dad will fulfill it.`;
   } else {
     const need = reward.cost - bucks;
     body.innerHTML = `You need <strong>${need} more DB</strong>. Tap <strong>Save up for this</strong> to track progress.`;
   }
 
-  // Saving progress (non-cash rewards)
-  const progEl = document.getElementById('rewardSavingProgress');
-  if (!reward.perBuck) {
-    const pct = Math.min(100, (bucks / reward.cost) * 100);
-    progEl.innerHTML = `
-      <div style="margin-top:14px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">
-          <span>Progress</span><span>${bucks} / ${reward.cost} DB</span>
-        </div>
-        <div style="height:10px;background:var(--bg-card);border-radius:99px;overflow:hidden;">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:99px;transition:width 0.4s;"></div>
-        </div>
+  const pct = Math.min(100, (bucks / reward.cost) * 100);
+  document.getElementById('rewardSavingProgress').innerHTML = `
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">
+        <span>Progress</span><span>${bucks} / ${reward.cost} DB</span>
       </div>
-    `;
-  } else {
-    progEl.innerHTML = '';
-  }
+      <div style="height:10px;background:var(--bg-card);border-radius:99px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:99px;transition:width 0.4s;"></div>
+      </div>
+    </div>
+  `;
 
-  // Buttons
   const redeemBtn = document.getElementById('rewardRedeemBtn');
   const saveBtn = document.getElementById('rewardSaveBtn');
-  if (reward.perBuck) {
-    redeemBtn.textContent = bucks > 0 ? `Cash out · $${bucks}` : 'No bucks yet';
-    redeemBtn.disabled = bucks === 0;
-    redeemBtn.className = bucks > 0 ? 'btn-3d gold' : 'btn-3d gray';
-    saveBtn.style.display = 'none';
-  } else if (canAfford) {
+  if (canAfford) {
     redeemBtn.textContent = `Redeem · −${reward.cost} DB`;
     redeemBtn.disabled = false;
     redeemBtn.className = 'btn-3d gold';
-    saveBtn.style.display = 'block';
-    saveBtn.textContent = savingForRewardId === reward.id ? '🎯 Saving up — tap to clear' : 'Save up for this 🎯';
   } else {
     redeemBtn.textContent = `Need ${reward.cost - bucks} more DB`;
     redeemBtn.disabled = true;
     redeemBtn.className = 'btn-3d gray';
-    saveBtn.style.display = 'block';
-    saveBtn.textContent = savingForRewardId === reward.id ? '🎯 Saving up — tap to clear' : 'Save up for this 🎯';
   }
+  saveBtn.style.display = 'block';
+  saveBtn.textContent = savingForRewardId === reward.id ? '🎯 Saving up — tap to clear' : 'Save up for this 🎯';
 
   document.getElementById('rewardModal').classList.add('show');
 }
@@ -4414,21 +4537,6 @@ function redeemReward() {
   if (!activeReward) return;
   const r = activeReward;
   const bucks = state.bucks || 0;
-  if (r.perBuck) {
-    if (bucks <= 0) return;
-    const amt = bucks;
-    state.bucks = 0;
-    state.bucksRedemptions = state.bucksRedemptions || [];
-    state.bucksRedemptions.unshift({
-      ts: Date.now(), amount: amt, rewardId: r.id, rewardName: `Cash out ($${amt})`, emoji: r.emoji, status: 'pending'
-    });
-    saveState();
-    closeRewardModal();
-    showToast(`💵 Cashed out $${amt}!`, 'gold');
-    Sound.playBadge();
-    rerender();
-    return;
-  }
   if (bucks < r.cost) return;
   state.bucks -= r.cost;
   state.bucksRedemptions = state.bucksRedemptions || [];
@@ -4750,16 +4858,11 @@ function renderMe() {
     reminderInput.value = state.reminderTime || '19:00';
   }
 
-  // Parent lock status
+  // Parent lock status (always locked between actions — PIN required every time)
   const lockStatus = document.getElementById('parentLockStatus');
   if (lockStatus) {
-    if (isParentUnlocked()) {
-      lockStatus.textContent = 'Unlocked';
-      lockStatus.className = 'lock-status unlocked';
-    } else {
-      lockStatus.textContent = (state.parent && state.parent.pinHash) ? 'Locked' : 'No PIN set';
-      lockStatus.className = 'lock-status';
-    }
+    lockStatus.textContent = (state.parent && state.parent.pinHash) ? 'PIN set' : 'No PIN';
+    lockStatus.className = 'lock-status';
   }
   const changePinLabel = document.getElementById('changePinLabel');
   if (changePinLabel) {
@@ -4807,19 +4910,24 @@ function renderSyncUI() {
   }
 }
 
-// Wire Enter key on PIN inputs + backdrop click to close
+// Wire Enter key on inputs + backdrop click to close
 setTimeout(() => {
   const setPin2 = document.getElementById('parentSetPin2');
   const verifyPin = document.getElementById('parentPinInput');
-  const adjReason = document.getElementById('adjustBucksReason');
-  if (setPin2) setPin2.onkeydown = e => { if (e.key === 'Enter') submitParentSetPin(); };
+  const depReason = document.getElementById('depositReason');
+  const coReason = document.getElementById('cashOutReason');
+  if (setPin2)   setPin2.onkeydown   = e => { if (e.key === 'Enter') submitParentSetPin(); };
   if (verifyPin) verifyPin.onkeydown = e => { if (e.key === 'Enter') submitParentVerify(); };
-  if (adjReason) adjReason.onkeydown = e => { if (e.key === 'Enter') submitAdjustBucks(); };
+  if (depReason) depReason.onkeydown = e => { if (e.key === 'Enter') submitDeposit(); };
+  if (coReason)  coReason.onkeydown  = e => { if (e.key === 'Enter') submitCashOut(); };
 
-  const pm = document.getElementById('parentModal');
-  if (pm) pm.addEventListener('click', e => { if (e.target.id === 'parentModal') closeParentPinModal(); });
-  const am = document.getElementById('adjustBucksModal');
-  if (am) am.addEventListener('click', e => { if (e.target.id === 'adjustBucksModal') closeAdjustBucks(); });
+  const closeOnBackdrop = (id, fn) => {
+    const m = document.getElementById(id);
+    if (m) m.addEventListener('click', e => { if (e.target.id === id) fn(); });
+  };
+  closeOnBackdrop('parentModal',   closeParentPinModal);
+  closeOnBackdrop('depositModal',  closeDepositModal);
+  closeOnBackdrop('cashOutModal',  closeCashOutModal);
 }, 100);
 
 function onNameChange() {
