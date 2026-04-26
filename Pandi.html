@@ -96,11 +96,31 @@
   .stat-pill .icon { font-size: 22px; line-height: 1; }
   .stat-pill .num { font-variant-numeric: tabular-nums; }
   .stat-pill.streak.active { color: var(--orange); }
+  .stat-pill.streak { cursor: pointer; }
   .stat-pill.streak .icon { filter: grayscale(0.7); }
   .stat-pill.streak.active .icon { filter: none; }
-  .stat-pill.xp.active { color: var(--purple); }
-  .stat-pill.xp .icon { filter: grayscale(0.5); }
-  .stat-pill.xp.active .icon { filter: none; }
+  .stat-pill.streak .freeze-sub {
+    align-items: center;
+    gap: 1px;
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    border-radius: 99px;
+    padding: 2px 6px;
+    font-size: 11px;
+    margin-left: 4px;
+    font-weight: 900;
+  }
+  .stat-pill.streak .freeze-sub .freeze-ico { font-size: 11px; }
+  .stat-pill.bucks { color: var(--yellow-dark); }
+  .stat-pill.bucks .icon { filter: grayscale(0.3); }
+  .stat-pill.bucks.active { color: var(--yellow-dark); }
+  .stat-pill.bucks.active .icon { filter: none; animation: coin-spin 0.5s; }
+  @keyframes coin-spin {
+    0% { transform: rotateY(0); }
+    50% { transform: rotateY(180deg); }
+    100% { transform: rotateY(360deg); }
+  }
+  .stat-pill.stickers { color: var(--text-muted); }
   .stat-pill.stickers.active { color: var(--green); }
   .stat-pill.stickers .icon { filter: grayscale(0.5); }
   .stat-pill.stickers.active .icon { filter: none; }
@@ -186,14 +206,12 @@
     background: white;
     border: 2px solid var(--border);
     border-radius: 14px;
-    padding: 12px 14px;
+    padding: 14px 14px;
     font-size: 14px;
     color: var(--text);
     position: relative;
-    line-height: 1.4;
+    line-height: 1.45;
     min-height: 56px;
-    display: flex;
-    align-items: center;
   }
   .speech::before {
     content: '';
@@ -1151,6 +1169,362 @@
   .toast.red { background: var(--red); }
   .toast.purple { background: var(--purple); }
 
+  /* ============= REMINDER BANNER ============= */
+  .reminder-banner {
+    margin: 12px 16px 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--purple-light), white);
+    border: 2px solid var(--purple);
+    box-shadow: 0 3px 0 var(--purple-dark);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    animation: fadeIn 0.3s;
+  }
+  .reminder-banner .rb-icon { font-size: 26px; line-height: 1; }
+  .reminder-banner .rb-text { flex: 1; font-size: 13px; line-height: 1.3; color: var(--purple-dark); font-weight: 800; }
+  .reminder-banner .rb-text strong { font-weight: 900; color: var(--text); }
+  .reminder-banner .rb-close {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.08);
+    color: var(--purple-dark);
+    font-size: 12px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  /* ============= FREEZE INDICATOR ============= */
+  .stat-pill.freezes { color: var(--blue); }
+  .stat-pill.freezes .icon { filter: grayscale(0.3); }
+  .stat-pill.freezes.zero { color: var(--text-light); }
+  .stat-pill.freezes.zero .icon { filter: grayscale(1); opacity: 0.5; }
+
+  /* ============= DADDY BUCKS PANEL ============= */
+  .bucks-balance-card {
+    margin: 4px 0 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffe8a3, #ffc800);
+    border: 3px solid var(--yellow-dark);
+    box-shadow: 0 4px 0 var(--yellow-dark);
+    padding: 18px 20px;
+    color: var(--text);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .bucks-balance-card::before {
+    content: '💰';
+    position: absolute;
+    font-size: 100px;
+    opacity: 0.08;
+    top: -10px; right: -10px;
+    transform: rotate(15deg);
+  }
+  .bucks-balance-card .bb-label {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(0,0,0,0.6);
+  }
+  .bucks-balance-card .bb-amount {
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    margin: 6px 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .bucks-balance-card .bb-amount .bb-unit {
+    font-size: 16px;
+    font-weight: 800;
+    margin-left: 4px;
+    opacity: 0.7;
+  }
+  .bucks-balance-card .bb-sub {
+    font-size: 12px;
+    font-weight: 800;
+    opacity: 0.75;
+  }
+  .bucks-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .reward-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 0 var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.1s;
+    cursor: pointer;
+  }
+  .reward-card:active { transform: translateY(1px); }
+  .reward-card .rw-emoji {
+    font-size: 28px;
+    line-height: 1;
+    width: 44px; height: 44px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .reward-card .rw-info { flex: 1; min-width: 0; }
+  .reward-card .rw-name { font-size: 14px; font-weight: 900; line-height: 1.2; }
+  .reward-card .rw-saving {
+    font-size: 10px;
+    color: var(--green-dark);
+    font-weight: 800;
+    margin-top: 2px;
+  }
+  .reward-card .rw-cost {
+    background: var(--yellow);
+    color: var(--text);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 900;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .reward-card.affordable .rw-cost { background: var(--green); color: white; }
+  .reward-card.locked { opacity: 0.6; }
+  .reward-card.locked .rw-cost { background: var(--locked); color: var(--text-muted); }
+
+  .ledger-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ledger-row:last-child { border: none; }
+  .ledger-row .lr-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    display: grid; place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .ledger-row.spent .lr-icon { background: var(--pink-light); color: var(--pink-dark); }
+  .ledger-row .lr-info { flex: 1; min-width: 0; }
+  .ledger-row .lr-name { font-size: 13px; font-weight: 900; }
+  .ledger-row .lr-when { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .ledger-row .lr-amount {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--green-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .ledger-row.spent .lr-amount { color: var(--pink-dark); }
+  .ledger-row.pending .lr-amount::after { content: ' ⏳'; }
+  .ledger-row.fulfilled .lr-amount::after { content: ' ✓'; color: var(--green); }
+
+  .empty-msg {
+    text-align: center;
+    padding: 20px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  /* ============= CALENDAR HISTORY ============= */
+  .cal-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .cal-nav {
+    background: var(--bg-card);
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .cal-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+  .cal-title { font-size: 14px; font-weight: 900; }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-dow {
+    text-align: center;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--text-light);
+    padding: 4px 0;
+    letter-spacing: 0.05em;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: var(--bg-card);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--text-light);
+    cursor: pointer;
+    position: relative;
+  }
+  .cal-day.empty { background: transparent; cursor: default; }
+  .cal-day.complete {
+    background: var(--green);
+    color: white;
+  }
+  .cal-day.partial {
+    background: var(--orange);
+    color: white;
+  }
+  .cal-day.frozen {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+  }
+  .cal-day.frozen::after {
+    content: '❄️';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    font-size: 10px;
+  }
+  .cal-day.today {
+    box-shadow: 0 0 0 2px var(--purple);
+  }
+  .cal-day.future {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .cal-day.big {
+    background: linear-gradient(135deg, var(--green), var(--yellow));
+    color: white;
+  }
+  .cal-day.big::after {
+    content: '🦋';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 12px;
+  }
+  .cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 800;
+  }
+  .cal-legend .lg-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* Edit-rewards button (small) */
+  .edit-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  .edit-btn:hover { background: white; color: var(--text); }
+
+  /* Time input */
+  .time-input {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  /* Reward edit modal extras */
+  .reward-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .reward-edit-row .rer-fields { flex: 1; display: flex; gap: 6px; align-items: center; }
+  .reward-edit-row .rer-emoji-input {
+    width: 40px;
+    text-align: center;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 6px;
+    font-size: 18px;
+  }
+  .reward-edit-row .rer-name-input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .reward-edit-row .rer-cost-input {
+    width: 56px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+  }
+  .reward-edit-row .rer-delete {
+    background: var(--red);
+    color: white;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
   .confetti {
     position: fixed;
     inset: 0;
@@ -1175,11 +1549,12 @@
 
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="stat-pill streak" id="streakPill">
+  <div class="stat-pill streak" id="streakPill" onclick="showFreezeInfo()">
     <span class="icon">🔥</span><span class="num" id="streakNum">0</span>
+    <span class="freeze-sub" id="freezeSub" style="display:none;"><span class="freeze-ico">❄️</span><span id="freezeNum">0</span></span>
   </div>
-  <div class="stat-pill xp" id="xpPill">
-    <span class="icon">⚡</span><span class="num" id="xpNum">0</span>
+  <div class="stat-pill bucks" id="bucksPill">
+    <span class="icon">💰</span><span class="num" id="bucksNum">0</span>
   </div>
   <div class="stat-pill stickers" id="stickersPill">
     <span class="icon">🌟</span><span class="num" id="stickerNum">0</span>
@@ -1189,6 +1564,9 @@
 <!-- TODAY PANEL -->
 <section class="panel active" id="today-panel">
   <main>
+    <div id="reminderBanner"></div>
+    <div id="freezeBanner"></div>
+
     <div class="mascot-section">
       <div class="mascot-col">
         <div class="mascot" id="mascotEl" onclick="onMascotTap()">🐼</div>
@@ -1215,6 +1593,57 @@
   <h2>🌟 Sticker Album</h2>
   <p class="sub" id="stickerSub">Collect them all by practicing every day!</p>
   <div id="albumWrap"></div>
+</section>
+
+<!-- BUCKS PANEL -->
+<section class="panel" id="bucks-panel">
+  <h2>💰 Daddy Bucks</h2>
+  <p class="sub" id="bucksSub">Earn by practicing. Spend on cool stuff!</p>
+
+  <div class="bucks-balance-card">
+    <div class="bb-label">Your balance</div>
+    <div class="bb-amount"><span id="bucksBalance">0</span><span class="bb-unit">DB</span></div>
+    <div class="bb-sub" id="bucksSubLabel">Keep going!</div>
+  </div>
+
+  <div class="bucks-stats-row">
+    <div class="big-stat green">
+      <div class="label">📅 This week</div>
+      <div class="value"><span id="bucksThisWeek">0</span><span class="unit">DB</span></div>
+    </div>
+    <div class="big-stat purple">
+      <div class="label">🏆 Total earned</div>
+      <div class="value"><span id="bucksTotal">0</span><span class="unit">DB</span></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🛒 Reward Shop</span>
+      <button class="edit-btn" onclick="openRewardEditor()">✏️ Edit</button>
+    </h3>
+    <div id="rewardList"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>📜 Earnings Ledger</h3>
+    <div id="ledgerList"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>🎁 Redemptions</h3>
+    <div id="redemptionList"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>💡 How to earn</h3>
+    <ul class="tip-list">
+      <li><strong>1 DB</strong> for each day you finish all your quests.</li>
+      <li><strong>+1 DB</strong> bonus when you do <strong>all 4 quests</strong> in one day. 🦋</li>
+      <li><strong>Streak milestones</strong>: 7 days = +5 DB, 14 = +10, 30 = +25, 60 = +50, 100 = +100!</li>
+      <li>1 Daddy Buck ≈ <strong>$1 USD</strong> if you cash out. 🪙</li>
+    </ul>
+  </div>
 </section>
 
 <!-- STATS PANEL -->
@@ -1255,6 +1684,21 @@
     <h3>🏆 Personal Bests</h3>
     <div id="bestsList"></div>
   </div>
+
+  <div class="cal-card">
+    <div class="cal-header">
+      <button class="cal-nav" id="calPrev" onclick="calMove(-1)">‹</button>
+      <div class="cal-title" id="calTitle">Month YYYY</div>
+      <button class="cal-nav" id="calNext" onclick="calMove(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <span><span class="lg-dot" style="background:var(--green);"></span>Complete</span>
+      <span><span class="lg-dot" style="background:linear-gradient(135deg, var(--green), var(--yellow));"></span>Big Day 🦋</span>
+      <span><span class="lg-dot" style="background:var(--orange);"></span>Partial</span>
+      <span><span class="lg-dot" style="background:var(--blue-light);"></span>❄️ Frozen</span>
+    </div>
+  </div>
 </section>
 
 <!-- ME PANEL -->
@@ -1270,6 +1714,16 @@
 
   <div class="chart-card" style="margin-top:14px;">
     <h3>⚙️ Settings</h3>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">⏰</span>
+        <div>
+          <div class="lbl-text">Daily reminder</div>
+          <div class="lbl-sub">Pandi will nudge you when you open the app</div>
+        </div>
+      </div>
+      <input type="time" class="time-input" id="reminderInput" onchange="onReminderChange()" />
+    </div>
     <div class="toggle-row">
       <div class="lbl-grp">
         <span class="lbl-emoji">🔊</span>
@@ -1327,6 +1781,9 @@
   <button class="nav-btn" data-tab="stickers">
     <span class="ico">🌟</span><span class="lbl">Stickers</span>
   </button>
+  <button class="nav-btn" data-tab="bucks">
+    <span class="ico">💰</span><span class="lbl">Bucks</span>
+  </button>
   <button class="nav-btn" data-tab="stats">
     <span class="ico">📊</span><span class="lbl">Stats</span>
   </button>
@@ -1372,6 +1829,68 @@
   </div>
 </div>
 
+<!-- REWARD REDEEM MODAL -->
+<div class="modal-backdrop" id="rewardModal">
+  <div class="modal">
+    <div class="modal-header" id="rewardHeader" style="background:var(--yellow);color:var(--text);">
+      <button class="close-x" onclick="closeRewardModal()" style="background:rgba(0,0,0,0.12);">✕</button>
+      <div class="big-icon" id="rewardEmoji">🎁</div>
+      <div class="pill" id="rewardPill" style="background:rgba(0,0,0,0.12);">REWARD</div>
+      <h3 id="rewardName">Reward</h3>
+      <div class="sub" id="rewardCostLabel">— DB</div>
+    </div>
+    <div class="modal-body">
+      <p id="rewardBody">—</p>
+      <div id="rewardSavingProgress"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d gold" id="rewardRedeemBtn" onclick="redeemReward()">Redeem</button>
+      <button class="btn-secondary" id="rewardSaveBtn" onclick="setSavingFor()">Save up for this 🎯</button>
+    </div>
+  </div>
+</div>
+
+<!-- REWARD EDITOR MODAL -->
+<div class="modal-backdrop" id="rewardEditModal">
+  <div class="modal">
+    <div class="modal-header" style="background:var(--purple);">
+      <button class="close-x" onclick="closeRewardEditor()">✕</button>
+      <div class="big-icon">✏️</div>
+      <div class="pill">PARENT EDITOR</div>
+      <h3>Reward shop</h3>
+      <div class="sub">Edit, add, or remove rewards</div>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Tip: 1 Daddy Buck ≈ $1 USD. She earns ~3-8 DB per week.</p>
+      <div id="rewardEditList"></div>
+      <button class="btn-3d" style="margin-top:12px;background:var(--purple);box-shadow:0 4px 0 var(--purple-dark);" onclick="addRewardRow()">+ Add reward</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d gold" onclick="saveRewardEdits()">Save changes</button>
+      <button class="btn-secondary" onclick="resetRewardsToDefault()">Reset to defaults</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAST DAY DETAIL MODAL -->
+<div class="modal-backdrop" id="pastDayModal">
+  <div class="modal">
+    <div class="modal-header" id="pastDayHeader" style="background:var(--green);">
+      <button class="close-x" onclick="closePastDayModal()">✕</button>
+      <div class="big-icon" id="pastDayIcon">📅</div>
+      <div class="pill" id="pastDayPill">DAY</div>
+      <h3 id="pastDayTitle">—</h3>
+      <div class="sub" id="pastDaySub">—</div>
+    </div>
+    <div class="modal-body">
+      <div id="pastDayDetails"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d" onclick="closePastDayModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- UNLOCK CARD + TOAST + CONFETTI -->
 <div class="unlock-card" id="unlockCard">
   <div class="be" id="ucEmoji">🌟</div>
@@ -1394,12 +1913,52 @@ const defaultState = {
   soundOn: true,
   hapticOn: true,
   lastSeen: null,
-  lastCompleteAt: 0
+  lastCompleteAt: 0,
+
+  // === DADDY BUCKS ===
+  bucks: 0,                  // current spendable balance
+  bucksTotalEarned: 0,       // lifetime earned (never decreases)
+  bucksLedger: [],           // [{ ts, amount, reason }]
+  bucksRedemptions: [],      // [{ ts, amount, rewardId, rewardName, status: 'pending'|'fulfilled' }]
+  rewards: null,             // user-editable reward catalog (null = use defaults)
+  bucksAwardedKeys: {},      // dedup map: { 'day-2026-04-25': true, 'big-2026-04-25': true, 'streak-7-1': true }
+
+  // === STREAK FREEZE ===
+  freezes: 0,                // available freezes
+  freezeDays: {},            // { 'YYYY-MM-DD': ts } — days the freeze auto-applied to
+  freezeAwardCount: 0,       // running count of freezes awarded (for milestone tracking)
+
+  // === REMINDER ===
+  reminderTime: '19:00',     // HH:MM (24h) — default 7pm
+  reminderDismissedFor: null // 'YYYY-MM-DD' — date the user dismissed today's nudge
+
 };
 let state = loadState();
 let activeQuest = null;     // { date, type }
+let activeReward = null;    // currently-open reward in modal
 let mascotMsgIdx = 0;
 let pendingWelcomeBackPool = null;
+let calMonthOffset = 0;     // 0 = this month, -1 = last month
+let savingForRewardId = null; // current "saving up for" target
+
+/* ============= REWARD CATALOG (default + parent-editable) ============= */
+const DEFAULT_REWARDS = [
+  { id: 'movie',       emoji: '🎬', name: 'Pick the family movie',     cost: 5  },
+  { id: 'late',        emoji: '🌙', name: 'Stay up 30 min late',        cost: 7  },
+  { id: 'icecream',    emoji: '🍦', name: 'Ice cream date with Dad',    cost: 8  },
+  { id: 'takeout',     emoji: '🍕', name: 'Pick Friday takeout',         cost: 10 },
+  { id: 'screen',      emoji: '🎮', name: 'Extra screen time (1 hour)',  cost: 12 },
+  { id: 'art',         emoji: '🎨', name: 'Art supplies bundle',         cost: 15 },
+  { id: 'book',        emoji: '📚', name: 'New book of your choice',     cost: 20 },
+  { id: 'shop25',      emoji: '🛍️', name: '$25 shopping spree',          cost: 25 },
+  { id: 'outing',      emoji: '🎟️', name: 'Special outing (movie/zoo)', cost: 40 },
+  { id: 'cash',        emoji: '🪙', name: 'Cash out — $1 per buck',      cost: 1, perBuck: true }
+];
+
+function getRewards() {
+  // null = use defaults. Otherwise use the parent-edited list.
+  return Array.isArray(state.rewards) ? state.rewards : DEFAULT_REWARDS;
+}
 
 function loadState() {
   try {
@@ -1590,18 +2149,25 @@ function dayChoicePicked(key) {
 }
 
 /* ============= STREAK ============= */
+// A frozen day acts as a bridge — it doesn't count toward the streak total
+// but it doesn't break the streak either.
+function isDayFrozen(key) {
+  return !!(state.freezeDays && state.freezeDays[key]);
+}
+
 function computeStreak() {
-  // Count consecutive complete days going back from today.
-  // If today not yet complete, start from yesterday.
+  // Count consecutive days going back from today where the day was either
+  // completed or frozen (a freeze keeps the streak count stable so a kid
+  // sees the same number, just with a ❄️ in their history).
   let date = new Date();
   let count = 0;
   let firstKey = todayKey(date);
-  if (!isDayComplete(firstKey)) {
+  if (!isDayComplete(firstKey) && !isDayFrozen(firstKey)) {
     date = addDays(date, -1);
   }
   while (true) {
     const key = todayKey(date);
-    if (isDayComplete(key)) {
+    if (isDayComplete(key) || isDayFrozen(key)) {
       count++;
       date = addDays(date, -1);
     } else {
@@ -1826,6 +2392,250 @@ function checkStickers() {
   });
   if (newly.length) saveState();
   return newly;
+}
+
+/* ============= DADDY BUCKS ============= */
+function awardBucks(amount, reason, dedupKey) {
+  if (amount <= 0) return false;
+  state.bucksAwardedKeys = state.bucksAwardedKeys || {};
+  if (dedupKey && state.bucksAwardedKeys[dedupKey]) return false;
+  state.bucks = (state.bucks || 0) + amount;
+  state.bucksTotalEarned = (state.bucksTotalEarned || 0) + amount;
+  state.bucksLedger = state.bucksLedger || [];
+  state.bucksLedger.unshift({ ts: Date.now(), amount, reason, dedupKey: dedupKey || null });
+  // Keep ledger reasonable (last 200 entries)
+  if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+  if (dedupKey) state.bucksAwardedKeys[dedupKey] = true;
+  saveState();
+  return true;
+}
+
+function bucksThisWeek() {
+  const today = new Date();
+  const dow = today.getDay();
+  const monday = addDays(today, dow === 0 ? -6 : 1 - dow);
+  monday.setHours(0, 0, 0, 0);
+  const sinceTs = monday.getTime();
+  return (state.bucksLedger || [])
+    .filter(e => e.ts >= sinceTs)
+    .reduce((s, e) => s + (e.amount > 0 ? e.amount : 0), 0);
+}
+
+// Check & award bucks based on the day's state and streak. Called after every
+// quest completion and on app load (for any pending milestones).
+function evaluateBucksRewards(date) {
+  date = date || todayKey();
+  const day = state.log[date] || {};
+  const newlyAwarded = [];
+
+  // Day complete = 1 DB
+  if (isDayComplete(date)) {
+    if (awardBucks(1, `Day complete (${date})`, `day-${date}`)) {
+      newlyAwarded.push({ amount: 1, reason: 'Day complete' });
+    }
+  }
+  // Big Day (all 4 quests) = +1 DB
+  if (day.piano && day.reading && day.math && day.badminton) {
+    if (awardBucks(1, `Big Day! All 4 quests (${date})`, `big-${date}`)) {
+      newlyAwarded.push({ amount: 1, reason: 'Big Day bonus 🦋' });
+    }
+  }
+
+  // Streak milestones — one-time per streak occurrence
+  const streak = computeStreak();
+  const milestones = [
+    { days: 7,   bucks: 5,   id: 7   },
+    { days: 14,  bucks: 10,  id: 14  },
+    { days: 30,  bucks: 25,  id: 30  },
+    { days: 60,  bucks: 50,  id: 60  },
+    { days: 100, bucks: 100, id: 100 }
+  ];
+  state.streakMilestoneNum = state.streakMilestoneNum || 0; // increments each time streak resets
+  // Reset milestone-num when streak goes back to 0 (handled in computeStreak side effects).
+  // We simply key milestones by current "epoch" count; bump epoch elsewhere.
+  // For now, dedup by (streak-N + epoch). Epoch advances when we detect a streak break.
+  const epoch = state.streakEpoch = state.streakEpoch || 1;
+  milestones.forEach(m => {
+    if (streak >= m.days) {
+      const key = `streak-${m.days}-${epoch}`;
+      if (awardBucks(m.bucks, `${m.days}-day streak! 🔥`, key)) {
+        newlyAwarded.push({ amount: m.bucks, reason: `${m.days}-day streak milestone` });
+      }
+    }
+  });
+
+  return newlyAwarded;
+}
+
+// Backfill bucks for every historical complete/big day that hasn't been
+// awarded yet. Uses dedup keys so re-running is safe.
+function backfillBucks() {
+  Object.keys(state.log || {}).forEach(key => {
+    const day = state.log[key];
+    if (isDayComplete(key)) {
+      awardBucks(1, `Day complete (${key})`, `day-${key}`);
+    }
+    if (day.piano && day.reading && day.math && day.badminton) {
+      awardBucks(1, `Big Day! All 4 quests (${key})`, `big-${key}`);
+    }
+  });
+}
+
+// Bump streak epoch when streak breaks (so milestones can be re-earned in a new streak).
+function maybeAdvanceStreakEpoch() {
+  // If we have at least one entry in the log, and the most recent complete day
+  // is more than 1 day ago AND the day in between is not frozen,
+  // we treat that as a "broken" streak — advance epoch.
+  const today = new Date();
+  const yKey = todayKey(addDays(today, -1));
+  const tKey = todayKey(today);
+  // Find most recent complete day
+  let cursor = today;
+  let lastComplete = null;
+  for (let i = 0; i < 60; i++) {
+    const k = todayKey(cursor);
+    if (isDayComplete(k)) { lastComplete = k; break; }
+    cursor = addDays(cursor, -1);
+  }
+  if (!lastComplete) return; // no history, no break to detect
+  // Walk from lastComplete forward to today; if any day in between is not
+  // complete and not frozen, we've broken the streak.
+  let walker = addDays(dateFromKey(lastComplete), 1);
+  while (walker < today) {
+    const k = todayKey(walker);
+    if (!isDayComplete(k) && !(state.freezeDays && state.freezeDays[k])) {
+      // Streak is broken right now. Advance epoch so milestones can re-fire on rebuild.
+      state.streakEpoch = (state.streakEpoch || 1) + 1;
+      saveState();
+      return;
+    }
+    walker = addDays(walker, 1);
+  }
+}
+
+/* ============= STREAK FREEZE ============= */
+const MAX_FREEZES = 2;
+
+// Award a freeze when the user crosses a 7-day milestone boundary on their streak.
+function evaluateFreezeAward() {
+  const streak = computeStreak();
+  // Number of 7-day chunks earned in this streak
+  const earned = Math.floor(streak / 7);
+  state.freezeAwardCount = state.freezeAwardCount || 0;
+  if (earned > state.freezeAwardCount) {
+    const toAdd = Math.min(earned - state.freezeAwardCount, MAX_FREEZES - (state.freezes || 0));
+    state.freezeAwardCount = earned;
+    if (toAdd > 0) {
+      state.freezes = Math.min((state.freezes || 0) + toAdd, MAX_FREEZES);
+      saveState();
+      return toAdd;
+    }
+    saveState();
+  }
+  return 0;
+}
+
+// On app open, look for missed days between last complete day and today.
+// If freezes are available, auto-apply them to bridge those days (max 2 days bridged).
+function autoApplyFreezes() {
+  if (!state.freezes || state.freezes <= 0) return [];
+  const today = new Date();
+  // Don't try to freeze "today" itself.
+  let cursor = addDays(today, -1);
+  const gap = [];
+  for (let i = 0; i < 5; i++) {
+    const k = todayKey(cursor);
+    if (isDayComplete(k) || (state.freezeDays && state.freezeDays[k])) break;
+    // Skip dates with NO log activity? We still freeze them — that's the point.
+    gap.push(k);
+    cursor = addDays(cursor, -1);
+  }
+  // If no gap or gap is too big to bridge with available freezes, skip.
+  if (gap.length === 0) return [];
+  state.freezeDays = state.freezeDays || {};
+  const applied = [];
+  // Apply newest-first (so we keep streak going from yesterday backward).
+  for (let i = 0; i < gap.length && state.freezes > 0; i++) {
+    const k = gap[i];
+    state.freezeDays[k] = Date.now();
+    state.freezes--;
+    applied.push(k);
+  }
+  if (applied.length) saveState();
+  return applied;
+}
+
+function showFreezeInfo() {
+  const f = state.freezes || 0;
+  const msg = f > 0
+    ? `❄️ You have ${f} streak freeze${f === 1 ? '' : 's'}! If you miss a day, Pandi will use one to save your streak. Earn 1 every 7-day streak.`
+    : `❄️ Streak freezes save your streak if you miss a day. Earn 1 every 7-day streak (max 2).`;
+  alert(msg);
+}
+
+/* ============= REMINDER ============= */
+function shouldShowReminder() {
+  const t = state.reminderTime || '19:00';
+  const [h, m] = t.split(':').map(Number);
+  const now = new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const reminderMins = h * 60 + m;
+  const today = todayKey();
+  if (state.reminderDismissedFor === today) return false;
+  if (isDayComplete(today)) return false;
+  return mins >= reminderMins;
+}
+
+function dismissReminder() {
+  state.reminderDismissedFor = todayKey();
+  saveState();
+  renderReminderBanner();
+}
+
+function onReminderChange() {
+  const v = document.getElementById('reminderInput').value;
+  if (!v) return;
+  state.reminderTime = v;
+  state.reminderDismissedFor = null;
+  saveState();
+  showToast(`⏰ Reminder set for ${formatTimeStr(v)}`, '');
+  renderReminderBanner();
+}
+
+function formatTimeStr(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  const ampm = h >= 12 ? 'pm' : 'am';
+  return `${h12}:${String(m).padStart(2, '0')}${ampm}`;
+}
+
+function renderReminderBanner() {
+  const wrap = document.getElementById('reminderBanner');
+  if (!wrap) return;
+  if (!shouldShowReminder()) { wrap.innerHTML = ''; return; }
+  const left = requiredLeft(todayKey());
+  const time = formatTimeStr(state.reminderTime || '19:00');
+  wrap.innerHTML = `
+    <div class="reminder-banner">
+      <div class="rb-icon">⏰</div>
+      <div class="rb-text">It's <strong>${time}</strong>! ${left} quest${left === 1 ? '' : 's'} left to finish today.</div>
+      <div class="rb-close" onclick="dismissReminder()">✕</div>
+    </div>`;
+}
+
+// Show a transient banner when a freeze is auto-applied
+function renderFreezeBanner(appliedDays) {
+  const wrap = document.getElementById('freezeBanner');
+  if (!wrap) return;
+  if (!appliedDays || !appliedDays.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `
+    <div class="reminder-banner" style="background:linear-gradient(135deg,var(--blue-light),white);border-color:var(--blue);box-shadow:0 3px 0 var(--blue-dark);">
+      <div class="rb-icon">❄️</div>
+      <div class="rb-text" style="color:var(--blue-dark);">
+        Streak freeze used! Pandi saved your streak — <strong>${appliedDays.length} day${appliedDays.length === 1 ? '' : 's'}</strong> bridged.
+      </div>
+      <div class="rb-close" style="color:var(--blue-dark);" onclick="document.getElementById('freezeBanner').innerHTML=''">✕</div>
+    </div>`;
 }
 
 let unlockQueue = [];
@@ -2154,15 +2964,26 @@ window.addEventListener('focus', () => {
 
 /* ============= TOP BAR ============= */
 function renderTopBar() {
-  const stats = totalStats();
   const streak = computeStreak();
   const stickerCount = Object.keys(state.stickers).length;
+  const bucks = state.bucks || 0;
   document.getElementById('streakNum').textContent = streak;
-  document.getElementById('xpNum').textContent = stats.xp;
+  document.getElementById('bucksNum').textContent = bucks;
   document.getElementById('stickerNum').textContent = stickerCount;
   document.getElementById('streakPill').classList.toggle('active', streak > 0);
-  document.getElementById('xpPill').classList.toggle('active', stats.xp > 0);
+  document.getElementById('bucksPill').classList.toggle('active', bucks > 0);
   document.getElementById('stickersPill').classList.toggle('active', stickerCount > 0);
+
+  // Freeze sub-pill — show only when there are freezes
+  const freezeSub = document.getElementById('freezeSub');
+  const freezeNum = document.getElementById('freezeNum');
+  const freezes = state.freezes || 0;
+  if (freezes > 0) {
+    freezeSub.style.display = 'inline-flex';
+    freezeNum.textContent = freezes;
+  } else {
+    freezeSub.style.display = 'none';
+  }
 }
 
 /* ============= TODAY HERO ============= */
@@ -2463,39 +3284,96 @@ function completeQuest() {
   const { date, type } = activeQuest;
   const day = ensureDay(date);
   if (day[type]) return;
+
+  // Check completion state BEFORE we add this quest
+  const wasComplete = isDayComplete(date);
   day[type] = Date.now();
   state.lastCompleteAt = Date.now();
   saveState();
-  const wasDayComplete = isDayComplete(date);
+
+  const isComplete = isDayComplete(date);
+  const justCompleted = isComplete && !wasComplete;
+
   Sound.playComplete();
   vibrate([15, 50, 15]);
   closeModal();
   const q = QUESTS[type];
   showToast(`+${q.xp} XP · ${q.name} done! 🎉`, 'gold');
-  if (wasDayComplete && Object.keys(day).filter(t => QUEST_ORDER.includes(t) && day[t]).length === 3) {
-    // Just completed the day with the third quest (or 4th) — celebrate big
+
+  if (justCompleted) {
     setTimeout(() => {
       Sound.playDayComplete();
       celebrateBig();
       showToast('🏆 Day complete!', 'gold');
     }, 600);
   }
+
+  // Award Daddy Bucks if applicable
+  const newBucks = evaluateBucksRewards(date);
+  // Award freezes if streak crosses 7-day boundaries
+  const freezesAwarded = evaluateFreezeAward();
+
   const newly = checkStickers();
   rerender();
-  if (newly.length) setTimeout(() => showStickerUnlocks(newly), wasDayComplete ? 2000 : 800);
+
+  // Stagger announcements: stickers → bucks → freezes
+  let delay = justCompleted ? 2000 : 800;
+  if (newly.length) {
+    setTimeout(() => showStickerUnlocks(newly), delay);
+    delay += newly.length * 3600;
+  }
+  if (newBucks.length) {
+    const totalBucks = newBucks.reduce((s, b) => s + b.amount, 0);
+    setTimeout(() => {
+      showToast(`💰 +${totalBucks} Daddy Buck${totalBucks === 1 ? '' : 's'}!`, 'gold');
+      Sound.playBadge();
+      animateBucksPill();
+    }, delay);
+    delay += 2400;
+  }
+  if (freezesAwarded > 0) {
+    setTimeout(() => {
+      showToast(`❄️ +${freezesAwarded} streak freeze!`, 'purple');
+      Sound.playBadge();
+    }, delay);
+  }
+}
+
+function animateBucksPill() {
+  const pill = document.getElementById('bucksPill');
+  if (!pill) return;
+  pill.classList.add('active');
+  setTimeout(() => pill.classList.remove('active'), 600);
 }
 
 function uncompleteQuest() {
   if (!activeQuest) return;
   const { date, type } = activeQuest;
   if (state.log[date]) {
+    const wasComplete = isDayComplete(date);
+    const wasBig = state.log[date].piano && state.log[date].reading && state.log[date].math && state.log[date].badminton;
     delete state.log[date][type];
     if (Object.keys(state.log[date]).length === 0) delete state.log[date];
+    // Roll back bucks if day was complete and now isn't
+    const stillComplete = isDayComplete(date);
+    const stillBig = state.log[date] && state.log[date].piano && state.log[date].reading && state.log[date].math && state.log[date].badminton;
+    if (wasComplete && !stillComplete) reverseBucksAward(`day-${date}`, 1, 'Day no longer complete');
+    if (wasBig && !stillBig) reverseBucksAward(`big-${date}`, 1, 'Big Day reversed');
     saveState();
   }
   closeModal();
   showToast('Marked not done', 'red');
   rerender();
+}
+
+// Reverse a previously-awarded bucks entry (so re-completion can re-earn it)
+function reverseBucksAward(dedupKey, amount, reason) {
+  if (!state.bucksAwardedKeys || !state.bucksAwardedKeys[dedupKey]) return;
+  state.bucks = Math.max(0, (state.bucks || 0) - amount);
+  state.bucksTotalEarned = Math.max(0, (state.bucksTotalEarned || 0) - amount);
+  state.bucksLedger = state.bucksLedger || [];
+  state.bucksLedger.unshift({ ts: Date.now(), amount: -amount, reason });
+  delete state.bucksAwardedKeys[dedupKey];
 }
 
 document.getElementById('modal').addEventListener('click', e => {
@@ -2557,6 +3435,415 @@ function renderAlbum() {
 function catEmoji(cat) {
   return { Streak: '🔥', Piano: '🎹', Reading: '📖', Math: '🔢', Badminton: '🏸', Special: '✨' }[cat] || '🌟';
 }
+
+/* ============= BUCKS PANEL ============= */
+function renderBucksPanel() {
+  const bucks = state.bucks || 0;
+  const total = state.bucksTotalEarned || 0;
+  const week = bucksThisWeek();
+  document.getElementById('bucksBalance').textContent = bucks;
+  document.getElementById('bucksTotal').textContent = total;
+  document.getElementById('bucksThisWeek').textContent = week;
+
+  // Subtitle: progress hint
+  let sub = 'Keep going!';
+  if (savingForRewardId) {
+    const r = getRewards().find(x => x.id === savingForRewardId);
+    if (r) {
+      const need = Math.max(0, r.cost - bucks);
+      sub = need === 0 ? `Ready to redeem ${r.emoji} ${r.name}!` : `Saving for ${r.emoji} ${r.name} — ${need} DB to go`;
+    }
+  } else if (bucks === 0) {
+    sub = 'Finish a day to earn your first Daddy Buck!';
+  } else if (week >= 6) {
+    sub = `Crushing it — ${week} DB this week! 🔥`;
+  } else if (week > 0) {
+    sub = `${week} DB earned this week so far`;
+  }
+  document.getElementById('bucksSubLabel').textContent = sub;
+
+  // Reward catalog
+  const list = document.getElementById('rewardList');
+  const rewards = getRewards().slice().sort((a, b) => a.cost - b.cost);
+  if (rewards.length === 0) {
+    list.innerHTML = `<div class="empty-msg">No rewards yet. Tap ✏️ Edit to add some.</div>`;
+  } else {
+    list.innerHTML = rewards.map(r => {
+      const affordable = bucks >= r.cost;
+      const isSaving = savingForRewardId === r.id;
+      return `
+        <div class="reward-card ${affordable ? 'affordable' : ''}" data-id="${r.id}">
+          <div class="rw-emoji">${r.emoji}</div>
+          <div class="rw-info">
+            <div class="rw-name">${r.name}</div>
+            ${isSaving ? `<div class="rw-saving">🎯 Saving up — ${Math.max(0, r.cost - bucks)} DB to go</div>` : ''}
+          </div>
+          <div class="rw-cost">${r.cost} DB</div>
+        </div>
+      `;
+    }).join('');
+    list.querySelectorAll('.reward-card').forEach(el => {
+      el.onclick = () => openRewardModal(el.dataset.id);
+    });
+  }
+
+  // Earnings ledger (positive only)
+  const earnings = (state.bucksLedger || []).filter(e => e.amount > 0).slice(0, 10);
+  const ledgerEl = document.getElementById('ledgerList');
+  if (earnings.length === 0) {
+    ledgerEl.innerHTML = `<div class="empty-msg">No earnings yet. Finish a day to start!</div>`;
+  } else {
+    ledgerEl.innerHTML = earnings.map(e => `
+      <div class="ledger-row">
+        <div class="lr-icon">+</div>
+        <div class="lr-info">
+          <div class="lr-name">${e.reason}</div>
+          <div class="lr-when">${formatRelativeTime(e.ts)}</div>
+        </div>
+        <div class="lr-amount">+${e.amount}</div>
+      </div>
+    `).join('');
+  }
+
+  // Redemptions
+  const redemptions = (state.bucksRedemptions || []).slice(0, 10);
+  const redEl = document.getElementById('redemptionList');
+  if (redemptions.length === 0) {
+    redEl.innerHTML = `<div class="empty-msg">No rewards redeemed yet.</div>`;
+  } else {
+    redEl.innerHTML = redemptions.map(r => `
+      <div class="ledger-row spent ${r.status}">
+        <div class="lr-icon">${r.emoji || '🎁'}</div>
+        <div class="lr-info">
+          <div class="lr-name">${r.rewardName}</div>
+          <div class="lr-when">${formatRelativeTime(r.ts)} · ${r.status === 'fulfilled' ? 'fulfilled' : 'pending'}</div>
+        </div>
+        <div class="lr-amount">−${r.amount}</div>
+      </div>
+    `).join('');
+  }
+}
+
+function formatRelativeTime(ts) {
+  const now = Date.now();
+  const diff = (now - ts) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+  const d = new Date(ts);
+  if (diff < 86400 * 7) return DAY_LABELS[d.getDay()] + ' ' + formatTime(ts);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+/* ============= REWARD MODAL ============= */
+function openRewardModal(id) {
+  const reward = getRewards().find(r => r.id === id);
+  if (!reward) return;
+  activeReward = reward;
+  document.getElementById('rewardEmoji').textContent = reward.emoji;
+  document.getElementById('rewardName').textContent = reward.name;
+  document.getElementById('rewardCostLabel').textContent = `${reward.cost} DB${reward.perBuck ? ' per buck' : ''}`;
+  document.getElementById('rewardPill').textContent = reward.perBuck ? 'CASH OUT' : 'REWARD';
+
+  const bucks = state.bucks || 0;
+  const canAfford = bucks >= reward.cost;
+  const body = document.getElementById('rewardBody');
+  if (reward.perBuck) {
+    body.innerHTML = `Trade your Daddy Bucks for cash — <strong>$1 per buck</strong>. You have <strong>${bucks} DB = $${bucks}</strong>.`;
+  } else if (canAfford) {
+    body.innerHTML = `You have enough! Tap <strong>Redeem</strong> to claim it. Mom or Dad will fulfill it.`;
+  } else {
+    const need = reward.cost - bucks;
+    body.innerHTML = `You need <strong>${need} more DB</strong>. Tap <strong>Save up for this</strong> to track progress.`;
+  }
+
+  // Saving progress (non-cash rewards)
+  const progEl = document.getElementById('rewardSavingProgress');
+  if (!reward.perBuck) {
+    const pct = Math.min(100, (bucks / reward.cost) * 100);
+    progEl.innerHTML = `
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">
+          <span>Progress</span><span>${bucks} / ${reward.cost} DB</span>
+        </div>
+        <div style="height:10px;background:var(--bg-card);border-radius:99px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:99px;transition:width 0.4s;"></div>
+        </div>
+      </div>
+    `;
+  } else {
+    progEl.innerHTML = '';
+  }
+
+  // Buttons
+  const redeemBtn = document.getElementById('rewardRedeemBtn');
+  const saveBtn = document.getElementById('rewardSaveBtn');
+  if (reward.perBuck) {
+    redeemBtn.textContent = bucks > 0 ? `Cash out · $${bucks}` : 'No bucks yet';
+    redeemBtn.disabled = bucks === 0;
+    redeemBtn.className = bucks > 0 ? 'btn-3d gold' : 'btn-3d gray';
+    saveBtn.style.display = 'none';
+  } else if (canAfford) {
+    redeemBtn.textContent = `Redeem · −${reward.cost} DB`;
+    redeemBtn.disabled = false;
+    redeemBtn.className = 'btn-3d gold';
+    saveBtn.style.display = 'block';
+    saveBtn.textContent = savingForRewardId === reward.id ? '🎯 Saving up — tap to clear' : 'Save up for this 🎯';
+  } else {
+    redeemBtn.textContent = `Need ${reward.cost - bucks} more DB`;
+    redeemBtn.disabled = true;
+    redeemBtn.className = 'btn-3d gray';
+    saveBtn.style.display = 'block';
+    saveBtn.textContent = savingForRewardId === reward.id ? '🎯 Saving up — tap to clear' : 'Save up for this 🎯';
+  }
+
+  document.getElementById('rewardModal').classList.add('show');
+}
+
+function closeRewardModal() {
+  document.getElementById('rewardModal').classList.remove('show');
+  activeReward = null;
+}
+
+function redeemReward() {
+  if (!activeReward) return;
+  const r = activeReward;
+  const bucks = state.bucks || 0;
+  if (r.perBuck) {
+    if (bucks <= 0) return;
+    const amt = bucks;
+    state.bucks = 0;
+    state.bucksRedemptions = state.bucksRedemptions || [];
+    state.bucksRedemptions.unshift({
+      ts: Date.now(), amount: amt, rewardId: r.id, rewardName: `Cash out ($${amt})`, emoji: r.emoji, status: 'pending'
+    });
+    saveState();
+    closeRewardModal();
+    showToast(`💵 Cashed out $${amt}!`, 'gold');
+    Sound.playBadge();
+    rerender();
+    return;
+  }
+  if (bucks < r.cost) return;
+  state.bucks -= r.cost;
+  state.bucksRedemptions = state.bucksRedemptions || [];
+  state.bucksRedemptions.unshift({
+    ts: Date.now(), amount: r.cost, rewardId: r.id, rewardName: r.name, emoji: r.emoji, status: 'pending'
+  });
+  if (savingForRewardId === r.id) savingForRewardId = null;
+  saveState();
+  closeRewardModal();
+  showToast(`🎁 Redeemed ${r.emoji} ${r.name}! Mom/Dad will fulfill.`, 'gold');
+  Sound.playDayComplete();
+  celebrateBig();
+  rerender();
+}
+
+function setSavingFor() {
+  if (!activeReward) return;
+  if (savingForRewardId === activeReward.id) {
+    savingForRewardId = null;
+    showToast('Saving target cleared', '');
+  } else {
+    savingForRewardId = activeReward.id;
+    showToast(`🎯 Saving up for ${activeReward.emoji} ${activeReward.name}`, '');
+  }
+  closeRewardModal();
+  rerender();
+}
+
+document.getElementById('rewardModal').addEventListener('click', e => {
+  if (e.target.id === 'rewardModal') closeRewardModal();
+});
+
+/* ============= REWARD EDITOR (parent-facing) ============= */
+let editingRewards = []; // working copy
+
+function openRewardEditor() {
+  editingRewards = JSON.parse(JSON.stringify(getRewards()));
+  renderRewardEditor();
+  document.getElementById('rewardEditModal').classList.add('show');
+}
+
+function closeRewardEditor() {
+  document.getElementById('rewardEditModal').classList.remove('show');
+}
+
+function renderRewardEditor() {
+  const wrap = document.getElementById('rewardEditList');
+  wrap.innerHTML = editingRewards.map((r, i) => `
+    <div class="reward-edit-row" data-i="${i}">
+      <div class="rer-fields">
+        <input class="rer-emoji-input" data-field="emoji" data-i="${i}" value="${escapeAttr(r.emoji)}" />
+        <input class="rer-name-input" data-field="name" data-i="${i}" value="${escapeAttr(r.name)}" />
+        <input type="number" min="1" max="999" class="rer-cost-input" data-field="cost" data-i="${i}" value="${r.cost}" />
+      </div>
+      <button class="rer-delete" data-i="${i}">Del</button>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('input').forEach(inp => {
+    inp.oninput = () => {
+      const i = parseInt(inp.dataset.i, 10);
+      const f = inp.dataset.field;
+      if (!editingRewards[i]) return;
+      if (f === 'cost') {
+        editingRewards[i].cost = Math.max(1, parseInt(inp.value, 10) || 1);
+      } else {
+        editingRewards[i][f] = inp.value;
+      }
+    };
+  });
+  wrap.querySelectorAll('.rer-delete').forEach(btn => {
+    btn.onclick = () => {
+      const i = parseInt(btn.dataset.i, 10);
+      editingRewards.splice(i, 1);
+      renderRewardEditor();
+    };
+  });
+}
+
+function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+function addRewardRow() {
+  editingRewards.push({
+    id: 'custom-' + Date.now(),
+    emoji: '🎁',
+    name: 'New reward',
+    cost: 10
+  });
+  renderRewardEditor();
+}
+
+function saveRewardEdits() {
+  // Trim & filter empty rows
+  const cleaned = editingRewards
+    .filter(r => r.name && r.name.trim().length > 0)
+    .map(r => ({
+      id: r.id || ('custom-' + Math.random().toString(36).slice(2)),
+      emoji: (r.emoji || '🎁').trim() || '🎁',
+      name: r.name.trim(),
+      cost: Math.max(1, parseInt(r.cost, 10) || 1),
+      perBuck: !!r.perBuck
+    }));
+  state.rewards = cleaned;
+  saveState();
+  closeRewardEditor();
+  showToast('Rewards saved!', 'gold');
+  rerender();
+}
+
+function resetRewardsToDefault() {
+  if (!confirm('Reset reward shop to the default catalog?')) return;
+  state.rewards = null;
+  saveState();
+  closeRewardEditor();
+  showToast('Defaults restored', '');
+  rerender();
+}
+
+document.getElementById('rewardEditModal').addEventListener('click', e => {
+  if (e.target.id === 'rewardEditModal') closeRewardEditor();
+});
+
+/* ============= CALENDAR ============= */
+function calMove(delta) {
+  calMonthOffset += delta;
+  if (calMonthOffset > 0) calMonthOffset = 0; // can't see future
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + calMonthOffset, 1);
+  const monthName = MONTHS[target.getMonth()];
+  const year = target.getFullYear();
+  document.getElementById('calTitle').textContent = `${monthName} ${year}`;
+  document.getElementById('calNext').disabled = calMonthOffset >= 0;
+
+  const firstDay = new Date(year, target.getMonth(), 1);
+  const lastDay = new Date(year, target.getMonth() + 1, 0);
+  const startDow = firstDay.getDay(); // 0 = Sun
+  const daysInMonth = lastDay.getDate();
+  const today = todayKey();
+
+  // DOW headers
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  // Empty cells before day 1
+  for (let i = 0; i < startDow; i++) html += `<div class="cal-day empty"></div>`;
+  // Day cells
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, target.getMonth(), d);
+    const k = todayKey(date);
+    const day = state.log[k] || {};
+    const isFut = date > now && k !== today;
+    const isComp = isDayComplete(k);
+    const isBig = day.piano && day.reading && day.math && day.badminton;
+    const isPart = isDayPartial(k);
+    const isFroz = isDayFrozen(k);
+    const isToday = k === today;
+    const cls = ['cal-day',
+                 isToday ? 'today' : '',
+                 isFut ? 'future' : '',
+                 isBig ? 'big' : (isComp ? 'complete' : ''),
+                 (!isComp && isPart) ? 'partial' : '',
+                 isFroz ? 'frozen' : ''].filter(Boolean).join(' ');
+    html += `<div class="${cls}" data-key="${k}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll('.cal-day:not(.empty):not(.future)').forEach(el => {
+    el.onclick = () => openPastDayModal(el.dataset.key);
+  });
+}
+
+function openPastDayModal(key) {
+  const d = dateFromKey(key);
+  const day = state.log[key] || {};
+  const isFroz = isDayFrozen(key);
+  const isComp = isDayComplete(key);
+  const isBig = day.piano && day.reading && day.math && day.badminton;
+
+  document.getElementById('pastDayTitle').textContent = prettyDate(d);
+  let pillText = 'NO ACTIVITY';
+  let bg = 'var(--locked)';
+  let icon = '😴';
+  let sub = '—';
+  if (isBig) { pillText = 'BIG DAY'; bg = 'linear-gradient(135deg, var(--green), var(--yellow))'; icon = '🦋'; sub = 'All 4 quests done!'; }
+  else if (isComp) { pillText = 'COMPLETE'; bg = 'var(--green)'; icon = '🏆'; sub = 'Day complete!'; }
+  else if (isFroz) { pillText = 'FROZEN'; bg = 'var(--blue)'; icon = '❄️'; sub = 'Streak freeze used'; }
+  else if (Object.keys(day).length > 0) { pillText = 'PARTIAL'; bg = 'var(--orange)'; icon = '⏳'; sub = 'Some quests done'; }
+  document.getElementById('pastDayPill').textContent = pillText;
+  document.getElementById('pastDayHeader').style.background = bg;
+  document.getElementById('pastDayIcon').textContent = icon;
+  document.getElementById('pastDaySub').textContent = sub;
+
+  // Detail breakdown
+  const items = QUEST_ORDER.map(t => {
+    const q = QUESTS[t];
+    const done = !!day[t];
+    return `
+      <div class="practice-suggest" style="background:${done ? 'var(--green-light)' : 'var(--bg-card)'};">
+        <div class="ps-icon" style="background:${done ? 'var(--green)' : 'var(--locked)'};color:white;">${q.icon}</div>
+        <div>
+          <div class="ps-name">${q.name} ${done ? '✓' : ''}</div>
+          <div class="ps-desc">${done ? `Completed at ${formatTime(day[t])}` : 'Not done'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('pastDayDetails').innerHTML = `<div class="modal-section">${items}</div>`;
+
+  document.getElementById('pastDayModal').classList.add('show');
+}
+
+function closePastDayModal() {
+  document.getElementById('pastDayModal').classList.remove('show');
+}
+
+document.getElementById('pastDayModal').addEventListener('click', e => {
+  if (e.target.id === 'pastDayModal') closePastDayModal();
+});
 
 /* ============= STATS ============= */
 function renderStats() {
@@ -2638,6 +3925,8 @@ function renderStats() {
       <div class="ar-count">${stats.bonusDays}</div>
     </div>
   `;
+
+  renderCalendar();
 }
 
 /* ============= ME ============= */
@@ -2649,6 +3938,10 @@ function renderMe() {
     : 'Hi! 🐼';
   document.getElementById('soundToggle').classList.toggle('on', state.soundOn);
   document.getElementById('hapticToggle').classList.toggle('on', state.hapticOn);
+  const reminderInput = document.getElementById('reminderInput');
+  if (reminderInput && document.activeElement !== reminderInput) {
+    reminderInput.value = state.reminderTime || '19:00';
+  }
 }
 
 function onNameChange() {
@@ -2731,6 +4024,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
     if (btn.dataset.tab === 'stickers') renderAlbum();
+    if (btn.dataset.tab === 'bucks') renderBucksPanel();
     if (btn.dataset.tab === 'stats') renderStats();
     if (btn.dataset.tab === 'me') renderMe();
     Sound.playPop();
@@ -2747,7 +4041,9 @@ function rerender() {
   renderWeekStrip();
   renderMascot();
   renderGearStrip();
+  renderReminderBanner();
   if (document.getElementById('stickers-panel').classList.contains('active')) renderAlbum();
+  if (document.getElementById('bucks-panel').classList.contains('active')) renderBucksPanel();
   if (document.getElementById('stats-panel').classList.contains('active')) renderStats();
   if (document.getElementById('me-panel').classList.contains('active')) renderMe();
 }
@@ -2764,10 +4060,30 @@ function rerender() {
 // Detect "welcome back" before first render
 maybeShowWelcomeBack();
 
+// Auto-apply freezes for any missed days BEFORE we compute streak / award bucks.
+const _appliedFreezes = autoApplyFreezes();
+
+// If a streak break happened that wasn't bridged, advance the epoch so future
+// milestones can re-fire when she rebuilds.
+maybeAdvanceStreakEpoch();
+
 // Initial sticker check (in case user reset state etc.)
 checkStickers();
 
+// Catch up any unrewarded bucks/freezes from prior sessions
+backfillBucks();
+evaluateBucksRewards();
+evaluateFreezeAward();
+
+// One more sticker pass in case bucks just bumped any sticker (none currently, but safe)
+checkStickers();
+
 rerender();
+
+// Show freeze banner if we just bridged days
+if (_appliedFreezes.length) {
+  setTimeout(() => renderFreezeBanner(_appliedFreezes), 500);
+}
 
 // Re-render every minute so the date / mood updates as time passes
 setInterval(() => {
