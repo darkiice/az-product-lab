@@ -330,12 +330,6 @@
     color: var(--text-muted);
     line-height: 1.4;
   }
-  .quest .q-xp {
-    font-size: 11px;
-    font-weight: 900;
-    color: var(--purple);
-    margin-top: 3px;
-  }
   .quest .q-extra {
     font-size: 11px;
     font-weight: 800;
@@ -1212,24 +1206,45 @@
     flex-shrink: 0;
   }
 
-  /* ============= SETTINGS DIVIDER (Me content under Stats) ============= */
-  .settings-divider {
-    margin: 36px 0 18px;
-    text-align: center;
-    border-top: 2px dashed var(--border);
-    font-family: 'JetBrains Mono', 'SF Mono', monospace;
-    font-size: 11px;
+  /* ============= SETTINGS TOGGLE (Me content under Stats, collapsible) ============= */
+  .settings-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 32px 0 0;
+    padding: 14px 16px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 2px 0 var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--text-light);
-    height: 0;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.1s;
   }
-  .settings-divider span {
-    background: var(--bg);
-    padding: 0 14px;
-    position: relative;
-    top: -8px;
+  .settings-toggle:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--border); }
+  .settings-toggle .st-icon { font-size: 22px; line-height: 1; }
+  .settings-toggle .st-label { flex: 1; }
+  .settings-toggle .st-chev {
+    font-size: 22px;
+    color: var(--text-light);
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .settings-toggle.expanded { box-shadow: 0 2px 0 var(--purple-dark); border-color: var(--purple); }
+  .settings-toggle.expanded .st-chev { transform: rotate(90deg); }
+
+  .settings-content {
+    display: none;
+    animation: fadeIn 0.25s;
+  }
+  .settings-content.expanded {
+    display: block;
+    margin-top: 14px;
   }
 
   /* ============= WEEKLY MISSION SECTION (cleanup) ============= */
@@ -1878,46 +1893,8 @@
       padding-right: max(8px, calc(50% - 480px));
     }
 
-    /* Today panel becomes a 2-column grid: primary actions left, info right.
-       Use dense flow so right-column items fill row 1+ even when left column
-       has more rows of content. */
-    #today-panel main {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      column-gap: 24px;
-      row-gap: 12px;
-      align-items: start;
-      grid-auto-flow: dense;
-    }
-    /* Empty banner containers shouldn't reserve a grid row */
-    #today-panel main > #reminderBanner:empty,
-    #today-panel main > #freezeBanner:empty {
-      display: none;
-    }
-    #today-panel main > .mascot-section,
-    #today-panel main > #todayHero,
-    #today-panel main > .quests-wrap {
-      grid-column: 1;
-      margin-left: 0;
-      margin-right: 0;
-    }
-    #today-panel main > #reminderBanner,
-    #today-panel main > #freezeBanner,
-    #today-panel main > #streakBanner,
-    #today-panel main > .week-strip-wrap {
-      grid-column: 2;
-      margin-left: 0;
-      margin-right: 0;
-    }
-    /* Override the existing horizontal margins on these so they fit the grid cell */
-    #today-panel .today-hero { margin: 0 0 12px; }
-    #today-panel .quests-wrap { padding: 0; }
-    #today-panel .mascot-section { padding: 8px 0 16px; }
-    #today-panel #streakBanner > .streak-banner { margin: 0 0 12px; }
-    #today-panel .week-strip-wrap { margin: 0; }
-    #today-panel #reminderBanner > .reminder-banner,
-    #today-panel #freezeBanner > .reminder-banner { margin: 0 0 12px; }
-
+    /* Today panel stays single-column at all widths — kid wants everything
+       vertically arranged, no two-column dashboard. */
 
     /* Mascot a bit bigger */
     .mascot { width: 120px; height: 120px; font-size: 76px; }
@@ -1935,7 +1912,6 @@
   /* --- iPad Pro 12.9" / desktop ---*/
   @media (min-width: 1200px) {
     main, .panel { max-width: 1080px; }
-    #today-panel main { grid-template-columns: 1fr 400px; }
 
     .topbar {
       padding-left: max(24px, calc(50% - 540px));
@@ -2066,10 +2042,6 @@
       <div class="label">🔥 Current Streak</div>
       <div class="value" id="statsStreak">0<span class="unit">days</span></div>
     </div>
-    <div class="big-stat purple">
-      <div class="label">⚡ Total XP</div>
-      <div class="value" id="statsXP">0</div>
-    </div>
     <div class="big-stat green">
       <div class="label">✅ Days Completed</div>
       <div class="value" id="statsDays">0</div>
@@ -2077,6 +2049,10 @@
     <div class="big-stat yellow">
       <div class="label">💰 Bucks Earned</div>
       <div class="value" id="statsBucks">0</div>
+    </div>
+    <div class="big-stat purple">
+      <div class="label">⚡ Total XP</div>
+      <div class="value" id="statsXP">0</div>
     </div>
   </div>
 
@@ -2110,8 +2086,13 @@
     </div>
   </div>
 
-  <!-- === Settings & More (was: Me tab — now lives at the bottom of Stats) === -->
-  <div class="settings-divider"><span>⚙️ Settings & More</span></div>
+  <!-- === Settings & More (collapsible — was: Me tab) === -->
+  <button class="settings-toggle" id="settingsToggle" onclick="toggleSettings()" aria-expanded="false">
+    <span class="st-icon">⚙️</span>
+    <span class="st-label">Settings &amp; More</span>
+    <span class="st-chev">›</span>
+  </button>
+  <div class="settings-content" id="settingsContent">
 
   <div class="chart-card">
     <h3>👤 Your Name</h3>
@@ -2199,7 +2180,7 @@
       <div class="pa-icon">⚠️</div>
       <div class="pa-info">
         <div class="pa-name">Reset all progress</div>
-        <div class="pa-desc">Clears streak, XP, and Daddy Bucks</div>
+        <div class="pa-desc">Clears streak and Daddy Bucks</div>
       </div>
       <div class="pa-arrow">›</div>
     </div>
@@ -2222,6 +2203,8 @@
       Saves a JSON file you can email or AirDrop. Import on another device to restore.
     </div>
   </div>
+
+  </div><!-- /.settings-content -->
 </section>
 
 <!-- BOTTOM NAV -->
@@ -3095,7 +3078,24 @@ function pickWiseWords() {
 }
 
 function renderMeIfActive() {
-  if (document.getElementById('me-panel').classList.contains('active')) renderMe();
+  // Me lives inside Stats now — render whenever Stats is the active tab.
+  if (document.getElementById('stats-panel').classList.contains('active')) renderMe();
+}
+
+/* ============= SETTINGS TOGGLE (collapsible Me content) ============= */
+function toggleSettings() {
+  const btn = document.getElementById('settingsToggle');
+  const content = document.getElementById('settingsContent');
+  if (!btn || !content) return;
+  const willOpen = !content.classList.contains('expanded');
+  content.classList.toggle('expanded', willOpen);
+  btn.classList.toggle('expanded', willOpen);
+  btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  if (willOpen) {
+    renderMe();
+    setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    Sound.playPop();
+  }
 }
 
 /* ============= QUESTS ============= */
@@ -3106,7 +3106,6 @@ const QUESTS = {
     icon: '🎹',
     color: 'purple',
     required: true,
-    xp: 25,
     suggested: '45 min – 1 hour',
     desc: "Time to make the keys sing! Warm up with scales, then move to your pieces.",
     tips: [
@@ -3129,7 +3128,6 @@ const QUESTS = {
     icon: '📖',
     color: 'blue',
     required: true,
-    xp: 25,
     suggested: '25 minutes',
     desc: "Snuggle up with a great book. Tonight's adventure awaits!",
     tips: [
@@ -3151,7 +3149,6 @@ const QUESTS = {
     icon: '🔢',
     color: 'orange',
     required: false,
-    xp: 30,
     suggested: 'Today\'s set',
     desc: "Brain workout time! Mom or Dad has today's exercises ready for you.",
     tips: [
@@ -3173,7 +3170,6 @@ const QUESTS = {
     icon: '🏸',
     color: 'pink',
     required: false,
-    xp: 30,
     suggested: '15–20 minutes',
     desc: "Move your body! Light feet, sharp eyes. Today has a focus drill — see below.",
     tips: [
@@ -3190,7 +3186,6 @@ const QUESTS = {
     icon: '🧹',
     color: 'teal',
     required: false,
-    xp: 30,
     suggested: '5–10 minutes',
     desc: "Clean up your play area! A tidy space = a clear mind. Plus: rewards stay unlocked when you tidy at least once a week.",
     tips: [
@@ -3354,30 +3349,21 @@ function bestStreak() {
   return best;
 }
 
-/* ============= XP / STATS ============= */
+/* ============= STATS ============= */
 function totalStats() {
-  let xp = 0;
   let counts = { piano: 0, reading: 0, math: 0, badminton: 0, cleanup: 0 };
   let daysComplete = 0;
   let bonusDays = 0;
   Object.entries(state.log).forEach(([key, day]) => {
     QUEST_ORDER.forEach(t => {
-      if (day[t]) {
-        counts[t]++;
-        xp += QUESTS[t].xp;
-      }
+      if (day[t]) counts[t]++;
     });
     if (isDayComplete(key)) {
       daysComplete++;
-      // Day-completion bonus
-      xp += 30;
-      if (day.math && day.badminton) {
-        bonusDays++;
-        xp += 20; // bonus for doing both choices
-      }
+      if (day.math && day.badminton) bonusDays++;
     }
   });
-  return { xp, counts, daysComplete, bonusDays };
+  return { counts, daysComplete, bonusDays };
 }
 
 /* Per-quest "in a row" streaks (consecutive days where that quest was logged) */
@@ -3499,6 +3485,12 @@ function evaluateBucksRewards(date) {
       newlyAwarded.push({ amount: 1, reason: 'Big Day bonus 🦋' });
     }
   }
+  // Cleanup bonus = 3 DB per cleanup (deduped by date so re-completion doesn't double-pay)
+  if (day.cleanup) {
+    if (awardBucks(3, `🧹 Cleanup bonus (${date})`, `cleanup-${date}`)) {
+      newlyAwarded.push({ amount: 3, reason: 'Cleanup bonus 🧹' });
+    }
+  }
 
   // Streak milestones — one-time per streak occurrence
   const streak = computeStreak();
@@ -3536,6 +3528,9 @@ function backfillBucks() {
     }
     if (day.piano && day.reading && day.math && day.badminton) {
       awardBucks(1, `Big Day! All 4 quests (${key})`, `big-${key}`);
+    }
+    if (day.cleanup) {
+      awardBucks(3, `🧹 Cleanup bonus (${key})`, `cleanup-${key}`);
     }
   });
 }
@@ -4073,7 +4068,7 @@ function renderQuests() {
           <div class="choice-card math" data-pick="math">
             <div class="cc-icon">🔢</div>
             <div class="cc-name">Math</div>
-            <div class="cc-meta">+${QUESTS.math.xp} XP</div>
+            <div class="cc-meta">🧠 ${QUESTS.math.suggested}</div>
           </div>
           <div class="choice-card badminton" data-pick="badminton">
             <div class="cc-icon">🏸</div>
@@ -4187,8 +4182,8 @@ function questCardHTML(type, doneTs, opts = {}) {
   }
 
   const subline = isDone
-    ? `Done! ${formatTime(doneTs)} · +${q.xp} XP earned`
-    : `${q.suggested} · +${q.xp} XP`;
+    ? `Done! ${formatTime(doneTs)}`
+    : q.suggested;
   return `
     <div class="quest ${type} ${isDone ? 'done' : ''}" data-type="${type}">
       <div class="q-icon">${q.icon}</div>
@@ -4306,7 +4301,7 @@ function openQuest(type) {
   document.getElementById('modalIcon').textContent = q.icon;
   document.getElementById('modalDay').textContent = q.required ? 'DAILY QUEST' : 'CHOICE QUEST';
   document.getElementById('modalTitle').textContent = q.name;
-  document.getElementById('modalSub').textContent = `${q.suggested} · +${q.xp} XP`;
+  document.getElementById('modalSub').textContent = q.suggested;
   document.getElementById('modalDesc').textContent = q.desc;
 
   const routine = type === 'badminton' ? badmintonRoutine() : q.routine;
@@ -4333,7 +4328,7 @@ function openQuest(type) {
   const action = document.getElementById('modalAction');
   const undo = document.getElementById('modalUndo');
   if (isDone) {
-    action.textContent = `Completed! +${q.xp} XP`;
+    action.textContent = 'Completed!';
     action.className = 'btn-3d gold';
     action.style.background = '';
     action.style.boxShadow = '';
@@ -4341,14 +4336,14 @@ function openQuest(type) {
     undo.style.display = 'block';
   } else if (type === 'cleanup') {
     // Parent must verify cleanup before kid can claim it.
-    action.textContent = `🔐 Parent verify · +${q.xp} XP`;
+    action.textContent = '🔐 Parent verify';
     action.className = 'btn-3d';
     action.style.background = 'var(--mint)';
     action.style.boxShadow = '0 4px 0 var(--mint-dark)';
     action.disabled = false;
     undo.style.display = 'none';
   } else {
-    action.textContent = `Mark complete · +${q.xp} XP`;
+    action.textContent = 'Mark complete';
     action.className = 'btn-3d';
     action.style.background = '';
     action.style.boxShadow = '';
@@ -4389,7 +4384,7 @@ async function completeQuest() {
   vibrate([15, 50, 15]);
   closeModal();
   const q = QUESTS[type];
-  showToast(`+${q.xp} XP · ${q.name} done! 🎉`, 'gold');
+  showToast(`${q.name} done! 🎉`, 'gold');
 
   if (justCompleted) {
     setTimeout(() => {
@@ -4432,19 +4427,27 @@ function animateBucksPill() {
   setTimeout(() => pill.classList.remove('active'), 600);
 }
 
-function uncompleteQuest() {
+async function uncompleteQuest() {
   if (!activeQuest) return;
   const { date, type } = activeQuest;
+  // Cleanup undo also requires parent PIN — kid can't unilaterally erase a verified clean.
+  if (type === 'cleanup') {
+    const ok = await requireParent();
+    if (!ok) return;
+  }
   if (state.log[date]) {
     const wasComplete = isDayComplete(date);
     const wasBig = state.log[date].piano && state.log[date].reading && state.log[date].math && state.log[date].badminton;
+    const wasCleanup = !!state.log[date].cleanup;
     delete state.log[date][type];
     if (Object.keys(state.log[date]).length === 0) delete state.log[date];
     // Roll back bucks if day was complete and now isn't
     const stillComplete = isDayComplete(date);
     const stillBig = state.log[date] && state.log[date].piano && state.log[date].reading && state.log[date].math && state.log[date].badminton;
+    const stillCleanup = !!(state.log[date] && state.log[date].cleanup);
     if (wasComplete && !stillComplete) reverseBucksAward(`day-${date}`, 1, 'Day no longer complete');
     if (wasBig && !stillBig) reverseBucksAward(`big-${date}`, 1, 'Big Day reversed');
+    if (wasCleanup && !stillCleanup) reverseBucksAward(`cleanup-${date}`, 3, 'Cleanup reversed');
     saveState();
   }
   closeModal();
@@ -4905,7 +4908,6 @@ function renderStats() {
   const stats = totalStats();
   const streak = computeStreak();
   document.getElementById('statsStreak').innerHTML = `${streak}<span class="unit">${streak === 1 ? 'day' : 'days'}</span>`;
-  document.getElementById('statsXP').textContent = stats.xp;
   document.getElementById('statsDays').textContent = stats.daysComplete;
   document.getElementById('statsBucks').textContent = stats.daysComplete > 0 ? (state.bucksTotalEarned || 0) : 0;
 
@@ -5120,7 +5122,7 @@ function toggleHaptic() {
 async function resetProgress() {
   const ok = await requireParent();
   if (!ok) return;
-  if (!confirm('Reset all progress? This will clear streak, XP, and Daddy Bucks. Cannot be undone!')) return;
+  if (!confirm('Reset all progress? This will clear streak and Daddy Bucks. Cannot be undone!')) return;
   // Preserve identity + sync settings + parent PIN through reset
   const keep = {
     name: state.name,
