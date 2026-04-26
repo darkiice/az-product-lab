@@ -1,0 +1,2780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#6dbf47" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Pandi" />
+<title>Pandi — Daily quests with your panda</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Inline SVG favicon: a happy panda -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐼%3C/text%3E%3C/svg%3E" />
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    /* Pandi palette — bamboo + panda */
+    --green: #6dbf47;
+    --green-dark: #4a9b2f;
+    --green-light: #e1f4d3;
+    --pink: #ff86c8;
+    --pink-dark: #e375b3;
+    --pink-light: #ffe5f1;
+    --purple: #ce82ff;
+    --purple-dark: #b162e0;
+    --purple-light: #f0e1ff;
+    --yellow: #ffc800;
+    --yellow-dark: #e0af00;
+    --yellow-light: #fff4cc;
+    --orange: #ff9600;
+    --orange-dark: #e58600;
+    --blue: #1cb0f6;
+    --blue-dark: #1899d6;
+    --blue-light: #d8effd;
+    --red: #ff4b4b;
+    --red-dark: #e84141;
+
+    --text: #2c2c2c;
+    --text-muted: #777;
+    --text-light: #afafaf;
+    --bg: #fffefa;
+    --bg-card: #f7f5f0;
+    --border: #e8e4dc;
+    --border-strong: #d4cfc4;
+    --locked: #e8e4dc;
+    --locked-dark: #c8c3b6;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --topbar-h: 56px;
+    --bottomnav-h: 64px;
+  }
+
+  html, body { height: 100%; overflow-x: hidden; overscroll-behavior-y: contain; }
+  body {
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    padding-top: calc(var(--safe-top) + var(--topbar-h));
+    padding-bottom: calc(var(--bottomnav-h) + var(--safe-bottom));
+  }
+
+  button { font-family: inherit; font-weight: 800; cursor: pointer; border: none; background: none; color: inherit; }
+
+  /* ============= TOP BAR ============= */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: white;
+    border-bottom: 2px solid var(--border);
+    padding: calc(var(--safe-top) + 8px) 16px 8px;
+    height: calc(var(--topbar-h) + var(--safe-top));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 50;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text-muted);
+  }
+  .stat-pill .icon { font-size: 22px; line-height: 1; }
+  .stat-pill .num { font-variant-numeric: tabular-nums; }
+  .stat-pill.streak.active { color: var(--orange); }
+  .stat-pill.streak .icon { filter: grayscale(0.7); }
+  .stat-pill.streak.active .icon { filter: none; }
+  .stat-pill.xp.active { color: var(--purple); }
+  .stat-pill.xp .icon { filter: grayscale(0.5); }
+  .stat-pill.xp.active .icon { filter: none; }
+  .stat-pill.stickers.active { color: var(--green); }
+  .stat-pill.stickers .icon { filter: grayscale(0.5); }
+  .stat-pill.stickers.active .icon { filter: none; }
+
+  /* ============= MAIN ============= */
+  main { padding: 0; max-width: 480px; margin: 0 auto; position: relative; }
+
+  /* ============= MASCOT ============= */
+  .mascot-section {
+    padding: 18px 16px 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .mascot-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mascot {
+    flex-shrink: 0;
+    width: 88px;
+    height: 88px;
+    background: linear-gradient(135deg, #ffffff 0%, #f0e1ff 100%);
+    border: 3px solid var(--green);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    user-select: none;
+    cursor: pointer;
+    transition: transform 0.15s;
+    overflow: hidden;
+    position: relative;
+    font-size: 56px;
+    line-height: 1;
+  }
+  .mascot:active { transform: scale(0.94); }
+  .mascot.bounce { animation: mascot-bounce 0.5s; }
+  @keyframes mascot-bounce {
+    0%, 100% { transform: scale(1) rotate(0); }
+    25% { transform: scale(1.08) rotate(-6deg); }
+    75% { transform: scale(1.08) rotate(6deg); }
+  }
+  .mascot .accessory {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 22px;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+  }
+  .mascot .accessory.bottom { top: auto; bottom: 4px; right: auto; left: 50%; transform: translateX(-50%); }
+  .mascot .accessory.left   { right: auto; left: 4px; }
+
+  .gear-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 22px;
+    max-width: 100px;
+    align-items: center;
+    justify-content: center;
+  }
+  .gear-stick {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--purple);
+    border: 2px solid white;
+    box-shadow: 0 1px 0 var(--purple-dark);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    line-height: 1;
+    animation: gear-pop 0.4s cubic-bezier(0.32, 0.72, 0.4, 1.4);
+  }
+  @keyframes gear-pop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .speech {
+    flex: 1;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--text);
+    position: relative;
+    line-height: 1.4;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+  }
+  .speech::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 22px;
+    width: 16px; height: 16px;
+    background: white;
+    border-left: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+    transform: rotate(45deg);
+  }
+  .speech strong { font-weight: 900; }
+
+  /* ============= TODAY HERO ============= */
+  .today-hero {
+    margin: 12px 16px 8px;
+    background: linear-gradient(135deg, var(--green-light), white);
+    border: 2px solid var(--green);
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 3px 0 var(--green-dark);
+  }
+  .today-hero .day-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: white;
+    border: 2px solid var(--green);
+    display: grid; place-items: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .today-hero .info { flex: 1; min-width: 0; }
+  .today-hero .label {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--green-dark);
+    margin-bottom: 2px;
+  }
+  .today-hero .name {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .today-hero .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .today-hero.complete {
+    background: linear-gradient(135deg, var(--yellow-light), white);
+    border-color: var(--yellow);
+    box-shadow: 0 3px 0 var(--yellow-dark);
+  }
+  .today-hero.complete .label { color: var(--yellow-dark); }
+  .today-hero.complete .day-icon { border-color: var(--yellow); }
+
+  /* ============= QUEST CARDS ============= */
+  .quests-wrap { padding: 6px 16px 4px; }
+  .quests-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 14px 0 8px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+  }
+  .quests-title .progress {
+    color: var(--text);
+    background: var(--bg-card);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+  }
+
+  .quest {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 18px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 0 var(--border);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+  }
+  .quest:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--border); }
+  .quest .q-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    line-height: 1;
+    color: white;
+  }
+  .quest.piano    .q-icon { background: var(--purple); }
+  .quest.reading  .q-icon { background: var(--blue); }
+  .quest.math     .q-icon { background: var(--orange); }
+  .quest.badminton .q-icon { background: var(--pink); }
+  .quest .q-info { flex: 1; min-width: 0; }
+  .quest .q-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+  .quest .q-name {
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+  .quest .q-tag {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--green);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+  .quest .q-tag.choice { background: var(--purple); }
+  .quest .q-tag.bonus { background: var(--yellow); color: var(--text); }
+  .quest .q-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .quest .q-xp {
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--purple);
+    margin-top: 3px;
+  }
+  .quest .q-extra {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--pink-dark);
+    margin-top: 4px;
+  }
+  .quest.done .q-extra { display: none; }
+  .quest .q-check {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border-strong);
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    color: transparent;
+  }
+  .quest.done {
+    background: var(--green-light);
+    border-color: var(--green);
+    box-shadow: 0 3px 0 var(--green-dark);
+  }
+  .quest.done:active { box-shadow: 0 1px 0 var(--green-dark); }
+  .quest.done .q-check {
+    background: var(--green);
+    border-color: var(--green-dark);
+    color: white;
+  }
+  .quest.done .q-name { color: var(--green-dark); }
+
+  .quest.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .quest.locked:active { transform: none; box-shadow: 0 3px 0 var(--border); }
+
+  .shake { animation: shake-x 0.32s; }
+  @keyframes shake-x {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  /* ============= CHOICE CARD ============= */
+  .choice-wrap {
+    background: linear-gradient(135deg, var(--purple-light), white);
+    border: 2px dashed var(--purple);
+    border-radius: 18px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .choice-wrap.locked-in {
+    border-style: solid;
+    background: white;
+    padding: 0;
+    border: none;
+  }
+  .choice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .choice-header .ch-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--purple-dark);
+  }
+  .choice-header .ch-tag {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--purple);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+  .choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .choice-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--border);
+    transition: all 0.15s;
+  }
+  .choice-card:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--border); }
+  .choice-card .cc-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    margin: 0 auto 6px;
+    line-height: 1;
+  }
+  .choice-card.math      .cc-icon { background: var(--orange); }
+  .choice-card.badminton .cc-icon { background: var(--pink); }
+  .choice-card .cc-name {
+    font-size: 14px;
+    font-weight: 900;
+  }
+  .choice-card .cc-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .choice-card.math:hover { border-color: var(--orange); }
+  .choice-card.badminton:hover { border-color: var(--pink); }
+
+  .switch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 8px;
+    cursor: pointer;
+  }
+
+  /* ============= WEEK STRIP ============= */
+  .week-strip-wrap {
+    margin: 16px 16px 8px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .week-strip-title {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+  .week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+  }
+  .day-cell .dc-lbl {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--text-light);
+    text-transform: uppercase;
+  }
+  .day-cell.today .dc-lbl { color: var(--green-dark); }
+  .day-cell .dc-circle {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border-strong);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text-light);
+  }
+  .day-cell.today .dc-circle {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+  .day-cell.complete .dc-circle {
+    background: var(--green);
+    border-color: var(--green-dark);
+    color: white;
+  }
+  .day-cell.partial .dc-circle {
+    background: white;
+    border-color: var(--orange);
+    color: var(--orange-dark);
+  }
+  .day-cell.future { opacity: 0.45; cursor: default; }
+  .day-cell .dc-num {
+    font-size: 9px;
+    color: var(--text-light);
+    font-weight: 800;
+  }
+
+  /* ============= STREAK BANNER ============= */
+  .streak-banner {
+    margin: 8px 16px 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--orange), var(--yellow));
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 3px 0 var(--orange-dark);
+  }
+  .streak-banner.cold {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    box-shadow: 0 3px 0 var(--border-strong);
+  }
+  .streak-banner .sb-icon { font-size: 28px; line-height: 1; }
+  .streak-banner .sb-num { font-size: 22px; font-weight: 900; line-height: 1; }
+  .streak-banner .sb-lbl {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+  }
+
+  /* ============= STICKER ALBUM ============= */
+  .album-cat {
+    margin-bottom: 18px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .album-cat h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .album-cat h3 .count {
+    background: var(--green);
+    color: white;
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 11px;
+  }
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .sticker {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 4px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+  }
+  .sticker:active { transform: scale(0.95); }
+  .sticker .s-emoji {
+    font-size: 28px;
+    line-height: 1;
+    filter: grayscale(1);
+    opacity: 0.35;
+    transition: all 0.2s;
+  }
+  .sticker .s-name {
+    font-size: 9px;
+    font-weight: 900;
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 4px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .sticker.unlocked {
+    background: white;
+    border-color: var(--yellow);
+    box-shadow: 0 3px 0 var(--yellow-dark);
+  }
+  .sticker.unlocked .s-emoji { filter: none; opacity: 1; }
+  .sticker.unlocked .s-name { color: var(--text); }
+  .sticker.unlocked .s-shimmer {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 14px; height: 14px;
+    background: var(--yellow);
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+
+  /* Unlock card (drops from top) */
+  .unlock-card {
+    position: fixed;
+    top: calc(var(--safe-top) + var(--topbar-h) + 12px);
+    left: 16px; right: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    background: white;
+    border: 3px solid var(--yellow);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    padding: 16px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+    z-index: 350;
+    animation: card-drop 0.5s cubic-bezier(0.32, 0.72, 0.4, 1.4);
+  }
+  .unlock-card.show { display: flex; }
+  @keyframes card-drop {
+    from { transform: translateY(-200%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .unlock-card .be {
+    width: 56px; height: 56px;
+    background: var(--yellow);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 30px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 0 var(--yellow-dark);
+  }
+  .unlock-card .bt {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--yellow-dark);
+    margin-bottom: 2px;
+  }
+  .unlock-card .bn { font-size: 16px; font-weight: 900; }
+  .unlock-card .bd { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
+
+  /* ============= STATS ============= */
+  .panel { display: none; padding: 16px; max-width: 480px; margin: 0 auto; }
+  .panel.active { display: block; animation: fadeIn 0.2s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .panel h2 { font-size: 24px; font-weight: 900; margin-bottom: 4px; }
+  .panel .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 18px; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .big-stat {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 0 var(--border);
+  }
+  .big-stat .label {
+    font-size: 11px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+  .big-stat .value {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .big-stat .value .unit { font-size: 14px; color: var(--text-muted); margin-left: 4px; }
+  .big-stat.green .value { color: var(--green); }
+  .big-stat.orange .value { color: var(--orange); }
+  .big-stat.purple .value { color: var(--purple); }
+  .big-stat.pink .value { color: var(--pink); }
+  .big-stat.yellow .value { color: var(--yellow-dark); }
+  .big-stat.blue .value { color: var(--blue); }
+
+  .chart-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 4px;
+  }
+  .chart-card h3 {
+    font-size: 13px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 120px;
+    gap: 4px;
+  }
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .bar {
+    width: 100%;
+    background: var(--green-light);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: background 0.2s;
+  }
+  .bar.done { background: var(--green); }
+  .bar.current { background: var(--orange); }
+  .bar-num {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--text-light);
+  }
+
+  .activity-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-row:last-child { border: none; }
+  .ar-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .ar-icon.piano    { background: var(--purple); }
+  .ar-icon.reading  { background: var(--blue); }
+  .ar-icon.math     { background: var(--orange); }
+  .ar-icon.badminton { background: var(--pink); }
+  .ar-name { flex: 1; font-size: 14px; font-weight: 900; }
+  .ar-count { font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .ar-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-card);
+    border-radius: 99px;
+    overflow: hidden;
+    margin: 0 6px;
+  }
+  .ar-bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 99px;
+    transition: width 0.4s;
+  }
+
+  /* ============= TOGGLES ============= */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-row .lbl-grp { display: flex; align-items: center; gap: 10px; }
+  .toggle-row .lbl-emoji { font-size: 22px; }
+  .toggle-row .lbl-text { font-size: 14px; font-weight: 900; }
+  .toggle-row .lbl-sub { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+  .toggle {
+    width: 50px;
+    height: 30px;
+    background: var(--locked);
+    border-radius: 99px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 24px; height: 24px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: left 0.2s;
+  }
+  .toggle.on { background: var(--green); }
+  .toggle.on::after { left: 23px; }
+
+  .test-btn {
+    background: var(--green);
+    color: white;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 3px 0 var(--green-dark);
+    transition: all 0.1s;
+  }
+  .test-btn:active { box-shadow: 0 1px 0 var(--green-dark); transform: translateY(2px); }
+
+  .name-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .name-input:focus { border-color: var(--green); outline: none; }
+
+  /* ============= BOTTOM NAV ============= */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    border-top: 2px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 4px;
+    padding-bottom: calc(6px + var(--safe-bottom));
+    z-index: 50;
+  }
+  .nav-btn {
+    background: transparent;
+    flex: 1;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: var(--text-light);
+    border-radius: 10px;
+  }
+  .nav-btn .ico { font-size: 26px; line-height: 1; filter: grayscale(0.7); opacity: 0.7; }
+  .nav-btn .lbl {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .nav-btn.active { color: var(--green); }
+  .nav-btn.active .ico { filter: none; opacity: 1; }
+
+  /* ============= MODAL ============= */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 200;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .modal-backdrop.show { display: flex; animation: fadeIn 0.2s; }
+  .modal {
+    background: white;
+    border-radius: 22px 22px 0 0;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-header {
+    padding: 28px 22px 22px;
+    color: white;
+    text-align: center;
+    border-radius: 22px 22px 0 0;
+    position: relative;
+  }
+  .modal-header.piano    { background: var(--purple); }
+  .modal-header.reading  { background: var(--blue); }
+  .modal-header.math     { background: var(--orange); }
+  .modal-header.badminton { background: var(--pink); }
+  .modal-header.sticker  { background: var(--yellow); color: var(--text); }
+  .modal-header .close-x {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    color: inherit;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .modal-header.sticker .close-x { background: rgba(0,0,0,0.12); }
+  .modal-header .big-icon { font-size: 56px; line-height: 1; margin-bottom: 8px; }
+  .modal-header .pill {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.25);
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .modal-header.sticker .pill { background: rgba(0,0,0,0.12); }
+  .modal-header h3 {
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .modal-header .sub {
+    font-size: 14px;
+    margin-top: 6px;
+    font-weight: 800;
+    opacity: 0.95;
+  }
+
+  .modal-body { padding: 20px 22px; }
+  .modal-body p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .modal-section { margin-top: 18px; }
+  .modal-section h4 {
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+  .tip-list { list-style: none; padding: 0; }
+  .tip-list li {
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 8px 0 8px 24px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .tip-list li:last-child { border: none; }
+  .tip-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    color: var(--green);
+    font-weight: 900;
+  }
+  .tip-list li strong { font-weight: 900; }
+
+  .practice-suggest {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .practice-suggest .ps-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: white;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .practice-suggest .ps-name {
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+  .practice-suggest .ps-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+    margin-top: 1px;
+  }
+  .practice-suggest.today-focus {
+    background: var(--pink-light);
+    border: 2px solid var(--pink);
+    padding: 10px 12px;
+  }
+  .practice-suggest.today-focus .ps-icon { background: var(--pink); color: white; }
+  .practice-suggest.today-focus .ps-name { color: var(--pink-dark); }
+  .practice-suggest.today-focus .ps-desc { color: var(--text); font-weight: 700; }
+  .practice-suggest.preview {
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    opacity: 0.75;
+  }
+  .practice-suggest.preview .ps-name { font-size: 12px; color: var(--text-muted); }
+
+  .modal-footer {
+    padding: 8px 22px 22px;
+    padding-bottom: calc(22px + var(--safe-bottom));
+    background: white;
+    border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+  }
+  .btn-3d {
+    width: 100%;
+    background: var(--green);
+    color: white;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 4px 0 var(--green-dark);
+    transition: all 0.1s;
+  }
+  .btn-3d:active {
+    box-shadow: 0 1px 0 var(--green-dark);
+    transform: translateY(3px);
+  }
+  .btn-3d.gold { background: var(--yellow); color: var(--text); box-shadow: 0 4px 0 var(--yellow-dark); }
+  .btn-3d.gold:active { box-shadow: 0 1px 0 var(--yellow-dark); }
+  .btn-3d.gray { background: var(--locked); color: var(--text-muted); box-shadow: 0 4px 0 var(--locked-dark); }
+  .btn-3d.gray:active { box-shadow: 0 1px 0 var(--locked-dark); }
+  .btn-3d.red { background: var(--red); box-shadow: 0 4px 0 var(--red-dark); color: white; }
+  .btn-3d.red:active { box-shadow: 0 1px 0 var(--red-dark); }
+  .btn-secondary {
+    width: 100%;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  /* Bonus quad pill on quest cards (when both math and badminton done) */
+  .bonus-pill {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--text);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ============= TOAST / CONFETTI ============= */
+  .toast {
+    position: fixed;
+    top: calc(var(--safe-top) + var(--topbar-h) + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    background: var(--green);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 99px;
+    font-weight: 900;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    opacity: 0;
+    z-index: 300;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.gold { background: var(--yellow); color: var(--text); }
+  .toast.red { background: var(--red); }
+  .toast.purple { background: var(--purple); }
+
+  .confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 250;
+    display: none;
+  }
+  .confetti.show { display: block; }
+  .confetti span {
+    position: absolute;
+    top: -20px;
+    font-size: 22px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="stat-pill streak" id="streakPill">
+    <span class="icon">🔥</span><span class="num" id="streakNum">0</span>
+  </div>
+  <div class="stat-pill xp" id="xpPill">
+    <span class="icon">⚡</span><span class="num" id="xpNum">0</span>
+  </div>
+  <div class="stat-pill stickers" id="stickersPill">
+    <span class="icon">🌟</span><span class="num" id="stickerNum">0</span>
+  </div>
+</header>
+
+<!-- TODAY PANEL -->
+<section class="panel active" id="today-panel">
+  <main>
+    <div class="mascot-section">
+      <div class="mascot-col">
+        <div class="mascot" id="mascotEl" onclick="onMascotTap()">🐼</div>
+        <div class="gear-strip" id="gearStrip"></div>
+      </div>
+      <div class="speech" id="speech">Hi! I'm Pandi 🐼 Let's do today!</div>
+    </div>
+
+    <div id="todayHero"></div>
+
+    <div class="quests-wrap" id="questsWrap"></div>
+
+    <div id="streakBanner"></div>
+
+    <div class="week-strip-wrap">
+      <div class="week-strip-title">📅 This week</div>
+      <div class="week-strip" id="weekStrip"></div>
+    </div>
+  </main>
+</section>
+
+<!-- STICKERS PANEL -->
+<section class="panel" id="stickers-panel">
+  <h2>🌟 Sticker Album</h2>
+  <p class="sub" id="stickerSub">Collect them all by practicing every day!</p>
+  <div id="albumWrap"></div>
+</section>
+
+<!-- STATS PANEL -->
+<section class="panel" id="stats-panel">
+  <h2>📊 Your Stats</h2>
+  <p class="sub">Every quest counts. Keep it up!</p>
+
+  <div class="stat-grid">
+    <div class="big-stat orange">
+      <div class="label">🔥 Current Streak</div>
+      <div class="value" id="statsStreak">0<span class="unit">days</span></div>
+    </div>
+    <div class="big-stat purple">
+      <div class="label">⚡ Total XP</div>
+      <div class="value" id="statsXP">0</div>
+    </div>
+    <div class="big-stat green">
+      <div class="label">✅ Days Completed</div>
+      <div class="value" id="statsDays">0</div>
+    </div>
+    <div class="big-stat yellow">
+      <div class="label">🌟 Stickers</div>
+      <div class="value" id="statsStickers">0</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3>📈 Last 8 Weeks</h3>
+    <div class="bars" id="weeklyBars"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>🎯 Activity Breakdown</h3>
+    <div id="activityList"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>🏆 Personal Bests</h3>
+    <div id="bestsList"></div>
+  </div>
+</section>
+
+<!-- ME PANEL -->
+<section class="panel" id="me-panel">
+  <h2 id="meTitle">Hi! 🐼</h2>
+  <p class="sub">Your daily practice journey</p>
+
+  <div class="chart-card">
+    <h3>👤 Your Name</h3>
+    <input type="text" class="name-input" id="nameInput" placeholder="Your name…" maxlength="20" oninput="onNameChange()" />
+    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Pandi will call you by name!</div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>⚙️ Settings</h3>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">🔊</span>
+        <div>
+          <div class="lbl-text">Sound</div>
+          <div class="lbl-sub">Celebration tones when you complete</div>
+        </div>
+      </div>
+      <button class="toggle" id="soundToggle" onclick="toggleSound()"></button>
+    </div>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">📳</span>
+        <div>
+          <div class="lbl-text">Haptics</div>
+          <div class="lbl-sub">Buzzy buzz on Android (iOS doesn't allow)</div>
+        </div>
+      </div>
+      <button class="toggle" id="hapticToggle" onclick="toggleHaptic()"></button>
+    </div>
+    <div class="toggle-row">
+      <div class="lbl-grp">
+        <span class="lbl-emoji">🧪</span>
+        <div>
+          <div class="lbl-text">Test sound</div>
+          <div class="lbl-sub">Tap to play the celebration tune</div>
+        </div>
+      </div>
+      <button class="test-btn" onclick="Sound.prime(); Sound.playComplete();">Play</button>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>💡 How it works</h3>
+    <ul class="tip-list">
+      <li><strong>Piano + Reading every day.</strong> They're the two heartbeats of your routine.</li>
+      <li><strong>Pick one: Math or Badminton.</strong> Switch it up — variety keeps it fresh.</li>
+      <li><strong>Bonus stickers</strong> if you do <strong>both</strong> Math AND Badminton in one day. 🦋</li>
+      <li><strong>Streak</strong> 🔥 grows when you finish all required quests in a day.</li>
+      <li><strong>Stickers</strong> 🌟 unlock as you reach milestones — fill the album!</li>
+    </ul>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>⚠️ Reset</h3>
+    <button class="btn-3d red" onclick="resetProgress()">Reset all progress</button>
+  </div>
+</section>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="today">
+    <span class="ico">🏡</span><span class="lbl">Today</span>
+  </button>
+  <button class="nav-btn" data-tab="stickers">
+    <span class="ico">🌟</span><span class="lbl">Stickers</span>
+  </button>
+  <button class="nav-btn" data-tab="stats">
+    <span class="ico">📊</span><span class="lbl">Stats</span>
+  </button>
+  <button class="nav-btn" data-tab="me">
+    <span class="ico">🐼</span><span class="lbl">Me</span>
+  </button>
+</nav>
+
+<!-- QUEST MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-header" id="modalHeader">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <div class="big-icon" id="modalIcon">🎹</div>
+      <div class="pill" id="modalDay">QUEST · TODAY</div>
+      <h3 id="modalTitle">Quest</h3>
+      <div class="sub" id="modalSub">—</div>
+    </div>
+    <div class="modal-body">
+      <p id="modalDesc">—</p>
+      <div id="modalDetails"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d" id="modalAction" onclick="completeQuest()">Mark complete</button>
+      <button class="btn-secondary" id="modalUndo" onclick="uncompleteQuest()" style="display:none;">Undo complete</button>
+    </div>
+  </div>
+</div>
+
+<!-- STICKER MODAL -->
+<div class="modal-backdrop" id="stickerModal">
+  <div class="modal">
+    <div class="modal-header sticker">
+      <button class="close-x" onclick="closeStickerModal()">✕</button>
+      <div class="big-icon" id="stickerIcon">🌟</div>
+      <div class="pill" id="stickerStatus">UNLOCKED</div>
+      <h3 id="stickerName">Sticker</h3>
+      <div class="sub" id="stickerDesc">—</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-3d gold" onclick="closeStickerModal()">Awesome!</button>
+    </div>
+  </div>
+</div>
+
+<!-- UNLOCK CARD + TOAST + CONFETTI -->
+<div class="unlock-card" id="unlockCard">
+  <div class="be" id="ucEmoji">🌟</div>
+  <div class="bi">
+    <div class="bt" id="ucTitle">Sticker Unlocked!</div>
+    <div class="bn" id="ucName">Sticker Name</div>
+    <div class="bd" id="ucDesc">Description</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ============= STATE ============= */
+const STORAGE_KEY = 'pandi-state-v1';
+const defaultState = {
+  log: {},          // { "YYYY-MM-DD": { piano: ts, reading: ts, math: ts, badminton: ts } }
+  stickers: {},     // { stickerId: timestamp }
+  name: '',
+  soundOn: true,
+  hapticOn: true,
+  lastSeen: null,
+  lastCompleteAt: 0
+};
+let state = loadState();
+let activeQuest = null;     // { date, type }
+let mascotMsgIdx = 0;
+let pendingWelcomeBackPool = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return { ...defaultState, ...JSON.parse(raw) };
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(defaultState));
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+/* ============= QUESTS ============= */
+const QUESTS = {
+  piano: {
+    id: 'piano',
+    name: 'Piano practice',
+    icon: '🎹',
+    color: 'purple',
+    required: true,
+    xp: 25,
+    suggested: '45 min – 1 hour',
+    desc: "Time to make the keys sing! Warm up with scales, then move to your pieces.",
+    tips: [
+      "<strong>Slow first, fast later.</strong> Get the notes right before adding speed.",
+      "<strong>Hands separately</strong> for any tricky passage — then combine.",
+      "<strong>Count out loud</strong> on rhythms that trip you up.",
+      "<strong>Loop the hard parts.</strong> 4 perfect repetitions beats 20 sloppy ones.",
+      "<strong>End strong.</strong> Always finish on a piece you love."
+    ],
+    routine: [
+      { name: 'Warm up',     icon: '🌡️', desc: '10 min · scales, arpeggios, finger exercises' },
+      { name: 'Review',      icon: '🎶', desc: '10–15 min · pieces you already know' },
+      { name: 'New piece',   icon: '✨', desc: '20–25 min · slow, hands-separate, focus the trickiest section' },
+      { name: 'Fun song',    icon: '🎵', desc: '5 min · play something you love to end' }
+    ]
+  },
+  reading: {
+    id: 'reading',
+    name: 'Reading time',
+    icon: '📖',
+    color: 'blue',
+    required: true,
+    xp: 25,
+    suggested: '25 minutes',
+    desc: "Snuggle up with a great book. Tonight's adventure awaits!",
+    tips: [
+      "<strong>Cozy spot</strong> — bed, beanbag, or a fort. Comfort = focus.",
+      "<strong>Read aloud</strong> sometimes — it makes the story come alive.",
+      "<strong>Notice new words.</strong> Look them up or guess from the story.",
+      "<strong>Pick what excites you.</strong> A story you love beats a 'good for you' one."
+    ],
+    routine: [
+      { name: 'Find your book', icon: '📚', desc: 'Pick up where you left off' },
+      { name: 'Settle in',      icon: '🛋️', desc: 'Cozy spot, no distractions' },
+      { name: 'Read',           icon: '👀', desc: '25 minutes — get lost in it' },
+      { name: 'Reflect',        icon: '💭', desc: 'What was the best part?' }
+    ]
+  },
+  math: {
+    id: 'math',
+    name: 'Math exercises',
+    icon: '🔢',
+    color: 'orange',
+    required: false,
+    xp: 30,
+    suggested: 'Today\'s set',
+    desc: "Brain workout time! Mom or Dad has today's exercises ready for you.",
+    tips: [
+      "<strong>Show your work.</strong> Even on easy ones — it builds the habit.",
+      "<strong>Stuck?</strong> Try a smaller version of the problem first.",
+      "<strong>Check by estimating.</strong> Does your answer feel right?",
+      "<strong>Mistakes are gold.</strong> Each one teaches you something."
+    ],
+    routine: [
+      { name: 'Get focused',     icon: '🧠', desc: 'Quiet spot, sharp pencil, ready brain' },
+      { name: 'Work the set',    icon: '✏️', desc: 'The exercises Mom or Dad gave you' },
+      { name: 'Check your work', icon: '✅', desc: 'Look back — did anything feel weird?' },
+      { name: 'Celebrate',       icon: '🎉', desc: 'Done! Tell someone what you learned.' }
+    ]
+  },
+  badminton: {
+    id: 'badminton',
+    name: 'Badminton drills',
+    icon: '🏸',
+    color: 'pink',
+    required: false,
+    xp: 30,
+    suggested: '15–20 minutes',
+    desc: "Move your body! Light feet, sharp eyes. Today has a focus drill — see below.",
+    tips: [
+      "<strong>Warm up first.</strong> Arm circles, jumping jacks, light jog.",
+      "<strong>Watch the shuttle</strong> — eyes lock on, feet adjust.",
+      "<strong>Quick first step.</strong> Most points are won in the first move.",
+      "<strong>Cool down</strong> with stretches — hamstrings, calves, shoulders."
+    ]
+    // routine is built dynamically per day from BADMINTON_ROTATION
+  }
+};
+
+// Badminton rotates a focus drill each day. We pick today's by day-of-year so
+// it's deterministic but cycles through the 7 focus areas every week.
+const BADMINTON_ROTATION = [
+  { name: 'Warm-up day',          icon: '🤸', focus: 'Light cardio, dynamic stretches, gentle rallies. Get the body moving and the eyes tracking.' },
+  { name: 'Footwork',             icon: '👟', focus: 'Shadow steps, six-corner drill, split-step recovery. Quick first step, balanced finish.' },
+  { name: 'Wall hits / rally',    icon: '🎯', focus: 'Forehand & backhand against a wall (or rally with a partner). Aim for control, not power.' },
+  { name: 'Lifts',                icon: '⬆️', focus: 'Underarm clears from the front court — high and deep to the back of the court.' },
+  { name: 'Serves',               icon: '🎾', focus: 'High serve & low serve. 10 of each to your target zones. Repeat with eyes closed for feel.' },
+  { name: 'Balance',              icon: '⚖️', focus: 'Single-leg stands, lunges, slow-motion strokes. Build the stability points are won on.' },
+  { name: 'Multi-bird feeding',   icon: '🦅', focus: 'Have a partner feed shuttles in fast sequence — front, mid, back. Recovery between every shot.' }
+];
+
+// Days since a fixed reference date so the rotation advances by 1 each day,
+// regardless of timezone or DST. Reference: 2026-01-01 (Thu).
+function badmintonFocusForDay(date) {
+  date = date || new Date();
+  const ref = new Date(2026, 0, 1);
+  const days = Math.floor((date - ref) / (1000 * 60 * 60 * 24));
+  const idx = ((days % BADMINTON_ROTATION.length) + BADMINTON_ROTATION.length) % BADMINTON_ROTATION.length;
+  return { ...BADMINTON_ROTATION[idx], idx };
+}
+
+// Build the badminton routine on the fly: today's focus + warm-up + cool-down.
+function badmintonRoutine(date) {
+  const today = badmintonFocusForDay(date);
+  const tomorrow = badmintonFocusForDay(addDays(date || new Date(), 1));
+  return [
+    { name: 'Warm up',          icon: '🤸', desc: '3 min · light cardio + dynamic stretches' },
+    { name: `Today: ${today.name}`, icon: today.icon, desc: today.focus, today: true },
+    { name: 'Cool down',        icon: '🌿', desc: '2 min · stretches + breathe' },
+    { name: `Tomorrow: ${tomorrow.name}`, icon: tomorrow.icon, desc: 'Sneak peek — pack your gear!', preview: true }
+  ];
+}
+
+const QUEST_ORDER = ['piano', 'reading', 'math', 'badminton'];
+
+/* ============= DATE HELPERS ============= */
+function todayKey(d) {
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function dateFromKey(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const FULL_DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function prettyDate(d) {
+  return `${FULL_DAY_LABELS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+function isWeekend(d) {
+  const dow = d.getDay();
+  return dow === 0 || dow === 6;
+}
+
+/* ============= LOG / COMPLETION HELPERS ============= */
+function ensureDay(key) {
+  if (!state.log[key]) state.log[key] = {};
+  return state.log[key];
+}
+function isQuestDone(key, type) {
+  return !!(state.log[key] && state.log[key][type]);
+}
+function isDayComplete(key) {
+  // A day is "complete" if both required quests are done AND at least one choice quest is done
+  const day = state.log[key] || {};
+  return !!day.piano && !!day.reading && (!!day.math || !!day.badminton);
+}
+function isDayPartial(key) {
+  const day = state.log[key] || {};
+  return Object.keys(day).length > 0 && !isDayComplete(key);
+}
+function dayChoicePicked(key) {
+  const day = state.log[key] || {};
+  if (day.math && day.badminton) return 'both';
+  if (day.math) return 'math';
+  if (day.badminton) return 'badminton';
+  return null;
+}
+
+/* ============= STREAK ============= */
+function computeStreak() {
+  // Count consecutive complete days going back from today.
+  // If today not yet complete, start from yesterday.
+  let date = new Date();
+  let count = 0;
+  let firstKey = todayKey(date);
+  if (!isDayComplete(firstKey)) {
+    date = addDays(date, -1);
+  }
+  while (true) {
+    const key = todayKey(date);
+    if (isDayComplete(key)) {
+      count++;
+      date = addDays(date, -1);
+    } else {
+      break;
+    }
+  }
+  return count;
+}
+
+function bestStreak() {
+  // Walk all logged days chronologically; track longest run of complete days.
+  const keys = Object.keys(state.log).sort();
+  if (!keys.length) return 0;
+  let best = 0, cur = 0;
+  let prev = null;
+  for (const k of keys) {
+    if (!isDayComplete(k)) {
+      cur = 0;
+      prev = null;
+      continue;
+    }
+    if (prev) {
+      const expected = todayKey(addDays(dateFromKey(prev), 1));
+      cur = (k === expected) ? cur + 1 : 1;
+    } else {
+      cur = 1;
+    }
+    if (cur > best) best = cur;
+    prev = k;
+  }
+  return best;
+}
+
+/* ============= XP / STATS ============= */
+function totalStats() {
+  let xp = 0;
+  let counts = { piano: 0, reading: 0, math: 0, badminton: 0 };
+  let daysComplete = 0;
+  let bonusDays = 0;
+  Object.entries(state.log).forEach(([key, day]) => {
+    QUEST_ORDER.forEach(t => {
+      if (day[t]) {
+        counts[t]++;
+        xp += QUESTS[t].xp;
+      }
+    });
+    if (isDayComplete(key)) {
+      daysComplete++;
+      // Day-completion bonus
+      xp += 30;
+      if (day.math && day.badminton) {
+        bonusDays++;
+        xp += 20; // bonus for doing both choices
+      }
+    }
+  });
+  return { xp, counts, daysComplete, bonusDays };
+}
+
+/* ============= STICKERS ============= */
+const STICKERS = [
+  // ----- STREAK (8) -----
+  { id: 'streak-1',   emoji: '🌱', name: 'First Day',     desc: 'Complete your first full day',  cat: 'Streak', check: s => s.streak >= 1 },
+  { id: 'streak-3',   emoji: '🔥', name: '3-Day Streak',  desc: 'Three days in a row',           cat: 'Streak', check: s => s.streak >= 3 },
+  { id: 'streak-7',   emoji: '⚡', name: 'Week Strong',   desc: 'Seven days in a row',           cat: 'Streak', check: s => s.streak >= 7 },
+  { id: 'streak-14',  emoji: '💎', name: 'Two Weeks!',    desc: 'Fourteen days in a row',        cat: 'Streak', check: s => s.streak >= 14 },
+  { id: 'streak-30',  emoji: '🌟', name: 'Month Master',  desc: 'Thirty days in a row',          cat: 'Streak', check: s => s.streak >= 30 },
+  { id: 'streak-60',  emoji: '🚀', name: 'Two Months!',   desc: 'Sixty days in a row',           cat: 'Streak', check: s => s.streak >= 60 },
+  { id: 'streak-100', emoji: '👑', name: 'Triple Digits', desc: 'One hundred days in a row',     cat: 'Streak', check: s => s.streak >= 100 },
+  { id: 'streak-365', emoji: '🏆', name: 'Year Legend',   desc: '365 days in a row — wow!',      cat: 'Streak', check: s => s.streak >= 365 },
+
+  // ----- PIANO (10) -----
+  { id: 'piano-1',   emoji: '🎹', name: 'First Notes',     desc: 'Practice piano once',           cat: 'Piano', check: s => s.counts.piano >= 1 },
+  { id: 'piano-5',   emoji: '🎵', name: 'Sounding Good',   desc: '5 piano sessions',              cat: 'Piano', check: s => s.counts.piano >= 5 },
+  { id: 'piano-10',  emoji: '🎶', name: 'Melody Maker',    desc: '10 piano sessions',             cat: 'Piano', check: s => s.counts.piano >= 10 },
+  { id: 'piano-25',  emoji: '🎼', name: 'Composer',        desc: '25 piano sessions',             cat: 'Piano', check: s => s.counts.piano >= 25 },
+  { id: 'piano-50',  emoji: '🎻', name: 'Maestro',         desc: '50 piano sessions',             cat: 'Piano', check: s => s.counts.piano >= 50 },
+  { id: 'piano-100', emoji: '🎤', name: 'Concert Ready',   desc: '100 piano sessions',            cat: 'Piano', check: s => s.counts.piano >= 100 },
+  { id: 'piano-200', emoji: '🎷', name: 'Virtuoso',        desc: '200 piano sessions',            cat: 'Piano', check: s => s.counts.piano >= 200 },
+  { id: 'piano-365', emoji: '🎸', name: 'Year of Piano',   desc: '365 piano sessions',            cat: 'Piano', check: s => s.counts.piano >= 365 },
+  { id: 'piano-7s',  emoji: '🪘', name: '7 in a Row',      desc: 'Piano 7 days in a row',         cat: 'Piano', check: s => s.streaks.piano >= 7 },
+  { id: 'piano-night', emoji: '🌃', name: 'Night Pianist', desc: 'Piano practice after 9pm',      cat: 'Piano', check: s => s.special.pianoNight },
+
+  // ----- READING (10) -----
+  { id: 'read-1',   emoji: '📖', name: 'First Read',     desc: 'Read once',                     cat: 'Reading', check: s => s.counts.reading >= 1 },
+  { id: 'read-5',   emoji: '📚', name: 'Page Turner',    desc: '5 reading nights',              cat: 'Reading', check: s => s.counts.reading >= 5 },
+  { id: 'read-10',  emoji: '📕', name: 'Book Buddy',     desc: '10 reading nights',             cat: 'Reading', check: s => s.counts.reading >= 10 },
+  { id: 'read-25',  emoji: '📗', name: 'Bookworm',       desc: '25 reading nights',             cat: 'Reading', check: s => s.counts.reading >= 25 },
+  { id: 'read-50',  emoji: '📘', name: 'Reader Royal',   desc: '50 reading nights',             cat: 'Reading', check: s => s.counts.reading >= 50 },
+  { id: 'read-100', emoji: '📙', name: 'Library Legend', desc: '100 reading nights',            cat: 'Reading', check: s => s.counts.reading >= 100 },
+  { id: 'read-200', emoji: '🎓', name: 'Scholar',        desc: '200 reading nights',            cat: 'Reading', check: s => s.counts.reading >= 200 },
+  { id: 'read-365', emoji: '🦉', name: 'Story Master',   desc: '365 reading nights — wow!',     cat: 'Reading', check: s => s.counts.reading >= 365 },
+  { id: 'read-7s',  emoji: '🛌', name: 'Bedtime Reader', desc: 'Read 7 nights in a row',        cat: 'Reading', check: s => s.streaks.reading >= 7 },
+  { id: 'read-late', emoji: '🌙', name: 'Late Reader',   desc: 'Read after 9pm',                cat: 'Reading', check: s => s.special.readLate },
+
+  // ----- MATH (8) -----
+  { id: 'math-1',   emoji: '🔢', name: 'First Math',    desc: 'Do math once',                  cat: 'Math', check: s => s.counts.math >= 1 },
+  { id: 'math-5',   emoji: '➕', name: 'Number Friend', desc: '5 math sessions',               cat: 'Math', check: s => s.counts.math >= 5 },
+  { id: 'math-10',  emoji: '✖️', name: 'Multiplier',    desc: '10 math sessions',              cat: 'Math', check: s => s.counts.math >= 10 },
+  { id: 'math-25',  emoji: '📐', name: 'Geometer',      desc: '25 math sessions',              cat: 'Math', check: s => s.counts.math >= 25 },
+  { id: 'math-50',  emoji: '🧮', name: 'Calculator',    desc: '50 math sessions',              cat: 'Math', check: s => s.counts.math >= 50 },
+  { id: 'math-100', emoji: '💯', name: 'Math Whiz',     desc: '100 math sessions',             cat: 'Math', check: s => s.counts.math >= 100 },
+  { id: 'math-200', emoji: '🚀', name: 'Math Rocket',   desc: '200 math sessions',             cat: 'Math', check: s => s.counts.math >= 200 },
+  { id: 'math-7s',  emoji: '🎯', name: 'Sharp Brain',   desc: 'Math 7 days in a row',          cat: 'Math', check: s => s.streaks.math >= 7 },
+
+  // ----- BADMINTON (8) -----
+  { id: 'bad-1',   emoji: '🏸', name: 'First Smash',    desc: 'Badminton once',                cat: 'Badminton', check: s => s.counts.badminton >= 1 },
+  { id: 'bad-5',   emoji: '💪', name: 'Strong Arm',     desc: '5 badminton sessions',          cat: 'Badminton', check: s => s.counts.badminton >= 5 },
+  { id: 'bad-10',  emoji: '🦘', name: 'Quick Feet',     desc: '10 badminton sessions',         cat: 'Badminton', check: s => s.counts.badminton >= 10 },
+  { id: 'bad-25',  emoji: '🏆', name: 'Court Star',     desc: '25 badminton sessions',         cat: 'Badminton', check: s => s.counts.badminton >= 25 },
+  { id: 'bad-50',  emoji: '⚡', name: 'Smash Master',   desc: '50 badminton sessions',         cat: 'Badminton', check: s => s.counts.badminton >= 50 },
+  { id: 'bad-100', emoji: '🦅', name: 'Eagle Eye',      desc: '100 badminton sessions',        cat: 'Badminton', check: s => s.counts.badminton >= 100 },
+  { id: 'bad-200', emoji: '🌟', name: 'Champion',       desc: '200 badminton sessions',        cat: 'Badminton', check: s => s.counts.badminton >= 200 },
+  { id: 'bad-7s',  emoji: '🎾', name: 'Athletic Week',  desc: 'Badminton 7 days in a row',     cat: 'Badminton', check: s => s.streaks.badminton >= 7 },
+
+  // ----- SPECIAL (12) -----
+  { id: 'sp-quad',     emoji: '🦋', name: 'Quadruple!',     desc: 'All 4 quests in one day',           cat: 'Special', check: s => s.bonusDays >= 1 },
+  { id: 'sp-quad5',    emoji: '🌈', name: 'Rainbow Five',   desc: 'All 4 quests, 5 different days',     cat: 'Special', check: s => s.bonusDays >= 5 },
+  { id: 'sp-quad10',   emoji: '🎪', name: 'Variety Pro',    desc: 'All 4 quests, 10 different days',    cat: 'Special', check: s => s.bonusDays >= 10 },
+  { id: 'sp-early',    emoji: '🌅', name: 'Early Bird',     desc: 'Complete a day before 8pm',          cat: 'Special', check: s => s.special.earlyBird },
+  { id: 'sp-night',    emoji: '🌙', name: 'Night Owl',      desc: 'Complete a day after 9pm',           cat: 'Special', check: s => s.special.nightOwl },
+  { id: 'sp-weekend',  emoji: '🥳', name: 'Weekend Warrior', desc: 'Complete both Saturday & Sunday',   cat: 'Special', check: s => s.special.weekend },
+  { id: 'sp-comeback', emoji: '🎊', name: 'Comeback Kid',   desc: 'Return after 3+ days off and finish a day', cat: 'Special', check: s => s.special.comeback },
+  { id: 'sp-50days',   emoji: '🎖️', name: '50 Days Done',   desc: 'Complete 50 days total',             cat: 'Special', check: s => s.daysComplete >= 50 },
+  { id: 'sp-100days',  emoji: '🏛️', name: 'Hall of Fame',   desc: 'Complete 100 days total',            cat: 'Special', check: s => s.daysComplete >= 100 },
+  { id: 'sp-200days',  emoji: '💫', name: 'Hall of Greats', desc: 'Complete 200 days total',            cat: 'Special', check: s => s.daysComplete >= 200 },
+  { id: 'sp-1000xp',   emoji: '⚡', name: '1,000 XP',       desc: 'Earn 1,000 XP total',                cat: 'Special', check: s => s.xp >= 1000 },
+  { id: 'sp-bff',      emoji: '🐼', name: "Pandi's BFF",    desc: 'Use the app 30 days',                cat: 'Special', check: s => s.uniqueDays >= 30 }
+];
+
+const STICKER_CATS = ['Streak', 'Piano', 'Reading', 'Math', 'Badminton', 'Special'];
+
+/* Per-quest "in a row" streaks (consecutive days where that quest was logged) */
+function questStreak(type) {
+  let date = new Date();
+  // Don't count today if not done yet
+  if (!isQuestDone(todayKey(date), type)) date = addDays(date, -1);
+  let count = 0;
+  while (true) {
+    const key = todayKey(date);
+    if (state.log[key] && state.log[key][type]) {
+      count++;
+      date = addDays(date, -1);
+    } else break;
+  }
+  return count;
+}
+
+function specialStats() {
+  // Compute special-event flags by scanning logged days.
+  let earlyBird = false, nightOwl = false, weekend = false, comeback = false, pianoNight = false, readLate = false;
+
+  // Earliest/latest completion times within the log
+  Object.entries(state.log).forEach(([key, day]) => {
+    QUEST_ORDER.forEach(t => {
+      if (!day[t]) return;
+      const ts = day[t];
+      const d = new Date(ts);
+      const hour = d.getHours();
+      if (t === 'piano' && hour >= 21) pianoNight = true;
+      if (t === 'reading' && hour >= 21) readLate = true;
+    });
+    if (isDayComplete(key)) {
+      // Latest quest completion timestamp = "day completed at"
+      const tsList = QUEST_ORDER.map(t => day[t]).filter(Boolean);
+      const latest = Math.max.apply(null, tsList);
+      const dt = new Date(latest);
+      const hour = dt.getHours();
+      if (hour < 20) earlyBird = true;
+      if (hour >= 21) nightOwl = true;
+    }
+  });
+
+  // Weekend pair: any consecutive Sat+Sun fully complete
+  const keys = Object.keys(state.log).sort();
+  for (const k of keys) {
+    const d = dateFromKey(k);
+    if (d.getDay() === 6 && isDayComplete(k)) {
+      const sunKey = todayKey(addDays(d, 1));
+      if (isDayComplete(sunKey)) { weekend = true; break; }
+    }
+  }
+
+  // Comeback: there's a complete day where the prior 3+ calendar days had no log activity
+  for (const k of keys) {
+    if (!isDayComplete(k)) continue;
+    let allEmpty = true;
+    for (let i = 1; i <= 3; i++) {
+      const prev = todayKey(addDays(dateFromKey(k), -i));
+      if (state.log[prev] && Object.keys(state.log[prev]).length > 0) { allEmpty = false; break; }
+    }
+    // Need actual prior history (not the user's first day ever)
+    const minKey = keys[0];
+    if (allEmpty && k !== minKey) { comeback = true; break; }
+  }
+
+  return { earlyBird, nightOwl, weekend, comeback, pianoNight, readLate };
+}
+
+function stickerStats() {
+  const t = totalStats();
+  const streak = computeStreak();
+  const streaks = {
+    piano: questStreak('piano'),
+    reading: questStreak('reading'),
+    math: questStreak('math'),
+    badminton: questStreak('badminton')
+  };
+  const uniqueDays = Object.keys(state.log).filter(k => Object.keys(state.log[k] || {}).length > 0).length;
+  const special = specialStats();
+  return { ...t, streak, streaks, uniqueDays, special };
+}
+
+function checkStickers() {
+  const stats = stickerStats();
+  const newly = [];
+  STICKERS.forEach(st => {
+    if (!state.stickers[st.id] && st.check(stats)) {
+      state.stickers[st.id] = Date.now();
+      newly.push(st);
+    }
+  });
+  if (newly.length) saveState();
+  return newly;
+}
+
+let unlockQueue = [];
+function showStickerUnlocks(items) {
+  const wasEmpty = unlockQueue.length === 0;
+  unlockQueue.push(...items);
+  if (wasEmpty) processUnlockQueue();
+}
+function processUnlockQueue() {
+  if (unlockQueue.length === 0) return;
+  const item = unlockQueue.shift();
+  const card = document.getElementById('unlockCard');
+  document.getElementById('ucEmoji').textContent = item.emoji;
+  document.getElementById('ucName').textContent = item.name;
+  document.getElementById('ucDesc').textContent = item.desc;
+  document.getElementById('ucTitle').textContent = `${item.cat} Sticker Unlocked!`;
+  card.classList.add('show');
+  Sound.playBadge();
+  vibrate([15, 60, 15, 60, 30]);
+  setTimeout(() => {
+    card.classList.remove('show');
+    setTimeout(processUnlockQueue, 400);
+  }, 3200);
+}
+
+/* ============= MASCOT ACCESSORIES (mascot bling, unlocks via stickers) ============= */
+const ACCESSORIES = [
+  { id: 'bow',      emoji: '🎀', name: 'Pink Bow',         req: 'streak-3',   pos: 'top'    },
+  { id: 'shades',   emoji: '🕶️', name: 'Cool Shades',      req: 'streak-7',   pos: 'left'   },
+  { id: 'crown',    emoji: '👑', name: 'Royal Crown',      req: 'streak-30',  pos: 'top'    },
+  { id: 'medal',    emoji: '🥇', name: 'Gold Medal',       req: 'sp-100days', pos: 'bottom' },
+  { id: 'headph',   emoji: '🎧', name: 'Music Headphones', req: 'piano-25',   pos: 'top'    },
+  { id: 'glasses',  emoji: '👓', name: 'Smart Glasses',    req: 'read-25',    pos: 'left'   },
+  { id: 'racket',   emoji: '🏸', name: 'Mini Racket',      req: 'bad-25',     pos: 'bottom' },
+  { id: 'pencil',   emoji: '✏️', name: 'Math Pencil',      req: 'math-25',    pos: 'bottom' },
+  { id: 'star',     emoji: '⭐', name: 'Star Badge',        req: 'sp-quad',   pos: 'bottom' },
+  { id: 'rainbow',  emoji: '🌈', name: 'Rainbow Aura',     req: 'sp-quad5',  pos: 'top'    }
+];
+
+/* ============= MASCOT MOOD + MESSAGES ============= */
+function pickMood() {
+  const hour = new Date().getHours();
+  if (hour >= 22 || hour < 6) return 'sleep';
+  if (Date.now() - (state.lastCompleteAt || 0) < 8000) return 'cheer';
+  const today = todayKey();
+  if (isDayComplete(today)) return 'proud';
+  return 'default';
+}
+
+const MOOD_EMOJI = {
+  default: '🐼',
+  cheer:   '🐼',
+  sleep:   '🐼',
+  proud:   '🐼',
+  pumped:  '🐼'
+};
+
+// Optional decoration (small emoji overlay) per mood, on top of the panda.
+const MOOD_DECOR = {
+  default: null,
+  cheer:   '✨',
+  sleep:   '💤',
+  proud:   '🏆',
+  pumped:  '🔥'
+};
+
+const MOOD_BG = {
+  default: 'linear-gradient(135deg, #ffffff 0%, #e1f4d3 100%)',
+  cheer:   'linear-gradient(135deg, #fff4cc 0%, #ffc800 100%)',
+  sleep:   'linear-gradient(135deg, #f0e1ff 0%, #ce82ff 100%)',
+  proud:   'linear-gradient(135deg, #fff4cc 0%, #ff9600 100%)'
+};
+
+function nameOrFriend() {
+  return state.name && state.name.trim() ? state.name.trim() : 'friend';
+}
+
+const MESSAGES = {
+  start: [
+    () => `Hi! I'm Pandi 🐼 Let's get started!`,
+    () => `New day, new quests! Ready, ${nameOrFriend()}?`,
+    () => `Tap a quest below to begin 🌟`
+  ],
+  morning: [
+    () => `Morning, ${nameOrFriend()}! Today's quests are ready 🐼`,
+    () => `<strong>Piano</strong> 🎹 and <strong>reading</strong> 📖 every day — you got this.`,
+    () => `Will it be <strong>math</strong> 🔢 or <strong>badminton</strong> 🏸 today?`
+  ],
+  afternoon: [
+    () => `Afternoon snack? Then quests! 🐼`,
+    () => `7pm is piano + adventure time. Ready?`,
+    () => `${nameOrFriend()}! How was school? Let's tackle today 💪`
+  ],
+  evening: [
+    () => `Quest time! Piano first, or reading? You pick.`,
+    () => `Don't forget reading before bed 📖`,
+    () => `Pandi believes in you 🐼`
+  ],
+  partial: [
+    (s) => `Nice start! <strong>${s.questsLeft}</strong> more to finish today.`,
+    () => `Halfway there! Keep the momentum 🐼`,
+    () => `One more push and the day is done 💪`
+  ],
+  cheer: [
+    () => `Boom! 🎉 Quest done!`,
+    () => `Amazing, ${nameOrFriend()}! Pandi is proud 🐼`,
+    () => `That's the stuff! Keep going ⚡`,
+    () => `One step closer to a sticker 🌟`
+  ],
+  proud: [
+    (s) => `🏆 Today is <strong>complete</strong>! Streak: <strong>${s.streak}</strong> 🔥`,
+    (s) => `All done! ${s.streak >= 3 ? 'Pandi is dancing 🐼💃' : 'Tomorrow we do it again!'}`,
+    () => `Day complete! Time to <strong>relax</strong> 🌿`
+  ],
+  sleep: [
+    () => `Zzz... oh hi! Time for bed 💤`,
+    () => `Pandi is sleepy. You should be too 🐼💤`,
+    () => `Tomorrow's quests are waiting!`
+  ],
+  midJourney: [
+    (s) => `<strong>${s.daysComplete}</strong> days complete! 🎊`,
+    (s) => `Streak: <strong>${s.streak}</strong> 🔥 Don't break it!`,
+    (s) => `<strong>${s.stickerCount}</strong> stickers in your album so far 🌟`
+  ],
+  missedYouShort: [
+    () => `There you are! 🐼 I missed you.`,
+    () => `Welcome back, ${nameOrFriend()}!`,
+    () => `Pandi was waiting all day for you.`
+  ],
+  missedYouMedium: [
+    () => `🥺 A few days! Glad you're back, ${nameOrFriend()}.`,
+    () => `Pandi did a little panda sigh of relief 🐼`,
+    () => `No worries — let's pick right back up.`
+  ],
+  missedYouLong: [
+    () => `🥺 ${nameOrFriend()}! Long time. Pandi missed you.`,
+    () => `The album is still here, the quests are still here. Let's go.`,
+    () => `One quest at a time. You got this 🐼`
+  ]
+};
+
+function pickMessage() {
+  const today = todayKey();
+  const day = state.log[today] || {};
+  const stats = stickerStats();
+  const stickerCount = Object.keys(state.stickers).length;
+  const hour = new Date().getHours();
+  const ctx = { ...stats, stickerCount, questsLeft: requiredLeft(today) };
+
+  let pool;
+  if (pendingWelcomeBackPool && mascotMsgIdx === 0) {
+    pool = pendingWelcomeBackPool;
+  } else if (hour >= 22 || hour < 6) {
+    pool = MESSAGES.sleep;
+  } else if (isDayComplete(today)) {
+    pool = MESSAGES.proud;
+  } else if (Date.now() - (state.lastCompleteAt || 0) < 8000) {
+    pool = MESSAGES.cheer;
+  } else if (Object.keys(day).length > 0) {
+    pool = MESSAGES.partial;
+  } else if (stats.daysComplete === 0 && Object.keys(state.log).length === 0) {
+    pool = MESSAGES.start;
+  } else if (mascotMsgIdx % 3 === 1) {
+    pool = MESSAGES.midJourney;
+  } else if (hour < 12) {
+    pool = MESSAGES.morning;
+  } else if (hour < 17) {
+    pool = MESSAGES.afternoon;
+  } else {
+    pool = MESSAGES.evening;
+  }
+
+  const item = pool[mascotMsgIdx % pool.length];
+  return typeof item === 'function' ? item(ctx) : item;
+}
+
+function requiredLeft(key) {
+  const d = state.log[key] || {};
+  let left = 0;
+  if (!d.piano) left++;
+  if (!d.reading) left++;
+  if (!d.math && !d.badminton) left++;
+  return left;
+}
+
+function maybeShowWelcomeBack() {
+  const last = state.lastSeen;
+  const now = Date.now();
+  state.lastSeen = now;
+  saveState();
+  if (!last) return;
+  const hoursAway = (now - last) / (1000 * 60 * 60);
+  if (hoursAway >= 16 && hoursAway < 48) pendingWelcomeBackPool = MESSAGES.missedYouShort;
+  else if (hoursAway >= 48 && hoursAway < 96) pendingWelcomeBackPool = MESSAGES.missedYouMedium;
+  else if (hoursAway >= 96) pendingWelcomeBackPool = MESSAGES.missedYouLong;
+}
+
+function renderMascot() {
+  const mood = pickMood();
+  const el = document.getElementById('mascotEl');
+  el.textContent = MOOD_EMOJI[mood] || '🐼';
+  el.style.background = MOOD_BG[mood] || MOOD_BG.default;
+
+  // Show up to 3 accessories on the mascot
+  const owned = ACCESSORIES.filter(a => state.stickers[a.req]);
+  const sorted = owned.sort((a, b) => (state.stickers[b.req] || 0) - (state.stickers[a.req] || 0));
+  const visible = sorted.slice(0, 3);
+  const usedPositions = new Set(visible.map(a => a.pos));
+
+  el.querySelectorAll('.accessory').forEach(n => n.remove());
+  visible.forEach(a => {
+    const span = document.createElement('span');
+    span.className = `accessory ${a.pos}`;
+    span.textContent = a.emoji;
+    el.appendChild(span);
+  });
+
+  // Mood decoration in any free position (top > bottom > left)
+  const decor = MOOD_DECOR[mood];
+  if (decor) {
+    const pos = ['top', 'bottom', 'left'].find(p => !usedPositions.has(p));
+    if (pos) {
+      const span = document.createElement('span');
+      span.className = `accessory ${pos}`;
+      span.textContent = decor;
+      el.appendChild(span);
+    }
+  }
+
+  document.getElementById('speech').innerHTML = pickMessage();
+}
+
+function onMascotTap() {
+  mascotMsgIdx++;
+  pendingWelcomeBackPool = null;
+  const el = document.getElementById('mascotEl');
+  el.classList.add('bounce');
+  setTimeout(() => el.classList.remove('bounce'), 500);
+  Sound.playPop();
+  renderMascot();
+}
+
+/* ============= SOUND + HAPTICS ============= */
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+let silentAudio = null;
+
+const Sound = {
+  ctx: null,
+  primed: false,
+
+  getCtx() {
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { this.ctx = null; }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return this.ctx;
+  },
+
+  prime() {
+    if (this.primed) return;
+    const ctx = this.getCtx();
+    if (!ctx) return;
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) {}
+    if (!silentAudio) {
+      silentAudio = new Audio(SILENT_WAV);
+      silentAudio.setAttribute('playsinline', '');
+      silentAudio.setAttribute('webkit-playsinline', '');
+      silentAudio.loop = false;
+      silentAudio.volume = 0.001;
+    }
+    silentAudio.play().catch(() => {});
+    this.primed = true;
+  },
+
+  tone(freq, dur, vol = 0.18, type = 'sine', delay = 0) {
+    if (!state.soundOn) return;
+    const ctx = this.getCtx();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.setValueAtTime(freq, t0);
+    osc.type = type;
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  },
+
+  playPop() { this.tone(700, 0.07, 0.14, 'triangle'); },
+  playComplete() {
+    this.tone(523, 0.13, 0.20, 'sine', 0.00);  // C5
+    this.tone(659, 0.13, 0.20, 'sine', 0.10);  // E5
+    this.tone(784, 0.22, 0.20, 'sine', 0.20);  // G5
+  },
+  playBadge() {
+    [523, 659, 784, 1046, 1319].forEach((n, i) =>
+      this.tone(n, 0.18, 0.16, 'triangle', i * 0.09));
+  },
+  playDayComplete() {
+    [523, 659, 784, 1046].forEach((n, i) =>
+      this.tone(n, 0.18, 0.20, 'sine', i * 0.10));
+    this.tone(1319, 0.4, 0.22, 'sine', 0.5);
+  }
+};
+
+function vibrate(pattern) {
+  if (!state.hapticOn) return;
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && Sound.ctx && Sound.ctx.state === 'suspended') Sound.ctx.resume().catch(() => {});
+});
+window.addEventListener('focus', () => {
+  if (Sound.ctx && Sound.ctx.state === 'suspended') Sound.ctx.resume().catch(() => {});
+});
+
+/* ============= TOP BAR ============= */
+function renderTopBar() {
+  const stats = totalStats();
+  const streak = computeStreak();
+  const stickerCount = Object.keys(state.stickers).length;
+  document.getElementById('streakNum').textContent = streak;
+  document.getElementById('xpNum').textContent = stats.xp;
+  document.getElementById('stickerNum').textContent = stickerCount;
+  document.getElementById('streakPill').classList.toggle('active', streak > 0);
+  document.getElementById('xpPill').classList.toggle('active', stats.xp > 0);
+  document.getElementById('stickersPill').classList.toggle('active', stickerCount > 0);
+}
+
+/* ============= TODAY HERO ============= */
+function renderTodayHero() {
+  const today = todayKey();
+  const isComplete = isDayComplete(today);
+  const isWk = isWeekend(new Date());
+  const wrap = document.getElementById('todayHero');
+
+  const dateStr = prettyDate(new Date());
+  const left = requiredLeft(today);
+
+  if (isComplete) {
+    wrap.innerHTML = `
+      <div class="today-hero complete">
+        <div class="day-icon">🏆</div>
+        <div class="info">
+          <div class="label">Today · all done!</div>
+          <div class="name">${dateStr}</div>
+          <div class="meta">Day complete! Streak +1 🔥</div>
+        </div>
+      </div>`;
+  } else {
+    const subtitle = isWk
+      ? "Weekend! Anytime works for piano + activity."
+      : "After dinner, around 7pm: piano + your pick.";
+    wrap.innerHTML = `
+      <div class="today-hero">
+        <div class="day-icon">${isWk ? '🌞' : '🏡'}</div>
+        <div class="info">
+          <div class="label">Today · ${left} quest${left === 1 ? '' : 's'} left</div>
+          <div class="name">${dateStr}</div>
+          <div class="meta">${subtitle}</div>
+        </div>
+      </div>`;
+  }
+}
+
+/* ============= QUEST CARDS ============= */
+function renderQuests() {
+  const today = todayKey();
+  const day = state.log[today] || {};
+  const wrap = document.getElementById('questsWrap');
+  const choice = dayChoicePicked(today);
+
+  const doneCount = QUEST_ORDER.filter(t => day[t]).length;
+  const totalCount = 3 + (choice === 'both' ? 1 : 0); // 3 quests minimum (2 required + 1 choice)
+
+  let html = `
+    <div class="quests-title">
+      <span>🎯 Today's quests</span>
+      <span class="progress">${doneCount} done</span>
+    </div>
+  `;
+
+  // Piano (required)
+  html += questCardHTML('piano', day.piano);
+
+  // Reading (required)
+  html += questCardHTML('reading', day.reading);
+
+  // Choice card
+  if (!choice) {
+    html += `
+      <div class="choice-wrap">
+        <div class="choice-header">
+          <div class="ch-title">✨ Choose your adventure</div>
+          <div class="ch-tag">Pick one</div>
+        </div>
+        <div class="choice-grid">
+          <div class="choice-card math" data-pick="math">
+            <div class="cc-icon">🔢</div>
+            <div class="cc-name">Math</div>
+            <div class="cc-meta">+${QUESTS.math.xp} XP</div>
+          </div>
+          <div class="choice-card badminton" data-pick="badminton">
+            <div class="cc-icon">🏸</div>
+            <div class="cc-name">Badminton</div>
+            <div class="cc-meta">${badmintonFocusForDay().icon} ${badmintonFocusForDay().name}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (choice === 'math' || choice === 'badminton') {
+    // Picked one — show as a regular quest, plus a "do the other for bonus" card if not yet done
+    const other = choice === 'math' ? 'badminton' : 'math';
+    html += questCardHTML(choice, day[choice]);
+    html += questCardHTML(other, day[other], { bonus: true });
+  } else if (choice === 'both') {
+    html += questCardHTML('math', day.math);
+    html += questCardHTML('badminton', day.badminton, { bonus: true });
+  }
+
+  wrap.innerHTML = html;
+
+  // Wire up taps
+  wrap.querySelectorAll('.quest').forEach(el => {
+    el.onclick = () => {
+      const type = el.dataset.type;
+      openQuest(type);
+    };
+  });
+  wrap.querySelectorAll('.choice-card').forEach(el => {
+    el.onclick = () => {
+      const pick = el.dataset.pick;
+      openQuest(pick);
+    };
+  });
+}
+
+function questCardHTML(type, doneTs, opts = {}) {
+  const q = QUESTS[type];
+  const isDone = !!doneTs;
+  let tagHTML;
+  if (opts.bonus) {
+    tagHTML = '<span class="q-tag bonus">Bonus 🦋</span>';
+  } else if (q.required) {
+    tagHTML = '<span class="q-tag">Daily</span>';
+  } else {
+    tagHTML = '<span class="q-tag choice">Choice</span>';
+  }
+
+  // For badminton, show today's rotation focus inline.
+  let extraLine = '';
+  if (type === 'badminton' && !isDone) {
+    const f = badmintonFocusForDay();
+    extraLine = `<div class="q-extra">${f.icon} Today: <strong>${f.name}</strong></div>`;
+  }
+
+  const subline = isDone
+    ? `Done! ${formatTime(doneTs)} · +${q.xp} XP earned`
+    : `${q.suggested} · +${q.xp} XP`;
+  return `
+    <div class="quest ${type} ${isDone ? 'done' : ''}" data-type="${type}">
+      <div class="q-icon">${q.icon}</div>
+      <div class="q-info">
+        <div class="q-row">
+          <div class="q-name">${q.name}</div>
+          ${tagHTML}
+        </div>
+        <div class="q-meta">${subline}</div>
+        ${extraLine}
+      </div>
+      <div class="q-check">✓</div>
+    </div>
+  `;
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12; if (h === 0) h = 12;
+  return `${h}:${m}${ampm}`;
+}
+
+/* ============= STREAK BANNER ============= */
+function renderStreakBanner() {
+  const wrap = document.getElementById('streakBanner');
+  const streak = computeStreak();
+  if (streak === 0) {
+    const yesterday = todayKey(addDays(new Date(), -1));
+    const wasYesterdayComplete = isDayComplete(yesterday);
+    if (wasYesterdayComplete) {
+      wrap.innerHTML = `
+        <div class="streak-banner">
+          <span class="sb-icon">🔥</span>
+          <div>
+            <div class="sb-num">1</div>
+            <div class="sb-lbl">Don't break the streak!</div>
+          </div>
+        </div>`;
+    } else {
+      wrap.innerHTML = `
+        <div class="streak-banner cold">
+          <span class="sb-icon">🌱</span>
+          <div>
+            <div class="sb-num">Start today!</div>
+            <div class="sb-lbl">First streak begins now</div>
+          </div>
+        </div>`;
+    }
+  } else {
+    wrap.innerHTML = `
+      <div class="streak-banner">
+        <span class="sb-icon">🔥</span>
+        <div>
+          <div class="sb-num">${streak} day${streak === 1 ? '' : 's'}</div>
+          <div class="sb-lbl">${streakMessage(streak)}</div>
+        </div>
+      </div>`;
+  }
+}
+
+function streakMessage(s) {
+  if (s >= 30) return 'Pandi is in awe 🐼✨';
+  if (s >= 14) return 'You are unstoppable!';
+  if (s >= 7) return 'A whole week. Keep going!';
+  if (s >= 3) return 'Three+ days strong 💪';
+  return 'Great start — keep it up!';
+}
+
+/* ============= WEEK STRIP ============= */
+function renderWeekStrip() {
+  const wrap = document.getElementById('weekStrip');
+  wrap.innerHTML = '';
+  const today = new Date();
+  const dow = today.getDay();
+  // Show Mon..Sun (start week on Mon)
+  const monday = addDays(today, dow === 0 ? -6 : 1 - dow);
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(monday, i);
+    const key = todayKey(d);
+    const isToday = key === todayKey();
+    const isFuture = d > today && !isToday;
+    const complete = isDayComplete(key);
+    const partial = isDayPartial(key);
+
+    const cls = ['day-cell',
+                 isToday ? 'today' : '',
+                 complete ? 'complete' : '',
+                 (!complete && partial) ? 'partial' : '',
+                 isFuture ? 'future' : ''].filter(Boolean).join(' ');
+
+    const cellLabel = DAY_LABELS[d.getDay()];
+    const cellNum = d.getDate();
+    const inner = complete ? '✓' : (partial ? '·' : (isToday ? '•' : ''));
+
+    wrap.insertAdjacentHTML('beforeend', `
+      <div class="${cls}" data-key="${key}">
+        <div class="dc-lbl">${cellLabel}</div>
+        <div class="dc-circle">${inner}</div>
+        <div class="dc-num">${cellNum}</div>
+      </div>`);
+  }
+}
+
+/* ============= QUEST MODAL ============= */
+function openQuest(type) {
+  const today = todayKey();
+  activeQuest = { date: today, type };
+  const q = QUESTS[type];
+  const isDone = isQuestDone(today, type);
+
+  document.getElementById('modalHeader').className = `modal-header ${type}`;
+  document.getElementById('modalIcon').textContent = q.icon;
+  document.getElementById('modalDay').textContent = q.required ? 'DAILY QUEST' : 'CHOICE QUEST';
+  document.getElementById('modalTitle').textContent = q.name;
+  document.getElementById('modalSub').textContent = `${q.suggested} · +${q.xp} XP`;
+  document.getElementById('modalDesc').textContent = q.desc;
+
+  const routine = type === 'badminton' ? badmintonRoutine() : q.routine;
+  const details = document.getElementById('modalDetails');
+  details.innerHTML = `
+    <div class="modal-section">
+      <h4>${q.icon} How to do it</h4>
+      ${routine.map(r => `
+        <div class="practice-suggest ${r.today ? 'today-focus' : ''} ${r.preview ? 'preview' : ''}">
+          <div class="ps-icon">${r.icon}</div>
+          <div>
+            <div class="ps-name">${r.name}</div>
+            <div class="ps-desc">${r.desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="modal-section">
+      <h4>💡 Tips from Pandi</h4>
+      <ul class="tip-list">${q.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+    </div>
+  `;
+
+  const action = document.getElementById('modalAction');
+  const undo = document.getElementById('modalUndo');
+  if (isDone) {
+    action.textContent = `Completed! +${q.xp} XP`;
+    action.className = 'btn-3d gold';
+    action.disabled = true;
+    undo.style.display = 'block';
+  } else {
+    action.textContent = `Mark complete · +${q.xp} XP`;
+    action.className = 'btn-3d';
+    action.disabled = false;
+    undo.style.display = 'none';
+  }
+
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  activeQuest = null;
+}
+
+function completeQuest() {
+  if (!activeQuest) return;
+  const { date, type } = activeQuest;
+  const day = ensureDay(date);
+  if (day[type]) return;
+  day[type] = Date.now();
+  state.lastCompleteAt = Date.now();
+  saveState();
+  const wasDayComplete = isDayComplete(date);
+  Sound.playComplete();
+  vibrate([15, 50, 15]);
+  closeModal();
+  const q = QUESTS[type];
+  showToast(`+${q.xp} XP · ${q.name} done! 🎉`, 'gold');
+  if (wasDayComplete && Object.keys(day).filter(t => QUEST_ORDER.includes(t) && day[t]).length === 3) {
+    // Just completed the day with the third quest (or 4th) — celebrate big
+    setTimeout(() => {
+      Sound.playDayComplete();
+      celebrateBig();
+      showToast('🏆 Day complete!', 'gold');
+    }, 600);
+  }
+  const newly = checkStickers();
+  rerender();
+  if (newly.length) setTimeout(() => showStickerUnlocks(newly), wasDayComplete ? 2000 : 800);
+}
+
+function uncompleteQuest() {
+  if (!activeQuest) return;
+  const { date, type } = activeQuest;
+  if (state.log[date]) {
+    delete state.log[date][type];
+    if (Object.keys(state.log[date]).length === 0) delete state.log[date];
+    saveState();
+  }
+  closeModal();
+  showToast('Marked not done', 'red');
+  rerender();
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
+});
+
+/* ============= STICKER MODAL ============= */
+function openSticker(stickerId) {
+  const s = STICKERS.find(x => x.id === stickerId);
+  if (!s) return;
+  const isUnlocked = !!state.stickers[s.id];
+  document.getElementById('stickerIcon').textContent = isUnlocked ? s.emoji : '🔒';
+  document.getElementById('stickerStatus').textContent = isUnlocked ? '✓ UNLOCKED' : '🔒 LOCKED';
+  document.getElementById('stickerName').textContent = s.name;
+  document.getElementById('stickerDesc').textContent = s.desc;
+  document.getElementById('stickerModal').classList.add('show');
+  Sound.playPop();
+}
+function closeStickerModal() {
+  document.getElementById('stickerModal').classList.remove('show');
+}
+document.getElementById('stickerModal').addEventListener('click', e => {
+  if (e.target.id === 'stickerModal') closeStickerModal();
+});
+
+/* ============= STICKER ALBUM ============= */
+function renderAlbum() {
+  const wrap = document.getElementById('albumWrap');
+  wrap.innerHTML = '';
+  const total = STICKERS.length;
+  const unlocked = Object.keys(state.stickers).length;
+  document.getElementById('stickerSub').innerHTML =
+    `<strong style="color:var(--text);">${unlocked}/${total}</strong> stickers collected — keep going!`;
+
+  STICKER_CATS.forEach(cat => {
+    const inCat = STICKERS.filter(s => s.cat === cat);
+    const got = inCat.filter(s => state.stickers[s.id]).length;
+    const html = `
+      <div class="album-cat">
+        <h3>${catEmoji(cat)} ${cat} <span class="count">${got}/${inCat.length}</span></h3>
+        <div class="album-grid">
+          ${inCat.map(s => `
+            <div class="sticker ${state.stickers[s.id] ? 'unlocked' : ''}" data-id="${s.id}">
+              <div class="s-emoji">${s.emoji}</div>
+              <div class="s-name">${s.name}</div>
+              ${state.stickers[s.id] ? '<div class="s-shimmer"></div>' : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    wrap.insertAdjacentHTML('beforeend', html);
+  });
+
+  wrap.querySelectorAll('.sticker').forEach(el => {
+    el.onclick = () => openSticker(el.dataset.id);
+  });
+}
+
+function catEmoji(cat) {
+  return { Streak: '🔥', Piano: '🎹', Reading: '📖', Math: '🔢', Badminton: '🏸', Special: '✨' }[cat] || '🌟';
+}
+
+/* ============= STATS ============= */
+function renderStats() {
+  const stats = totalStats();
+  const streak = computeStreak();
+  const stickerCount = Object.keys(state.stickers).length;
+  document.getElementById('statsStreak').innerHTML = `${streak}<span class="unit">${streak === 1 ? 'day' : 'days'}</span>`;
+  document.getElementById('statsXP').textContent = stats.xp;
+  document.getElementById('statsDays').textContent = stats.daysComplete;
+  document.getElementById('statsStickers').textContent = `${stickerCount}/${STICKERS.length}`;
+
+  // Weekly bars (last 8 calendar weeks, including current)
+  const bars = document.getElementById('weeklyBars');
+  bars.innerHTML = '';
+  const today = new Date();
+  // Find this week's Monday
+  const dow = today.getDay();
+  const thisMonday = addDays(today, dow === 0 ? -6 : 1 - dow);
+  const weekData = [];
+  for (let w = 7; w >= 0; w--) {
+    const monday = addDays(thisMonday, -7 * w);
+    let complete = 0;
+    for (let i = 0; i < 7; i++) {
+      const k = todayKey(addDays(monday, i));
+      if (isDayComplete(k)) complete++;
+    }
+    weekData.push({ monday, complete, isCurrent: w === 0 });
+  }
+  const maxComplete = Math.max(7, ...weekData.map(w => w.complete));
+  weekData.forEach(w => {
+    const h = (w.complete / maxComplete) * 110;
+    const cls = w.complete >= 7 ? 'done' : w.isCurrent ? 'current' : '';
+    bars.insertAdjacentHTML('beforeend', `
+      <div class="bar-col">
+        <div class="bar ${cls}" style="height:${Math.max(h, 4)}px"></div>
+        <div class="bar-num">${w.complete}</div>
+      </div>`);
+  });
+
+  // Activity breakdown
+  const list = document.getElementById('activityList');
+  list.innerHTML = '';
+  const max = Math.max(1, ...Object.values(stats.counts));
+  QUEST_ORDER.forEach(t => {
+    const q = QUESTS[t];
+    const count = stats.counts[t];
+    const pct = (count / max) * 100;
+    list.insertAdjacentHTML('beforeend', `
+      <div class="activity-row">
+        <div class="ar-icon ${t}">${q.icon}</div>
+        <div class="ar-name">${q.name}</div>
+        <div class="ar-bar"><div class="ar-bar-fill" style="width:${pct}%"></div></div>
+        <div class="ar-count">${count}</div>
+      </div>`);
+  });
+
+  // Personal bests
+  const best = bestStreak();
+  const ss = stickerStats();
+  document.getElementById('bestsList').innerHTML = `
+    <div class="activity-row">
+      <div class="ar-icon" style="background:var(--orange);">🔥</div>
+      <div class="ar-name">Longest streak</div>
+      <div class="ar-count">${best} days</div>
+    </div>
+    <div class="activity-row">
+      <div class="ar-icon" style="background:var(--purple);">🎹</div>
+      <div class="ar-name">Piano in a row</div>
+      <div class="ar-count">${ss.streaks.piano} days</div>
+    </div>
+    <div class="activity-row">
+      <div class="ar-icon" style="background:var(--blue);">📖</div>
+      <div class="ar-name">Reading in a row</div>
+      <div class="ar-count">${ss.streaks.reading} days</div>
+    </div>
+    <div class="activity-row">
+      <div class="ar-icon" style="background:var(--yellow);">🦋</div>
+      <div class="ar-name">All-4 days</div>
+      <div class="ar-count">${stats.bonusDays}</div>
+    </div>
+  `;
+}
+
+/* ============= ME ============= */
+function renderMe() {
+  const nameInput = document.getElementById('nameInput');
+  if (document.activeElement !== nameInput) nameInput.value = state.name || '';
+  document.getElementById('meTitle').textContent = state.name && state.name.trim()
+    ? `Hi, ${state.name.trim()}! 🐼`
+    : 'Hi! 🐼';
+  document.getElementById('soundToggle').classList.toggle('on', state.soundOn);
+  document.getElementById('hapticToggle').classList.toggle('on', state.hapticOn);
+}
+
+function onNameChange() {
+  state.name = document.getElementById('nameInput').value;
+  saveState();
+  document.getElementById('meTitle').textContent = state.name && state.name.trim()
+    ? `Hi, ${state.name.trim()}! 🐼`
+    : 'Hi! 🐼';
+}
+
+function toggleSound() {
+  state.soundOn = !state.soundOn;
+  saveState();
+  if (state.soundOn) Sound.playPop();
+  renderMe();
+}
+function toggleHaptic() {
+  state.hapticOn = !state.hapticOn;
+  saveState();
+  if (state.hapticOn) vibrate(30);
+  renderMe();
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress? This will clear your streak, XP, and stickers. Cannot be undone!')) return;
+  const keepName = state.name;
+  const keepSound = state.soundOn;
+  const keepHaptic = state.hapticOn;
+  state = JSON.parse(JSON.stringify(defaultState));
+  state.name = keepName;
+  state.soundOn = keepSound;
+  state.hapticOn = keepHaptic;
+  saveState();
+  rerender();
+  showToast('Progress reset', 'red');
+}
+
+/* ============= TOAST + CONFETTI ============= */
+function showToast(msg, variant = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${variant}`;
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function celebrateBig() {
+  const c = document.getElementById('confetti');
+  c.innerHTML = '';
+  c.classList.add('show');
+  const emojis = ['🎉','🌟','🐼','💚','⚡','🌸','🔥','✨','🎀','🏆'];
+  for (let i = 0; i < 36; i++) {
+    const span = document.createElement('span');
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    span.style.left = Math.random() * 100 + 'vw';
+    span.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    span.style.animationDelay = Math.random() * 0.3 + 's';
+    c.appendChild(span);
+  }
+  setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3200);
+}
+
+/* ============= GEAR STRIP ============= */
+function renderGearStrip() {
+  const strip = document.getElementById('gearStrip');
+  const owned = ACCESSORIES.filter(a => state.stickers[a.req]);
+  if (!owned.length) { strip.innerHTML = ''; return; }
+  // Show all owned accessory dots beneath the mascot
+  strip.innerHTML = owned
+    .map(a => `<div class="gear-stick" title="${a.name}">${a.emoji}</div>`)
+    .join('');
+}
+
+/* ============= TABS ============= */
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
+    if (btn.dataset.tab === 'stickers') renderAlbum();
+    if (btn.dataset.tab === 'stats') renderStats();
+    if (btn.dataset.tab === 'me') renderMe();
+    Sound.playPop();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+/* ============= MAIN RENDER ============= */
+function rerender() {
+  renderTopBar();
+  renderTodayHero();
+  renderQuests();
+  renderStreakBanner();
+  renderWeekStrip();
+  renderMascot();
+  renderGearStrip();
+  if (document.getElementById('stickers-panel').classList.contains('active')) renderAlbum();
+  if (document.getElementById('stats-panel').classList.contains('active')) renderStats();
+  if (document.getElementById('me-panel').classList.contains('active')) renderMe();
+}
+
+// Unlock iOS audio on first user gesture
+['touchstart','touchend','click','keydown'].forEach(evt => {
+  document.addEventListener(evt, function init() {
+    Sound.prime();
+    ['touchstart','touchend','click','keydown'].forEach(e =>
+      document.removeEventListener(e, init));
+  }, { once: true, passive: true });
+});
+
+// Detect "welcome back" before first render
+maybeShowWelcomeBack();
+
+// Initial sticker check (in case user reset state etc.)
+checkStickers();
+
+rerender();
+
+// Re-render every minute so the date / mood updates as time passes
+setInterval(() => {
+  // Only re-render today panel pieces that depend on time
+  renderTodayHero();
+  renderMascot();
+}, 60 * 1000);
+</script>
+</body>
+</html>
