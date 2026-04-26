@@ -1,0 +1,32 @@
+{
+  "name": "Pandi — Daily quests with your panda",
+  "short_name": "Pandi",
+  "description": "A daily-quest companion for kids. Piano, reading, math, and badminton — gamified with streaks, a sticker album, and Daddy Bucks.",
+  "start_url": "./Pandi.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffefa",
+  "theme_color": "#6dbf47",
+  "categories": ["education", "kids", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "pandi-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pandi-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pandi-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
