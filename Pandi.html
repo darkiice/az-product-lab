@@ -2033,9 +2033,6 @@
   <div class="stat-pill bucks" id="bucksPill">
     <span class="icon">💰</span><span class="num" id="bucksNum">0</span>
   </div>
-  <div class="stat-pill stickers" id="stickersPill">
-    <span class="icon">🌟</span><span class="num" id="stickerNum">0</span>
-  </div>
 </header>
 
 <!-- TODAY PANEL -->
@@ -2047,7 +2044,6 @@
     <div class="mascot-section">
       <div class="mascot-col">
         <div class="mascot" id="mascotEl" onclick="onMascotTap()">🐼</div>
-        <div class="gear-strip" id="gearStrip"></div>
       </div>
       <div class="speech" id="speech">Hi! I'm Pandi 🐼 Let's do today!</div>
     </div>
@@ -2063,13 +2059,6 @@
       <div class="week-strip" id="weekStrip"></div>
     </div>
   </main>
-</section>
-
-<!-- STICKERS PANEL -->
-<section class="panel" id="stickers-panel">
-  <h2>🌟 Sticker Album</h2>
-  <p class="sub" id="stickerSub">Collect them all by practicing every day!</p>
-  <div id="albumWrap"></div>
 </section>
 
 <!-- BUCKS PANEL -->
@@ -2315,9 +2304,6 @@
   <button class="nav-btn active" data-tab="today">
     <span class="ico">🏡</span><span class="lbl">Today</span>
   </button>
-  <button class="nav-btn" data-tab="stickers">
-    <span class="ico">🌟</span><span class="lbl">Stickers</span>
-  </button>
   <button class="nav-btn" data-tab="bucks">
     <span class="ico">💰</span><span class="lbl">Bucks</span>
   </button>
@@ -2346,22 +2332,6 @@
     <div class="modal-footer">
       <button class="btn-3d" id="modalAction" onclick="completeQuest()">Mark complete</button>
       <button class="btn-secondary" id="modalUndo" onclick="uncompleteQuest()" style="display:none;">Undo complete</button>
-    </div>
-  </div>
-</div>
-
-<!-- STICKER MODAL -->
-<div class="modal-backdrop" id="stickerModal">
-  <div class="modal">
-    <div class="modal-header sticker">
-      <button class="close-x" onclick="closeStickerModal()">✕</button>
-      <div class="big-icon" id="stickerIcon">🌟</div>
-      <div class="pill" id="stickerStatus">UNLOCKED</div>
-      <h3 id="stickerName">Sticker</h3>
-      <div class="sub" id="stickerDesc">—</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-3d gold" onclick="closeStickerModal()">Awesome!</button>
     </div>
   </div>
 </div>
@@ -2510,15 +2480,7 @@
   </div>
 </div>
 
-<!-- UNLOCK CARD + TOAST + CONFETTI -->
-<div class="unlock-card" id="unlockCard">
-  <div class="be" id="ucEmoji">🌟</div>
-  <div class="bi">
-    <div class="bt" id="ucTitle">Sticker Unlocked!</div>
-    <div class="bn" id="ucName">Sticker Name</div>
-    <div class="bd" id="ucDesc">Description</div>
-  </div>
-</div>
+<!-- TOAST + CONFETTI -->
 <div class="toast" id="toast"></div>
 <div class="confetti" id="confetti"></div>
 
@@ -2559,7 +2521,8 @@ const defaultState = {
 
   // === CLOUD SYNC (JSONBlob — anonymous, CORS-enabled key-value) ===
   cloud: {
-    syncId: null,             // blob UUID — acts as the sync code
+    syncId: null,             // blob UUID — used internally for fetches
+    shortCode: null,          // short user-facing code (6 chars) — registered in directory blob
     lastPushAt: 0,
     lastPullAt: 0,
     lastChangeAt: 0           // bumped on every saveState() — drives last-writer-wins
@@ -2718,8 +2681,9 @@ const CLOUD_API = 'https://api.jsonblob.com';
 // One-time bootstrap: created 2026-04-26 with body { _pandi_directory: true, codes: {} }.
 const DIRECTORY_BLOB_ID = '019dcbb9-7eea-7995-95b5-79b4bb9d2575';
 
-// Unambiguous alphabet — no 0/O, 1/I/L. 31 chars. 6 chars => ~887M combos.
-const SHORT_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+// Pure-digit alphabet so the code is easy to type on phone numeric keypads.
+// 10 digits ^ 6 positions => 1,000,000 combos — plenty for personal/family use.
+const SHORT_CODE_ALPHABET = '0123456789';
 const SHORT_CODE_LEN = 6;
 
 function generateShortCode() {
@@ -2728,6 +2692,75 @@ function generateShortCode() {
     s += SHORT_CODE_ALPHABET[Math.floor(Math.random() * SHORT_CODE_ALPHABET.length)];
   }
   return s;
+}
+
+// Fire-and-forget GET on the directory to keep it from expiring (JSONBlob TTL).
+function directoryKeepAlive() {
+  fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' }).catch(() => {});
+}
+
+async function directoryFetch() {
+  try {
+    const res = await fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' });
+    if (!res.ok) {
+      console.warn('[pandi] Directory fetch HTTP', res.status);
+      return null;
+    }
+    const data = await res.json();
+    if (!data || data._pandi_directory !== true) {
+      console.warn('[pandi] Directory blob has unexpected shape:', data);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.warn('[pandi] Directory fetch failed:', e);
+    return null;
+  }
+}
+
+async function directoryWrite(dir) {
+  const res = await fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      _pandi_directory: true,
+      version: 1,
+      codes: dir.codes || {},
+      updatedAt: Date.now()
+    })
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Directory write failed: HTTP ${res.status} ${body.slice(0, 120)}`);
+  }
+}
+
+// Look up a short code (case-insensitive) and return the syncId, or null.
+async function directoryLookup(rawCode) {
+  const code = String(rawCode || '').trim().toUpperCase();
+  if (!code) return null;
+  const dir = await directoryFetch();
+  if (!dir || !dir.codes) return null;
+  return dir.codes[code] || null;
+}
+
+// Register `syncId` under a fresh short code. If syncId is already registered,
+// reuse the existing code so users don't accidentally get duplicates. Returns
+// the short code, or throws on failure.
+async function directoryRegister(syncId) {
+  const dir = (await directoryFetch()) || { codes: {} };
+  const codes = dir.codes || {};
+  // Reuse existing mapping if already present.
+  for (const [code, id] of Object.entries(codes)) {
+    if (id === syncId) return code;
+  }
+  // Generate unique code (very unlikely to collide given alphabet size).
+  let code = generateShortCode();
+  for (let i = 0; i < 50 && codes[code]; i++) code = generateShortCode();
+  if (codes[code]) throw new Error('Could not allocate a unique short code');
+  codes[code] = syncId;
+  await directoryWrite({ codes });
+  return code;
 }
 
 let _cloudPushTimer = null;
@@ -2766,6 +2799,16 @@ async function cloudCreate() {
   if (!id) throw new Error('No sync ID returned');
   state.cloud.syncId = id;
   state.cloud.lastPushAt = Date.now();
+
+  // Register a short user-facing code in the shared directory blob.
+  // Best-effort: if registration fails, the user can still sync with the full
+  // UUID via the existing fallback path.
+  try {
+    state.cloud.shortCode = await directoryRegister(id);
+  } catch (e) {
+    console.warn('Short code registration failed; full UUID still works:', e);
+  }
+
   // Persist directly — we just uploaded, no need to schedule another push.
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   return id;
@@ -2856,11 +2899,29 @@ async function setupCloudSync() {
 async function restoreFromCloud() {
   const ok = await requireParent();
   if (!ok) return;
-  const code = (prompt('Paste the sync code from your other device:') || '').trim();
+  const code = (prompt('Enter the sync code from your other device:') || '').trim();
   if (!code) return;
-  // Allow either full UUID or anything containing a UUID
-  const m = code.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-  const syncId = m ? m[0] : code;
+  let syncId = null;
+  // First try to interpret as a short code (6 digits). Strip any spaces or dashes
+  // the user might have typed for readability (e.g. "428 193" or "428-193").
+  const cleaned = code.replace(/[\s-]/g, '');
+  const shortMatch = cleaned.match(new RegExp(`^[${SHORT_CODE_ALPHABET}]{${SHORT_CODE_LEN}}$`));
+  if (shortMatch) {
+    try {
+      syncId = await directoryLookup(shortMatch[0]);
+    } catch (e) { /* fall through to UUID path */ }
+  }
+  if (!syncId) {
+    // Fallback: full UUID anywhere in the input.
+    const uuidMatch = code.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    if (uuidMatch) syncId = uuidMatch[0];
+  }
+  if (!syncId) {
+    showToast('❌ Sync code not found', 'red');
+    return;
+  }
+  // Remember the short code if the user entered one — we'll show it on this device.
+  const enteredShortCode = shortMatch ? shortMatch[0] : null;
   try {
     showToast('☁️ Pulling progress…', '');
     const { pandiState: cloudState, updatedAt: cloudUpdatedAt } = await cloudPull(syncId);
@@ -2874,21 +2935,52 @@ async function restoreFromCloud() {
       ...defaultState,
       ...cloudState,
       parent: { ...defaultState.parent, ...(cloudState.parent || {}), pinHash: localPin || (cloudState.parent && cloudState.parent.pinHash) || null, unlockedUntil: Date.now() + PARENT_UNLOCK_MS },
-      cloud:  { ...defaultState.cloud, syncId, lastPullAt: Date.now(), lastChangeAt: restoredChangeAt }
+      cloud:  { ...defaultState.cloud, syncId, shortCode: enteredShortCode, lastPullAt: Date.now(), lastChangeAt: restoredChangeAt }
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     showToast('✓ Progress restored from cloud', 'gold');
     Sound.playDayComplete();
     rerender();
+    // If the user pasted a UUID instead of a short code, opportunistically
+    // register/find a short code so subsequent restores are easier.
+    if (!enteredShortCode) {
+      ensureShortCodeRegistered();
+    }
   } catch (e) {
     showToast('❌ ' + (e.message || 'Restore failed'), 'red');
     console.error(e);
   }
 }
 
+// Track in-flight short-code registration so the UI can show clear status.
+let _shortCodeRegState = 'idle'; // 'idle' | 'pending' | 'failed'
+
+// Background: ensure the current syncId has a short code in the directory.
+// Called on load (migration), after a UUID-based restore, or via manual retry.
+async function ensureShortCodeRegistered() {
+  if (!state.cloud || !state.cloud.syncId || state.cloud.shortCode) return;
+  if (_shortCodeRegState === 'pending') return;
+  _shortCodeRegState = 'pending';
+  renderMeIfActive();
+  console.log('[pandi] Registering short code for syncId', state.cloud.syncId);
+  try {
+    const code = await directoryRegister(state.cloud.syncId);
+    state.cloud.shortCode = code;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    _shortCodeRegState = 'idle';
+    console.log('[pandi] Short code registered:', code);
+    renderMeIfActive();
+  } catch (e) {
+    _shortCodeRegState = 'failed';
+    console.warn('[pandi] ensureShortCodeRegistered failed:', e);
+    renderMeIfActive();
+  }
+}
+
 function disconnectCloudSync() {
   if (!confirm('Disconnect cloud sync?\n\nProgress on this device will stay; the cloud copy stays where it is. You can reconnect with the same sync code later.')) return;
   state.cloud.syncId = null;
+  state.cloud.shortCode = null;
   state.cloud.lastPushAt = 0;
   saveState();
   showToast('Cloud sync disconnected', '');
@@ -2897,11 +2989,13 @@ function disconnectCloudSync() {
 
 async function copySyncCode() {
   if (!state.cloud.syncId) return;
+  // Prefer the short code; fall back to the UUID if no short code is available.
+  const codeToCopy = state.cloud.shortCode || state.cloud.syncId;
   try {
-    await navigator.clipboard.writeText(state.cloud.syncId);
+    await navigator.clipboard.writeText(codeToCopy);
     showToast('Sync code copied!', 'gold');
   } catch (e) {
-    prompt('Copy this code:', state.cloud.syncId);
+    prompt('Copy this code:', codeToCopy);
   }
 }
 
@@ -3365,89 +3459,6 @@ function totalStats() {
   return { xp, counts, daysComplete, bonusDays };
 }
 
-/* ============= STICKERS ============= */
-const STICKERS = [
-  // ----- STREAK (8) -----
-  { id: 'streak-1',   emoji: '🌱', name: 'First Day',     desc: 'Complete your first full day',  cat: 'Streak', check: s => s.streak >= 1 },
-  { id: 'streak-3',   emoji: '🔥', name: '3-Day Streak',  desc: 'Three days in a row',           cat: 'Streak', check: s => s.streak >= 3 },
-  { id: 'streak-7',   emoji: '⚡', name: 'Week Strong',   desc: 'Seven days in a row',           cat: 'Streak', check: s => s.streak >= 7 },
-  { id: 'streak-14',  emoji: '💎', name: 'Two Weeks!',    desc: 'Fourteen days in a row',        cat: 'Streak', check: s => s.streak >= 14 },
-  { id: 'streak-30',  emoji: '🌟', name: 'Month Master',  desc: 'Thirty days in a row',          cat: 'Streak', check: s => s.streak >= 30 },
-  { id: 'streak-60',  emoji: '🚀', name: 'Two Months!',   desc: 'Sixty days in a row',           cat: 'Streak', check: s => s.streak >= 60 },
-  { id: 'streak-100', emoji: '👑', name: 'Triple Digits', desc: 'One hundred days in a row',     cat: 'Streak', check: s => s.streak >= 100 },
-  { id: 'streak-365', emoji: '🏆', name: 'Year Legend',   desc: '365 days in a row — wow!',      cat: 'Streak', check: s => s.streak >= 365 },
-
-  // ----- PIANO (10) -----
-  { id: 'piano-1',   emoji: '🎹', name: 'First Notes',     desc: 'Practice piano once',           cat: 'Piano', check: s => s.counts.piano >= 1 },
-  { id: 'piano-5',   emoji: '🎵', name: 'Sounding Good',   desc: '5 piano sessions',              cat: 'Piano', check: s => s.counts.piano >= 5 },
-  { id: 'piano-10',  emoji: '🎶', name: 'Melody Maker',    desc: '10 piano sessions',             cat: 'Piano', check: s => s.counts.piano >= 10 },
-  { id: 'piano-25',  emoji: '🎼', name: 'Composer',        desc: '25 piano sessions',             cat: 'Piano', check: s => s.counts.piano >= 25 },
-  { id: 'piano-50',  emoji: '🎻', name: 'Maestro',         desc: '50 piano sessions',             cat: 'Piano', check: s => s.counts.piano >= 50 },
-  { id: 'piano-100', emoji: '🎤', name: 'Concert Ready',   desc: '100 piano sessions',            cat: 'Piano', check: s => s.counts.piano >= 100 },
-  { id: 'piano-200', emoji: '🎷', name: 'Virtuoso',        desc: '200 piano sessions',            cat: 'Piano', check: s => s.counts.piano >= 200 },
-  { id: 'piano-365', emoji: '🎸', name: 'Year of Piano',   desc: '365 piano sessions',            cat: 'Piano', check: s => s.counts.piano >= 365 },
-  { id: 'piano-7s',  emoji: '🪘', name: '7 in a Row',      desc: 'Piano 7 days in a row',         cat: 'Piano', check: s => s.streaks.piano >= 7 },
-  { id: 'piano-night', emoji: '🌃', name: 'Night Pianist', desc: 'Piano practice after 9pm',      cat: 'Piano', check: s => s.special.pianoNight },
-
-  // ----- READING (10) -----
-  { id: 'read-1',   emoji: '📖', name: 'First Read',     desc: 'Read once',                     cat: 'Reading', check: s => s.counts.reading >= 1 },
-  { id: 'read-5',   emoji: '📚', name: 'Page Turner',    desc: '5 reading nights',              cat: 'Reading', check: s => s.counts.reading >= 5 },
-  { id: 'read-10',  emoji: '📕', name: 'Book Buddy',     desc: '10 reading nights',             cat: 'Reading', check: s => s.counts.reading >= 10 },
-  { id: 'read-25',  emoji: '📗', name: 'Bookworm',       desc: '25 reading nights',             cat: 'Reading', check: s => s.counts.reading >= 25 },
-  { id: 'read-50',  emoji: '📘', name: 'Reader Royal',   desc: '50 reading nights',             cat: 'Reading', check: s => s.counts.reading >= 50 },
-  { id: 'read-100', emoji: '📙', name: 'Library Legend', desc: '100 reading nights',            cat: 'Reading', check: s => s.counts.reading >= 100 },
-  { id: 'read-200', emoji: '🎓', name: 'Scholar',        desc: '200 reading nights',            cat: 'Reading', check: s => s.counts.reading >= 200 },
-  { id: 'read-365', emoji: '🦉', name: 'Story Master',   desc: '365 reading nights — wow!',     cat: 'Reading', check: s => s.counts.reading >= 365 },
-  { id: 'read-7s',  emoji: '🛌', name: 'Bedtime Reader', desc: 'Read 7 nights in a row',        cat: 'Reading', check: s => s.streaks.reading >= 7 },
-  { id: 'read-late', emoji: '🌙', name: 'Late Reader',   desc: 'Read after 9pm',                cat: 'Reading', check: s => s.special.readLate },
-
-  // ----- MATH (8) -----
-  { id: 'math-1',   emoji: '🔢', name: 'First Math',    desc: 'Do math once',                  cat: 'Math', check: s => s.counts.math >= 1 },
-  { id: 'math-5',   emoji: '➕', name: 'Number Friend', desc: '5 math sessions',               cat: 'Math', check: s => s.counts.math >= 5 },
-  { id: 'math-10',  emoji: '✖️', name: 'Multiplier',    desc: '10 math sessions',              cat: 'Math', check: s => s.counts.math >= 10 },
-  { id: 'math-25',  emoji: '📐', name: 'Geometer',      desc: '25 math sessions',              cat: 'Math', check: s => s.counts.math >= 25 },
-  { id: 'math-50',  emoji: '🧮', name: 'Calculator',    desc: '50 math sessions',              cat: 'Math', check: s => s.counts.math >= 50 },
-  { id: 'math-100', emoji: '💯', name: 'Math Whiz',     desc: '100 math sessions',             cat: 'Math', check: s => s.counts.math >= 100 },
-  { id: 'math-200', emoji: '🚀', name: 'Math Rocket',   desc: '200 math sessions',             cat: 'Math', check: s => s.counts.math >= 200 },
-  { id: 'math-7s',  emoji: '🎯', name: 'Sharp Brain',   desc: 'Math 7 days in a row',          cat: 'Math', check: s => s.streaks.math >= 7 },
-
-  // ----- BADMINTON (8) -----
-  { id: 'bad-1',   emoji: '🏸', name: 'First Smash',    desc: 'Badminton once',                cat: 'Badminton', check: s => s.counts.badminton >= 1 },
-  { id: 'bad-5',   emoji: '💪', name: 'Strong Arm',     desc: '5 badminton sessions',          cat: 'Badminton', check: s => s.counts.badminton >= 5 },
-  { id: 'bad-10',  emoji: '🦘', name: 'Quick Feet',     desc: '10 badminton sessions',         cat: 'Badminton', check: s => s.counts.badminton >= 10 },
-  { id: 'bad-25',  emoji: '🏆', name: 'Court Star',     desc: '25 badminton sessions',         cat: 'Badminton', check: s => s.counts.badminton >= 25 },
-  { id: 'bad-50',  emoji: '⚡', name: 'Smash Master',   desc: '50 badminton sessions',         cat: 'Badminton', check: s => s.counts.badminton >= 50 },
-  { id: 'bad-100', emoji: '🦅', name: 'Eagle Eye',      desc: '100 badminton sessions',        cat: 'Badminton', check: s => s.counts.badminton >= 100 },
-  { id: 'bad-200', emoji: '🌟', name: 'Champion',       desc: '200 badminton sessions',        cat: 'Badminton', check: s => s.counts.badminton >= 200 },
-  { id: 'bad-7s',  emoji: '🎾', name: 'Athletic Week',  desc: 'Badminton 7 days in a row',     cat: 'Badminton', check: s => s.streaks.badminton >= 7 },
-
-  // ----- CLEANUP (8) -----
-  { id: 'clean-1',   emoji: '🧹', name: 'First Tidy',     desc: 'Clean up once',                cat: 'Cleanup', check: s => s.counts.cleanup >= 1 },
-  { id: 'clean-5',   emoji: '✨', name: 'Tidy Five',      desc: '5 cleanups',                    cat: 'Cleanup', check: s => s.counts.cleanup >= 5 },
-  { id: 'clean-10',  emoji: '🧼', name: 'Sparkle Squad',  desc: '10 cleanups',                   cat: 'Cleanup', check: s => s.counts.cleanup >= 10 },
-  { id: 'clean-25',  emoji: '🌿', name: 'Clean Streak',   desc: '25 cleanups',                   cat: 'Cleanup', check: s => s.counts.cleanup >= 25 },
-  { id: 'clean-50',  emoji: '🏠', name: 'House Helper',   desc: '50 cleanups',                   cat: 'Cleanup', check: s => s.counts.cleanup >= 50 },
-  { id: 'clean-100', emoji: '👑', name: 'Cleanup Royal',  desc: '100 cleanups',                  cat: 'Cleanup', check: s => s.counts.cleanup >= 100 },
-  { id: 'clean-200', emoji: '💎', name: 'Clean Master',   desc: '200 cleanups',                  cat: 'Cleanup', check: s => s.counts.cleanup >= 200 },
-  { id: 'clean-7s',  emoji: '🧽', name: 'Tidy Week',      desc: 'Cleanup 7 days in a row',       cat: 'Cleanup', check: s => s.streaks.cleanup >= 7 },
-
-  // ----- SPECIAL (12) -----
-  { id: 'sp-quad',     emoji: '🦋', name: 'Quadruple!',     desc: 'All 4 quests in one day',           cat: 'Special', check: s => s.bonusDays >= 1 },
-  { id: 'sp-quad5',    emoji: '🌈', name: 'Rainbow Five',   desc: 'All 4 quests, 5 different days',     cat: 'Special', check: s => s.bonusDays >= 5 },
-  { id: 'sp-quad10',   emoji: '🎪', name: 'Variety Pro',    desc: 'All 4 quests, 10 different days',    cat: 'Special', check: s => s.bonusDays >= 10 },
-  { id: 'sp-early',    emoji: '🌅', name: 'Early Bird',     desc: 'Complete a day before 8pm',          cat: 'Special', check: s => s.special.earlyBird },
-  { id: 'sp-night',    emoji: '🌙', name: 'Night Owl',      desc: 'Complete a day after 9pm',           cat: 'Special', check: s => s.special.nightOwl },
-  { id: 'sp-weekend',  emoji: '🥳', name: 'Weekend Warrior', desc: 'Complete both Saturday & Sunday',   cat: 'Special', check: s => s.special.weekend },
-  { id: 'sp-comeback', emoji: '🎊', name: 'Comeback Kid',   desc: 'Return after 3+ days off and finish a day', cat: 'Special', check: s => s.special.comeback },
-  { id: 'sp-50days',   emoji: '🎖️', name: '50 Days Done',   desc: 'Complete 50 days total',             cat: 'Special', check: s => s.daysComplete >= 50 },
-  { id: 'sp-100days',  emoji: '🏛️', name: 'Hall of Fame',   desc: 'Complete 100 days total',            cat: 'Special', check: s => s.daysComplete >= 100 },
-  { id: 'sp-200days',  emoji: '💫', name: 'Hall of Greats', desc: 'Complete 200 days total',            cat: 'Special', check: s => s.daysComplete >= 200 },
-  { id: 'sp-1000xp',   emoji: '⚡', name: '1,000 XP',       desc: 'Earn 1,000 XP total',                cat: 'Special', check: s => s.xp >= 1000 },
-  { id: 'sp-bff',      emoji: '🐼', name: "Pandi's BFF",    desc: 'Use the app 30 days',                cat: 'Special', check: s => s.uniqueDays >= 30 }
-];
-
-const STICKER_CATS = ['Streak', 'Piano', 'Reading', 'Math', 'Badminton', 'Cleanup', 'Special'];
-
 /* Per-quest "in a row" streaks (consecutive days where that quest was logged) */
 function questStreak(type) {
   let date = new Date();
@@ -3528,19 +3539,6 @@ function stickerStats() {
   const uniqueDays = Object.keys(state.log).filter(k => Object.keys(state.log[k] || {}).length > 0).length;
   const special = specialStats();
   return { ...t, streak, streaks, uniqueDays, special };
-}
-
-function checkStickers() {
-  const stats = stickerStats();
-  const newly = [];
-  STICKERS.forEach(st => {
-    if (!state.stickers[st.id] && st.check(stats)) {
-      state.stickers[st.id] = Date.now();
-      newly.push(st);
-    }
-  });
-  if (newly.length) saveState();
-  return newly;
 }
 
 /* ============= CLEANUP LOCK =============
@@ -3830,43 +3828,6 @@ function renderFreezeBanner(appliedDays) {
     </div>`;
 }
 
-let unlockQueue = [];
-function showStickerUnlocks(items) {
-  const wasEmpty = unlockQueue.length === 0;
-  unlockQueue.push(...items);
-  if (wasEmpty) processUnlockQueue();
-}
-function processUnlockQueue() {
-  if (unlockQueue.length === 0) return;
-  const item = unlockQueue.shift();
-  const card = document.getElementById('unlockCard');
-  document.getElementById('ucEmoji').textContent = item.emoji;
-  document.getElementById('ucName').textContent = item.name;
-  document.getElementById('ucDesc').textContent = item.desc;
-  document.getElementById('ucTitle').textContent = `${item.cat} Sticker Unlocked!`;
-  card.classList.add('show');
-  Sound.playBadge();
-  vibrate([15, 60, 15, 60, 30]);
-  setTimeout(() => {
-    card.classList.remove('show');
-    setTimeout(processUnlockQueue, 400);
-  }, 3200);
-}
-
-/* ============= MASCOT ACCESSORIES (mascot bling, unlocks via stickers) ============= */
-const ACCESSORIES = [
-  { id: 'bow',      emoji: '🎀', name: 'Pink Bow',         req: 'streak-3',   pos: 'top'    },
-  { id: 'shades',   emoji: '🕶️', name: 'Cool Shades',      req: 'streak-7',   pos: 'left'   },
-  { id: 'crown',    emoji: '👑', name: 'Royal Crown',      req: 'streak-30',  pos: 'top'    },
-  { id: 'medal',    emoji: '🥇', name: 'Gold Medal',       req: 'sp-100days', pos: 'bottom' },
-  { id: 'headph',   emoji: '🎧', name: 'Music Headphones', req: 'piano-25',   pos: 'top'    },
-  { id: 'glasses',  emoji: '👓', name: 'Smart Glasses',    req: 'read-25',    pos: 'left'   },
-  { id: 'racket',   emoji: '🏸', name: 'Mini Racket',      req: 'bad-25',     pos: 'bottom' },
-  { id: 'pencil',   emoji: '✏️', name: 'Math Pencil',      req: 'math-25',    pos: 'bottom' },
-  { id: 'star',     emoji: '⭐', name: 'Star Badge',        req: 'sp-quad',   pos: 'bottom' },
-  { id: 'rainbow',  emoji: '🌈', name: 'Rainbow Aura',     req: 'sp-quad5',  pos: 'top'    }
-];
-
 /* ============= MASCOT MOOD + MESSAGES ============= */
 function pickMood() {
   const hour = new Date().getHours();
@@ -3973,9 +3934,8 @@ function pickMessage() {
   const today = todayKey();
   const day = state.log[today] || {};
   const stats = stickerStats();
-  const stickerCount = Object.keys(state.stickers).length;
   const hour = new Date().getHours();
-  const ctx = { ...stats, stickerCount, questsLeft: requiredLeft(today) };
+  const ctx = { ...stats, questsLeft: requiredLeft(today) };
 
   let pool;
   if (pendingWelcomeBackPool && mascotMsgIdx === 0) {
@@ -4031,30 +3991,14 @@ function renderMascot() {
   el.textContent = MOOD_EMOJI[mood] || '🐼';
   el.style.background = MOOD_BG[mood] || MOOD_BG.default;
 
-  // Show up to 3 accessories on the mascot
-  const owned = ACCESSORIES.filter(a => state.stickers[a.req]);
-  const sorted = owned.sort((a, b) => (state.stickers[b.req] || 0) - (state.stickers[a.req] || 0));
-  const visible = sorted.slice(0, 3);
-  const usedPositions = new Set(visible.map(a => a.pos));
-
+  // Single mood-based decoration overlay (no sticker-driven accessories)
   el.querySelectorAll('.accessory').forEach(n => n.remove());
-  visible.forEach(a => {
-    const span = document.createElement('span');
-    span.className = `accessory ${a.pos}`;
-    span.textContent = a.emoji;
-    el.appendChild(span);
-  });
-
-  // Mood decoration in any free position (top > bottom > left)
   const decor = MOOD_DECOR[mood];
   if (decor) {
-    const pos = ['top', 'bottom', 'left'].find(p => !usedPositions.has(p));
-    if (pos) {
-      const span = document.createElement('span');
-      span.className = `accessory ${pos}`;
-      span.textContent = decor;
-      el.appendChild(span);
-    }
+    const span = document.createElement('span');
+    span.className = 'accessory top';
+    span.textContent = decor;
+    el.appendChild(span);
   }
 
   document.getElementById('speech').innerHTML = pickMessage();
@@ -4157,14 +4101,11 @@ window.addEventListener('focus', () => {
 /* ============= TOP BAR ============= */
 function renderTopBar() {
   const streak = computeStreak();
-  const stickerCount = Object.keys(state.stickers).length;
   const bucks = state.bucks || 0;
   document.getElementById('streakNum').textContent = streak;
   document.getElementById('bucksNum').textContent = bucks;
-  document.getElementById('stickerNum').textContent = stickerCount;
   document.getElementById('streakPill').classList.toggle('active', streak > 0);
   document.getElementById('bucksPill').classList.toggle('active', bucks > 0);
-  document.getElementById('stickersPill').classList.toggle('active', stickerCount > 0);
 
   // Freeze sub-pill — show only when there are freezes
   const freezeSub = document.getElementById('freezeSub');
@@ -4514,15 +4455,10 @@ function completeQuest() {
   // Award freezes if streak crosses 7-day boundaries
   const freezesAwarded = evaluateFreezeAward();
 
-  const newly = checkStickers();
   rerender();
 
-  // Stagger announcements: stickers → bucks → freezes
-  let delay = justCompleted ? 2000 : 800;
-  if (newly.length) {
-    setTimeout(() => showStickerUnlocks(newly), delay);
-    delay += newly.length * 3600;
-  }
+  // Stagger announcements: bucks → freezes
+  let delay = justCompleted ? 1800 : 800;
   if (newBucks.length) {
     const totalBucks = newBucks.reduce((s, b) => s + b.amount, 0);
     setTimeout(() => {
@@ -4530,7 +4466,7 @@ function completeQuest() {
       Sound.playBadge();
       animateBucksPill();
     }, delay);
-    delay += 2400;
+    delay += 2200;
   }
   if (freezesAwarded > 0) {
     setTimeout(() => {
@@ -4580,62 +4516,6 @@ function reverseBucksAward(dedupKey, amount, reason) {
 document.getElementById('modal').addEventListener('click', e => {
   if (e.target.id === 'modal') closeModal();
 });
-
-/* ============= STICKER MODAL ============= */
-function openSticker(stickerId) {
-  const s = STICKERS.find(x => x.id === stickerId);
-  if (!s) return;
-  const isUnlocked = !!state.stickers[s.id];
-  document.getElementById('stickerIcon').textContent = isUnlocked ? s.emoji : '🔒';
-  document.getElementById('stickerStatus').textContent = isUnlocked ? '✓ UNLOCKED' : '🔒 LOCKED';
-  document.getElementById('stickerName').textContent = s.name;
-  document.getElementById('stickerDesc').textContent = s.desc;
-  document.getElementById('stickerModal').classList.add('show');
-  Sound.playPop();
-}
-function closeStickerModal() {
-  document.getElementById('stickerModal').classList.remove('show');
-}
-document.getElementById('stickerModal').addEventListener('click', e => {
-  if (e.target.id === 'stickerModal') closeStickerModal();
-});
-
-/* ============= STICKER ALBUM ============= */
-function renderAlbum() {
-  const wrap = document.getElementById('albumWrap');
-  wrap.innerHTML = '';
-  const total = STICKERS.length;
-  const unlocked = Object.keys(state.stickers).length;
-  document.getElementById('stickerSub').innerHTML =
-    `<strong style="color:var(--text);">${unlocked}/${total}</strong> stickers collected — keep going!`;
-
-  STICKER_CATS.forEach(cat => {
-    const inCat = STICKERS.filter(s => s.cat === cat);
-    const got = inCat.filter(s => state.stickers[s.id]).length;
-    const html = `
-      <div class="album-cat">
-        <h3>${catEmoji(cat)} ${cat} <span class="count">${got}/${inCat.length}</span></h3>
-        <div class="album-grid">
-          ${inCat.map(s => `
-            <div class="sticker ${state.stickers[s.id] ? 'unlocked' : ''}" data-id="${s.id}">
-              <div class="s-emoji">${s.emoji}</div>
-              <div class="s-name">${s.name}</div>
-              ${state.stickers[s.id] ? '<div class="s-shimmer"></div>' : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>`;
-    wrap.insertAdjacentHTML('beforeend', html);
-  });
-
-  wrap.querySelectorAll('.sticker').forEach(el => {
-    el.onclick = () => openSticker(el.dataset.id);
-  });
-}
-
-function catEmoji(cat) {
-  return { Streak: '🔥', Piano: '🎹', Reading: '📖', Math: '🔢', Badminton: '🏸', Special: '✨' }[cat] || '🌟';
-}
 
 /* ============= BUCKS PANEL ============= */
 function renderBucksPanel() {
@@ -5192,16 +5072,48 @@ function renderSyncUI() {
     const last = state.cloud.lastPushAt
       ? `Last synced ${formatRelativeTime(state.cloud.lastPushAt)}`
       : 'Awaiting first sync';
+    const shortCode = state.cloud.shortCode;
+    let codeBlock = '';
+    if (shortCode) {
+      codeBlock = `
+        <div class="pin-row-label" style="margin-top:8px;">Sync code (type on another device)</div>
+        <div class="sync-code-box">
+          <span class="scb-code" style="font-size:1.6em;letter-spacing:.18em;font-weight:700;font-variant-numeric:tabular-nums;">${shortCode}</span>
+          <span class="scb-copy" onclick="copySyncCode()">Copy</span>
+        </div>
+      `;
+    } else if (_shortCodeRegState === 'pending') {
+      codeBlock = `
+        <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
+        <div class="sync-code-box">
+          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">Generating 6-digit code…</span>
+        </div>
+      `;
+    } else if (_shortCodeRegState === 'failed') {
+      codeBlock = `
+        <div class="pin-row-label" style="margin-top:8px;color:var(--red,#d33);">Couldn't reach sync directory</div>
+        <div class="sync-code-box">
+          <span class="scb-code" style="font-size:.85em;">${state.cloud.syncId}</span>
+          <span class="scb-copy" onclick="copySyncCode()">Copy</span>
+        </div>
+        <button class="btn-3d gray" onclick="ensureShortCodeRegistered()" style="margin-top:6px;font-size:.85em;padding:6px 10px;">Retry getting 6-digit code</button>
+      `;
+    } else {
+      codeBlock = `
+        <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
+        <div class="sync-code-box">
+          <span class="scb-code" style="font-size:.85em;">${state.cloud.syncId}</span>
+          <span class="scb-copy" onclick="copySyncCode()">Copy</span>
+        </div>
+        <button class="btn-3d gray" onclick="ensureShortCodeRegistered()" style="margin-top:6px;font-size:.85em;padding:6px 10px;">Get 6-digit code</button>
+      `;
+    }
     status.innerHTML = `
       <div class="sync-status on">
         <span class="sync-dot"></span>
         <span>Active · ${last}</span>
       </div>
-      <div class="pin-row-label" style="margin-top:8px;">Sync code (paste on another device)</div>
-      <div class="sync-code-box">
-        <span class="scb-code">${state.cloud.syncId}</span>
-        <span class="scb-copy" onclick="copySyncCode()">Copy</span>
-      </div>
+      ${codeBlock}
     `;
     actions.innerHTML = `
       <button class="btn-3d gray" onclick="restoreFromCloud()" style="margin-bottom:8px;">Restore from another device</button>
@@ -5308,17 +5220,6 @@ function celebrateBig() {
   setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3200);
 }
 
-/* ============= GEAR STRIP ============= */
-function renderGearStrip() {
-  const strip = document.getElementById('gearStrip');
-  const owned = ACCESSORIES.filter(a => state.stickers[a.req]);
-  if (!owned.length) { strip.innerHTML = ''; return; }
-  // Show all owned accessory dots beneath the mascot
-  strip.innerHTML = owned
-    .map(a => `<div class="gear-stick" title="${a.name}">${a.emoji}</div>`)
-    .join('');
-}
-
 /* ============= TABS ============= */
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -5404,6 +5305,18 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) cloudAutoPull();
 });
 setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 30 * 1000);
+
+// Migration: if this device already has cloud sync but no short code (user was
+// set up before short codes existed), register one in the background.
+if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+  ensureShortCodeRegistered();
+}
+
+// Keep the directory blob alive: a quiet GET on every load resets JSONBlob's
+// inactivity TTL so short codes don't silently expire if the family takes a break.
+if (state.cloud && state.cloud.shortCode) {
+  directoryKeepAlive();
+}
 </script>
 </body>
 </html>
