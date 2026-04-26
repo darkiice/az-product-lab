@@ -2767,7 +2767,7 @@ async function restoreFromCloud() {
     state = {
       ...defaultState,
       ...cloudState,
-      parent: { ...defaultState.parent, ...(cloudState.parent || {}), pinHash: localPin || (cloudState.parent && cloudState.parent.pinHash) || null, unlockedUntil: Date.now() + PARENT_UNLOCK_MS },
+      parent: { ...defaultState.parent, ...(cloudState.parent || {}), pinHash: localPin || (cloudState.parent && cloudState.parent.pinHash) || null, unlockedUntil: 0 },
       cloud:  { ...defaultState.cloud, syncId, shortCode: enteredShortCode, lastPullAt: Date.now(), lastChangeAt: restoredChangeAt }
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2863,7 +2863,7 @@ async function importProgress() {
         state = {
           ...defaultState,
           ...imported,
-          parent: { ...defaultState.parent, ...(imported.parent || {}), pinHash: localPin, unlockedUntil: Date.now() + PARENT_UNLOCK_MS },
+          parent: { ...defaultState.parent, ...(imported.parent || {}), pinHash: localPin, unlockedUntil: 0 },
           cloud:  { ...defaultState.cloud, ...(imported.cloud || {}) }
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
