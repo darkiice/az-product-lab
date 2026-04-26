@@ -125,11 +125,6 @@
     50% { transform: rotateY(180deg); }
     100% { transform: rotateY(360deg); }
   }
-  .stat-pill.stickers { color: var(--text-muted); }
-  .stat-pill.stickers.active { color: var(--green); }
-  .stat-pill.stickers .icon { filter: grayscale(0.5); }
-  .stat-pill.stickers.active .icon { filter: none; }
-
   /* ============= MAIN ============= */
   main { padding: 0; max-width: 480px; margin: 0 auto; position: relative; }
 
@@ -179,33 +174,6 @@
     pointer-events: none;
     filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
   }
-  .mascot .accessory.bottom { top: auto; bottom: 4px; right: auto; left: 50%; transform: translateX(-50%); }
-  .mascot .accessory.left   { right: auto; left: 4px; }
-
-  .gear-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    min-height: 22px;
-    max-width: 100px;
-    align-items: center;
-    justify-content: center;
-  }
-  .gear-stick {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--purple);
-    border: 2px solid white;
-    box-shadow: 0 1px 0 var(--purple-dark);
-    display: grid;
-    place-items: center;
-    font-size: 12px;
-    line-height: 1;
-    animation: gear-pop 0.4s cubic-bezier(0.32, 0.72, 0.4, 1.4);
-  }
-  @keyframes gear-pop { from { transform: scale(0); } to { transform: scale(1); } }
-
   .speech {
     flex: 1;
     background: white;
@@ -611,128 +579,6 @@
     opacity: 0.9;
   }
 
-  /* ============= STICKER ALBUM ============= */
-  .album-cat {
-    margin-bottom: 18px;
-    background: white;
-    border: 2px solid var(--border);
-    border-radius: 16px;
-    padding: 14px;
-  }
-  .album-cat h3 {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text);
-    margin-bottom: 12px;
-  }
-  .album-cat h3 .count {
-    background: var(--green);
-    color: white;
-    border-radius: 99px;
-    padding: 3px 10px;
-    font-size: 11px;
-  }
-  .album-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
-  .sticker {
-    aspect-ratio: 1;
-    border-radius: 14px;
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 4px;
-    cursor: pointer;
-    transition: transform 0.1s;
-    position: relative;
-  }
-  .sticker:active { transform: scale(0.95); }
-  .sticker .s-emoji {
-    font-size: 28px;
-    line-height: 1;
-    filter: grayscale(1);
-    opacity: 0.35;
-    transition: all 0.2s;
-  }
-  .sticker .s-name {
-    font-size: 9px;
-    font-weight: 900;
-    color: var(--text-light);
-    text-align: center;
-    margin-top: 4px;
-    line-height: 1.1;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-  .sticker.unlocked {
-    background: white;
-    border-color: var(--yellow);
-    box-shadow: 0 3px 0 var(--yellow-dark);
-  }
-  .sticker.unlocked .s-emoji { filter: none; opacity: 1; }
-  .sticker.unlocked .s-name { color: var(--text); }
-  .sticker.unlocked .s-shimmer {
-    position: absolute;
-    top: 4px; right: 4px;
-    width: 14px; height: 14px;
-    background: var(--yellow);
-    border-radius: 50%;
-    border: 2px solid white;
-  }
-
-  /* Unlock card (drops from top) */
-  .unlock-card {
-    position: fixed;
-    top: calc(var(--safe-top) + var(--topbar-h) + 12px);
-    left: 16px; right: 16px;
-    max-width: 420px;
-    margin: 0 auto;
-    background: white;
-    border: 3px solid var(--yellow);
-    border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-    padding: 16px;
-    display: none;
-    align-items: center;
-    gap: 14px;
-    z-index: 350;
-    animation: card-drop 0.5s cubic-bezier(0.32, 0.72, 0.4, 1.4);
-  }
-  .unlock-card.show { display: flex; }
-  @keyframes card-drop {
-    from { transform: translateY(-200%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  .unlock-card .be {
-    width: 56px; height: 56px;
-    background: var(--yellow);
-    border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 30px;
-    flex-shrink: 0;
-    box-shadow: 0 4px 0 var(--yellow-dark);
-  }
-  .unlock-card .bt {
-    font-size: 10px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--yellow-dark);
-    margin-bottom: 2px;
-  }
-  .unlock-card .bn { font-size: 16px; font-weight: 900; }
-  .unlock-card .bd { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
-
   /* ============= STATS ============= */
   .panel { display: none; padding: 16px; max-width: 480px; margin: 0 auto; }
   .panel.active { display: block; animation: fadeIn 0.2s; }
@@ -986,7 +832,6 @@
   .modal-header.reading  { background: var(--blue); }
   .modal-header.math     { background: var(--orange); }
   .modal-header.badminton { background: var(--pink); }
-  .modal-header.sticker  { background: var(--yellow); color: var(--text); }
   .modal-header .close-x {
     position: absolute;
     top: 14px;
@@ -1000,7 +845,6 @@
     font-weight: 900;
     line-height: 1;
   }
-  .modal-header.sticker .close-x { background: rgba(0,0,0,0.12); }
   .modal-header .big-icon { font-size: 56px; line-height: 1; margin-bottom: 8px; }
   .modal-header .pill {
     display: inline-block;
@@ -1013,7 +857,6 @@
     letter-spacing: 0.08em;
     margin-bottom: 10px;
   }
-  .modal-header.sticker .pill { background: rgba(0,0,0,0.12); }
   .modal-header h3 {
     font-size: 26px;
     font-weight: 900;
@@ -1903,10 +1746,6 @@
     .choice-card .cc-icon { width: 60px; height: 60px; font-size: 30px; }
     .choice-card .cc-name { font-size: 16px; }
 
-    /* Sticker album 6 columns on tablet */
-    .album-grid { grid-template-columns: repeat(6, 1fr); gap: 12px; }
-    .sticker .s-emoji { font-size: 32px; }
-    .sticker .s-name { font-size: 10px; }
 
     /* Reward catalog 2 columns on tablet */
     #rewardList {
@@ -1987,8 +1826,6 @@
     #today-panel #reminderBanner > .reminder-banner,
     #today-panel #freezeBanner > .reminder-banner { margin: 0 0 12px; }
 
-    /* Sticker album 8 columns on big iPad */
-    .album-grid { grid-template-columns: repeat(8, 1fr); }
 
     /* Mascot a bit bigger */
     .mascot { width: 120px; height: 120px; font-size: 76px; }
@@ -2017,8 +1854,6 @@
       padding-right: max(8px, calc(50% - 540px));
     }
 
-    /* Sticker album: 10 columns on huge iPad */
-    .album-grid { grid-template-columns: repeat(10, 1fr); }
   }
 </style>
 </head>
@@ -2146,8 +1981,8 @@
       <div class="value" id="statsDays">0</div>
     </div>
     <div class="big-stat yellow">
-      <div class="label">🌟 Stickers</div>
-      <div class="value" id="statsStickers">0</div>
+      <div class="label">💰 Bucks Earned</div>
+      <div class="value" id="statsBucks">0</div>
     </div>
   </div>
 
@@ -2240,12 +2075,11 @@
   <div class="chart-card" style="margin-top:14px;">
     <h3>💡 How it works</h3>
     <ul class="tip-list">
-      <li><strong>Piano + Reading every day.</strong> They're the two heartbeats of your routine.</li>
+      <li><strong>Piano + Reading every day.</strong> The two heartbeats of your routine.</li>
       <li><strong>Pick one: Math or Badminton.</strong> Switch it up — variety keeps it fresh.</li>
-      <li><strong>Bonus stickers</strong> if you do <strong>both</strong> Math AND Badminton in one day. 🦋</li>
-      <li><strong>Tidy your play area at least once a week 🧹.</strong> If you don't, the reward shop and cash out lock up until you clean. Earning bucks still works — but spending pauses.</li>
+      <li><strong>Bonus Daddy Buck</strong> if you do <strong>both</strong> Math AND Badminton in one day. 🦋</li>
+      <li><strong>Tidy your play area at least once a week 🧹.</strong> If you don't, the reward shop and cash out lock until you clean. Earning bucks still works — only spending pauses.</li>
       <li><strong>Streak</strong> 🔥 grows when you finish all required quests in a day.</li>
-      <li><strong>Stickers</strong> 🌟 unlock as you reach milestones — fill the album!</li>
     </ul>
   </div>
 
@@ -2274,7 +2108,7 @@
       <div class="pa-icon">⚠️</div>
       <div class="pa-info">
         <div class="pa-name">Reset all progress</div>
-        <div class="pa-desc">Clears streak, XP, stickers, bucks</div>
+        <div class="pa-desc">Clears streak, XP, and Daddy Bucks</div>
       </div>
       <div class="pa-arrow">›</div>
     </div>
@@ -2488,8 +2322,7 @@
 /* ============= STATE ============= */
 const STORAGE_KEY = 'pandi-state-v1';
 const defaultState = {
-  log: {},          // { "YYYY-MM-DD": { piano: ts, reading: ts, math: ts, badminton: ts } }
-  stickers: {},     // { stickerId: timestamp }
+  log: {},          // { "YYYY-MM-DD": { piano: ts, reading: ts, math: ts, badminton: ts, cleanup: ts } }
   name: '',
   soundOn: true,
   hapticOn: true,
@@ -3160,7 +2993,7 @@ const WISE_WORDS = [
 ];
 
 function pickWiseWords() {
-  const stats = stickerStats();
+  const stats = progressStats();
   const bucks = state.bucks || 0;
   // Context-aware overrides for special moments
   if (rewardsLocked())     return '🧹 A tidy room is a tidy mind. Clean up to spend!';
@@ -3475,58 +3308,8 @@ function questStreak(type) {
   return count;
 }
 
-function specialStats() {
-  // Compute special-event flags by scanning logged days.
-  let earlyBird = false, nightOwl = false, weekend = false, comeback = false, pianoNight = false, readLate = false;
-
-  // Earliest/latest completion times within the log
-  Object.entries(state.log).forEach(([key, day]) => {
-    QUEST_ORDER.forEach(t => {
-      if (!day[t]) return;
-      const ts = day[t];
-      const d = new Date(ts);
-      const hour = d.getHours();
-      if (t === 'piano' && hour >= 21) pianoNight = true;
-      if (t === 'reading' && hour >= 21) readLate = true;
-    });
-    if (isDayComplete(key)) {
-      // Latest quest completion timestamp = "day completed at"
-      const tsList = QUEST_ORDER.map(t => day[t]).filter(Boolean);
-      const latest = Math.max.apply(null, tsList);
-      const dt = new Date(latest);
-      const hour = dt.getHours();
-      if (hour < 20) earlyBird = true;
-      if (hour >= 21) nightOwl = true;
-    }
-  });
-
-  // Weekend pair: any consecutive Sat+Sun fully complete
-  const keys = Object.keys(state.log).sort();
-  for (const k of keys) {
-    const d = dateFromKey(k);
-    if (d.getDay() === 6 && isDayComplete(k)) {
-      const sunKey = todayKey(addDays(d, 1));
-      if (isDayComplete(sunKey)) { weekend = true; break; }
-    }
-  }
-
-  // Comeback: there's a complete day where the prior 3+ calendar days had no log activity
-  for (const k of keys) {
-    if (!isDayComplete(k)) continue;
-    let allEmpty = true;
-    for (let i = 1; i <= 3; i++) {
-      const prev = todayKey(addDays(dateFromKey(k), -i));
-      if (state.log[prev] && Object.keys(state.log[prev]).length > 0) { allEmpty = false; break; }
-    }
-    // Need actual prior history (not the user's first day ever)
-    const minKey = keys[0];
-    if (allEmpty && k !== minKey) { comeback = true; break; }
-  }
-
-  return { earlyBird, nightOwl, weekend, comeback, pianoNight, readLate };
-}
-
-function stickerStats() {
+function progressStats() {
+  // Stats used by Stats panel + wise-words context.
   const t = totalStats();
   const streak = computeStreak();
   const streaks = {
@@ -3536,9 +3319,7 @@ function stickerStats() {
     badminton: questStreak('badminton'),
     cleanup: questStreak('cleanup')
   };
-  const uniqueDays = Object.keys(state.log).filter(k => Object.keys(state.log[k] || {}).length > 0).length;
-  const special = specialStats();
-  return { ...t, streak, streaks, uniqueDays, special };
+  return { ...t, streak, streaks };
 }
 
 /* ============= CLEANUP LOCK =============
@@ -3896,7 +3677,7 @@ const MESSAGES = {
     () => `Boom! 🎉 Quest done!`,
     () => `Amazing, ${nameOrFriend()}! Pandi is proud 🐼`,
     () => `That's the stuff! Keep going ⚡`,
-    () => `One step closer to a sticker 🌟`
+    () => `One step closer to a Daddy Buck 💰`
   ],
   proud: [
     (s) => `🏆 Today is <strong>complete</strong>! Streak: <strong>${s.streak}</strong> 🔥`,
@@ -3911,7 +3692,7 @@ const MESSAGES = {
   midJourney: [
     (s) => `<strong>${s.daysComplete}</strong> days complete! 🎊`,
     (s) => `Streak: <strong>${s.streak}</strong> 🔥 Don't break it!`,
-    (s) => `<strong>${s.stickerCount}</strong> stickers in your album so far 🌟`
+    (s) => `Quests today, bucks tomorrow.`
   ],
   missedYouShort: [
     () => `There you are! 🐼 I missed you.`,
@@ -3933,7 +3714,7 @@ const MESSAGES = {
 function pickMessage() {
   const today = todayKey();
   const day = state.log[today] || {};
-  const stats = stickerStats();
+  const stats = progressStats();
   const hour = new Date().getHours();
   const ctx = { ...stats, questsLeft: requiredLeft(today) };
 
@@ -4955,11 +4736,10 @@ document.getElementById('pastDayModal').addEventListener('click', e => {
 function renderStats() {
   const stats = totalStats();
   const streak = computeStreak();
-  const stickerCount = Object.keys(state.stickers).length;
   document.getElementById('statsStreak').innerHTML = `${streak}<span class="unit">${streak === 1 ? 'day' : 'days'}</span>`;
   document.getElementById('statsXP').textContent = stats.xp;
   document.getElementById('statsDays').textContent = stats.daysComplete;
-  document.getElementById('statsStickers').textContent = `${stickerCount}/${STICKERS.length}`;
+  document.getElementById('statsBucks').textContent = stats.daysComplete > 0 ? (state.bucksTotalEarned || 0) : 0;
 
   // Weekly bars (last 8 calendar weeks, including current)
   const bars = document.getElementById('weeklyBars');
@@ -5008,7 +4788,7 @@ function renderStats() {
 
   // Personal bests
   const best = bestStreak();
-  const ss = stickerStats();
+  const ss = progressStats();
   document.getElementById('bestsList').innerHTML = `
     <div class="activity-row">
       <div class="ar-icon" style="background:var(--orange);">🔥</div>
@@ -5177,7 +4957,7 @@ function toggleHaptic() {
 async function resetProgress() {
   const ok = await requireParent();
   if (!ok) return;
-  if (!confirm('Reset all progress? This will clear streak, XP, stickers, and Daddy Bucks. Cannot be undone!')) return;
+  if (!confirm('Reset all progress? This will clear streak, XP, and Daddy Bucks. Cannot be undone!')) return;
   // Preserve identity + sync settings + parent PIN through reset
   const keep = {
     name: state.name,
@@ -5227,7 +5007,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
-    if (btn.dataset.tab === 'stickers') renderAlbum();
     if (btn.dataset.tab === 'bucks') renderBucksPanel();
     if (btn.dataset.tab === 'stats') renderStats();
     if (btn.dataset.tab === 'me') renderMe();
@@ -5244,9 +5023,7 @@ function rerender() {
   renderStreakBanner();
   renderWeekStrip();
   renderMascot();
-  renderGearStrip();
   renderReminderBanner();
-  if (document.getElementById('stickers-panel').classList.contains('active')) renderAlbum();
   if (document.getElementById('bucks-panel').classList.contains('active')) renderBucksPanel();
   if (document.getElementById('stats-panel').classList.contains('active')) renderStats();
   if (document.getElementById('me-panel').classList.contains('active')) renderMe();
@@ -5271,16 +5048,10 @@ const _appliedFreezes = autoApplyFreezes();
 // milestones can re-fire when she rebuilds.
 maybeAdvanceStreakEpoch();
 
-// Initial sticker check (in case user reset state etc.)
-checkStickers();
-
 // Catch up any unrewarded bucks/freezes from prior sessions
 backfillBucks();
 evaluateBucksRewards();
 evaluateFreezeAward();
-
-// One more sticker pass in case bucks just bumped any sticker (none currently, but safe)
-checkStickers();
 
 rerender();
 
