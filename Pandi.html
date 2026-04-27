@@ -123,6 +123,20 @@
   .stat-pill.bucks .icon { filter: grayscale(0.3); }
   .stat-pill.bucks.active { color: var(--yellow-dark); }
   .stat-pill.bucks.active .icon { filter: none; animation: coin-spin 0.5s; }
+  .topbar-name {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--green-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.01em;
+  }
+  .topbar-name .wave { margin-right: 4px; }
+  .topbar-name.empty { color: var(--text-light); font-weight: 800; }
   @keyframes coin-spin {
     0% { transform: rotateY(0); }
     50% { transform: rotateY(180deg); }
@@ -156,26 +170,134 @@
     place-items: center;
     user-select: none;
     cursor: pointer;
-    transition: transform 0.15s;
+    transition: transform 0.15s, background 0.4s;
     overflow: hidden;
     position: relative;
-    font-size: 56px;
     line-height: 1;
   }
   .mascot:active { transform: scale(0.94); }
   .mascot.bounce { animation: mascot-bounce 0.5s; }
+  .mascot.wiggle { animation: mascot-wiggle 0.4s; }
   @keyframes mascot-bounce {
     0%, 100% { transform: scale(1) rotate(0); }
     25% { transform: scale(1.08) rotate(-6deg); }
     75% { transform: scale(1.08) rotate(6deg); }
   }
-  .mascot .accessory {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    font-size: 22px;
-    pointer-events: none;
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+  @keyframes mascot-wiggle {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px) rotate(-3deg); }
+    75% { transform: translateX(3px) rotate(3deg); }
+  }
+  /* SVG panda fills the circular mascot frame */
+  .mascot .panda-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+  /* Idle breathing — gentle scale */
+  .mascot .panda-body {
+    transform-origin: 50px 60px;
+    animation: panda-breathe 3.6s ease-in-out infinite;
+  }
+  @keyframes panda-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.025); }
+  }
+  /* Idle blink — squish eye groups vertically */
+  .mascot .panda-eyes {
+    transform-origin: 50px 50px;
+    animation: panda-blink 5.4s infinite;
+  }
+  @keyframes panda-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    94%, 96%     { transform: scaleY(0.1); }
+  }
+  /* Floating Z's for sleep mood */
+  .mascot .zzz {
+    animation: panda-zzz 2.4s ease-out infinite;
+    opacity: 0;
+    transform-origin: center;
+  }
+  .mascot .zzz.z2 { animation-delay: 0.8s; }
+  .mascot .zzz.z3 { animation-delay: 1.6s; }
+  @keyframes panda-zzz {
+    0%   { opacity: 0; transform: translate(0, 4px) scale(0.5); }
+    25%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(8px, -16px) scale(1.2); }
+  }
+  /* Sparkle pulse for cheer / proud */
+  .mascot .sparkle {
+    animation: panda-sparkle 1.6s ease-in-out infinite;
+    transform-origin: center;
+  }
+  .mascot .sparkle.s2 { animation-delay: 0.4s; }
+  .mascot .sparkle.s3 { animation-delay: 0.9s; }
+  @keyframes panda-sparkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.6); }
+    50%      { opacity: 1; transform: scale(1.15); }
+  }
+  /* Falling tear for concerned */
+  .mascot .tear {
+    animation: panda-tear 2.4s ease-in infinite;
+    transform-origin: 36px 60px;
+  }
+  @keyframes panda-tear {
+    0%   { transform: translateY(0); opacity: 0; }
+    20%  { opacity: 1; }
+    80%  { opacity: 1; transform: translateY(14px); }
+    100% { opacity: 0; transform: translateY(20px); }
+  }
+  /* Floating hearts for love */
+  .mascot .heart-float {
+    animation: panda-heart 2.2s ease-out infinite;
+    opacity: 0;
+    transform-origin: center;
+  }
+  .mascot .heart-float.h2 { animation-delay: 0.7s; }
+  .mascot .heart-float.h3 { animation-delay: 1.3s; }
+  @keyframes panda-heart {
+    0%   { opacity: 0; transform: translate(0, 0) scale(0.4); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-4px, -18px) scale(1.2); }
+  }
+  /* Waving paw for wave mood */
+  .mascot .paw-wave {
+    transform-origin: 22px 80px;
+    animation: panda-wave 1.2s ease-in-out infinite;
+  }
+  @keyframes panda-wave {
+    0%, 100% { transform: rotate(-12deg); }
+    50%      { transform: rotate(18deg); }
+  }
+  /* Music note bob for music mood */
+  .mascot .note {
+    animation: panda-note 2.0s ease-in-out infinite;
+    opacity: 0;
+  }
+  .mascot .note.n2 { animation-delay: 1s; }
+  @keyframes panda-note {
+    0%   { opacity: 0; transform: translate(0, 6px); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(6px, -14px) rotate(15deg); }
+  }
+  /* Star eyes pulse */
+  .mascot .star-eye {
+    animation: panda-star 1.4s ease-in-out infinite;
+    transform-origin: center;
+  }
+  @keyframes panda-star {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15) rotate(8deg); }
+  }
+  /* Excited bounce for pumped */
+  .mascot.mood-pumped .panda-body,
+  .mascot.mood-excited .panda-body {
+    animation: panda-pump 0.8s ease-in-out infinite;
+  }
+  @keyframes panda-pump {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-3px) scale(1.05); }
   }
   .speech {
     flex: 1;
@@ -1832,6 +1954,7 @@
     }
     .stat-pill { font-size: 20px; }
     .stat-pill .icon { font-size: 26px; }
+    .topbar-name { font-size: 19px; }
 
     main, .panel { max-width: 700px; }
 
@@ -1939,6 +2062,7 @@
     <span class="icon">🔥</span><span class="num" id="streakNum">0</span>
     <span class="freeze-sub" id="freezeSub" style="display:none;"><span class="freeze-ico">❄️</span><span id="freezeNum">0</span></span>
   </div>
+  <div class="topbar-name empty" id="topbarName">Pandi</div>
   <div class="stat-pill bucks" id="bucksPill">
     <span class="icon">💰</span><span class="num" id="bucksNum">0</span>
   </div>
@@ -1952,7 +2076,7 @@
 
     <div class="mascot-section">
       <div class="mascot-col">
-        <div class="mascot" id="mascotEl" onclick="onMascotTap()">🐼</div>
+        <div class="mascot" id="mascotEl" onclick="onMascotTap()" aria-label="Pandi the panda mascot"></div>
       </div>
       <div class="speech" id="speech">Hi! I'm Pandi 🐼 Let's do today!</div>
     </div>
@@ -3709,41 +3833,256 @@ function renderFreezeBanner(appliedDays) {
 /* ============= MASCOT MOOD + MESSAGES ============= */
 function pickMood() {
   const hour = new Date().getHours();
-  // Cleanup overdue overrides most other moods (except active sleep/cheer).
+  // Welcome-back overrides briefly when user returns after a gap.
+  if (pendingWelcomeBackPool && mascotMsgIdx === 0) return 'love';
+  // Recent quest completion -> cheer.
   if (Date.now() - (state.lastCompleteAt || 0) < 8000) return 'cheer';
   if (hour >= 22 || hour < 6) return 'sleep';
   if (rewardsLocked()) return 'concerned';
   const today = todayKey();
   if (isDayComplete(today)) return 'proud';
+  // Partway through the day's quests -> focused.
+  const day = state.log[today] || {};
+  if (Object.keys(day).length > 0) return 'focused';
+  // Morning enthusiasm bump.
+  if (hour >= 6 && hour < 10) return 'pumped';
   return 'default';
 }
 
-const MOOD_EMOJI = {
-  default:   '🐼',
-  cheer:     '🐼',
-  sleep:     '🐼',
-  proud:     '🐼',
-  pumped:    '🐼',
-  concerned: '🐼'
-};
-
-// Optional decoration (small emoji overlay) per mood, on top of the panda.
-const MOOD_DECOR = {
-  default:   null,
-  cheer:     '✨',
-  sleep:     '💤',
-  proud:     '🏆',
-  pumped:    '🔥',
-  concerned: '🥺'
-};
-
 const MOOD_BG = {
   default:   'linear-gradient(135deg, #ffffff 0%, #e1f4d3 100%)',
-  cheer:     'linear-gradient(135deg, #fff4cc 0%, #ffc800 100%)',
-  sleep:     'linear-gradient(135deg, #f0e1ff 0%, #ce82ff 100%)',
+  focused:   'linear-gradient(135deg, #ffffff 0%, #d4ecff 100%)',
+  cheer:     'linear-gradient(135deg, #fff4cc 0%, #ffd24d 100%)',
+  sleep:     'linear-gradient(135deg, #e8d6ff 0%, #b288ff 100%)',
   proud:     'linear-gradient(135deg, #fff4cc 0%, #ff9600 100%)',
-  concerned: 'linear-gradient(135deg, #ffd0d0 0%, #ff7575 100%)'
+  pumped:    'linear-gradient(135deg, #ffe1d6 0%, #ff7a4d 100%)',
+  excited:   'linear-gradient(135deg, #ffe6f0 0%, #ff6fa8 100%)',
+  concerned: 'linear-gradient(135deg, #ffd0d0 0%, #ff7575 100%)',
+  love:      'linear-gradient(135deg, #ffe1ec 0%, #ff5577 100%)',
+  cool:      'linear-gradient(135deg, #cfe9ff 0%, #4a90e2 100%)',
+  wave:      'linear-gradient(135deg, #d6f5e1 0%, #5fc88f 100%)',
+  star:      'linear-gradient(135deg, #fff7c2 0%, #ffd400 100%)',
+  music:     'linear-gradient(135deg, #ffe2f7 0%, #c875ff 100%)',
+  party:     'linear-gradient(135deg, #ffe1ec 0%, #ff66c4 100%)'
 };
+
+// Moods cycled through when the user taps the panda — fun extras beyond the
+// game-state-driven moods so all expressions are discoverable.
+const FUN_MOODS = ['excited', 'love', 'cool', 'wave', 'star', 'music', 'party', 'pumped'];
+
+/* ----- SVG panda builder ----- */
+function pandaEars(mood) {
+  // Outer black ear, inner pink/grey detail.
+  const innerColor = mood === 'love' ? '#ff7a99' : '#5d4037';
+  const tilt = (mood === 'cool' || mood === 'concerned') ? -2 : 0;
+  return `
+    <g class="panda-ears" transform="rotate(${tilt} 50 30)">
+      <ellipse cx="22" cy="22" rx="13" ry="14" fill="#222"/>
+      <ellipse cx="78" cy="22" rx="13" ry="14" fill="#222"/>
+      <ellipse cx="22" cy="24" rx="6" ry="6.5" fill="${innerColor}" opacity="0.85"/>
+      <ellipse cx="78" cy="24" rx="6" ry="6.5" fill="${innerColor}" opacity="0.85"/>
+    </g>`;
+}
+
+function pandaEyes(mood) {
+  // Eye patches are the signature panda look — always rendered.
+  const patches = `
+    <ellipse cx="36" cy="49" rx="10.5" ry="13" fill="#1a1a1a" transform="rotate(-14 36 49)"/>
+    <ellipse cx="64" cy="49" rx="10.5" ry="13" fill="#1a1a1a" transform="rotate(14 64 49)"/>`;
+
+  const pupils = (() => {
+    switch (mood) {
+      case 'sleep':
+        // Closed eyes — gentle arcs with eyelashes.
+        return `
+          <path d="M 30 50 Q 36 54 42 50" stroke="white" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <path d="M 58 50 Q 64 54 70 50" stroke="white" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+      case 'proud':
+      case 'cheer':
+        // Happy closed-curve eyes ^^.
+        return `
+          <path d="M 29 50 Q 36 43 43 50" stroke="white" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <path d="M 57 50 Q 64 43 71 50" stroke="white" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+      case 'love':
+        // Heart eyes.
+        return `
+          <path d="M 30 47 C 30 42, 35 41, 36 46 C 37 41, 42 42, 42 47 C 42 51, 36 55, 36 55 C 36 55, 30 51, 30 47 Z" fill="#ff5577"/>
+          <path d="M 58 47 C 58 42, 63 41, 64 46 C 65 41, 70 42, 70 47 C 70 51, 64 55, 64 55 C 64 55, 58 51, 58 47 Z" fill="#ff5577"/>`;
+      case 'star':
+        // Star eyes — for amazement.
+        return `
+          <polygon class="star-eye" points="36,42 38,48 44,48 39,52 41,58 36,54 31,58 33,52 28,48 34,48" fill="#ffd400"/>
+          <polygon class="star-eye" points="64,42 66,48 72,48 67,52 69,58 64,54 59,58 61,52 56,48 62,48" fill="#ffd400"/>`;
+      case 'cool':
+        // Sunglasses.
+        return `
+          <rect x="26" y="44" width="20" height="10" rx="3" fill="#1a1a1a"/>
+          <rect x="54" y="44" width="20" height="10" rx="3" fill="#1a1a1a"/>
+          <rect x="44" y="47" width="12" height="2" fill="#1a1a1a"/>
+          <rect x="29" y="46" width="6" height="2" rx="1" fill="white" opacity="0.5"/>
+          <rect x="57" y="46" width="6" height="2" rx="1" fill="white" opacity="0.5"/>`;
+      case 'pumped':
+      case 'excited':
+        // Wide bright eyes.
+        return `
+          <circle cx="36" cy="49" r="6" fill="white"/>
+          <circle cx="64" cy="49" r="6" fill="white"/>
+          <circle cx="36" cy="49" r="3.6" fill="#1a1a1a"/>
+          <circle cx="64" cy="49" r="3.6" fill="#1a1a1a"/>
+          <circle cx="37.2" cy="47.4" r="1.4" fill="white"/>
+          <circle cx="65.2" cy="47.4" r="1.4" fill="white"/>`;
+      case 'concerned':
+        // Droopy eyes, raised brows.
+        return `
+          <circle cx="36" cy="51" r="4.5" fill="white"/>
+          <circle cx="64" cy="51" r="4.5" fill="white"/>
+          <circle cx="36" cy="53" r="2.4" fill="#1a1a1a"/>
+          <circle cx="64" cy="53" r="2.4" fill="#1a1a1a"/>
+          <circle cx="36.6" cy="51.6" r="1" fill="white"/>
+          <circle cx="64.6" cy="51.6" r="1" fill="white"/>
+          <path d="M 28 41 Q 36 38 44 42" stroke="#1a1a1a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <path d="M 56 42 Q 64 38 72 41" stroke="#1a1a1a" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+      case 'wave':
+      case 'music':
+      case 'party':
+      case 'focused':
+      default:
+        // Default round shiny eyes.
+        return `
+          <circle cx="36" cy="50" r="4.8" fill="white"/>
+          <circle cx="64" cy="50" r="4.8" fill="white"/>
+          <circle cx="37" cy="51" r="2.6" fill="#1a1a1a"/>
+          <circle cx="65" cy="51" r="2.6" fill="#1a1a1a"/>
+          <circle cx="38" cy="49.5" r="1.1" fill="white"/>
+          <circle cx="66" cy="49.5" r="1.1" fill="white"/>`;
+    }
+  })();
+
+  return `${patches}<g class="panda-eyes">${pupils}</g>`;
+}
+
+function pandaMouth(mood) {
+  switch (mood) {
+    case 'sleep':
+      // Tiny open yawn-mouth.
+      return `<ellipse cx="50" cy="68" rx="3.2" ry="2.6" fill="#1a1a1a"/>`;
+    case 'cheer':
+    case 'party':
+      // Big open laugh smile with tongue.
+      return `
+        <path d="M 41 64 Q 50 76 59 64 Q 50 67 41 64 Z" fill="#1a1a1a"/>
+        <path d="M 45 70 Q 50 74 55 70 Q 50 73 45 70 Z" fill="#ff5577"/>`;
+    case 'proud':
+      // Confident smile.
+      return `
+        <path d="M 42 65 Q 50 73 58 65" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    case 'pumped':
+    case 'excited':
+      // Open round mouth (gasp/excited).
+      return `
+        <ellipse cx="50" cy="68" rx="5" ry="4.4" fill="#1a1a1a"/>
+        <ellipse cx="50" cy="69.5" rx="3" ry="2.4" fill="#ff5577"/>`;
+    case 'concerned':
+      // Frown.
+      return `<path d="M 43 70 Q 50 65 57 70" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    case 'love':
+      // Tiny smile with blushy curve.
+      return `<path d="M 44 66 Q 50 71 56 66" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    case 'cool':
+      // Smirk.
+      return `<path d="M 44 67 Q 52 70 58 65" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    case 'star':
+      // Big "wow" mouth.
+      return `<ellipse cx="50" cy="68" rx="4" ry="5" fill="#1a1a1a"/>`;
+    case 'wave':
+    case 'music':
+    case 'focused':
+    default:
+      // Gentle default smile.
+      return `<path d="M 46 65 Q 50 69 54 65" stroke="#1a1a1a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+  }
+}
+
+function pandaCheeks(mood) {
+  // Pink cheek blush — brighter for cute moods, hidden for cool/concerned.
+  const opacity = (mood === 'cool' || mood === 'concerned') ? 0
+                : (mood === 'love' || mood === 'cheer' || mood === 'proud') ? 1.0
+                : 0.75;
+  if (opacity === 0) return '';
+  const r = (mood === 'love' || mood === 'cheer') ? 6 : 5;
+  return `
+    <ellipse cx="22" cy="64" rx="${r}" ry="${r - 1}" fill="#ffb1c1" opacity="${opacity}"/>
+    <ellipse cx="78" cy="64" rx="${r}" ry="${r - 1}" fill="#ffb1c1" opacity="${opacity}"/>`;
+}
+
+function pandaOverlay(mood) {
+  switch (mood) {
+    case 'sleep':
+      return `
+        <text x="64" y="32" fill="#7c5fd6" font-size="13" font-weight="900" class="zzz">z</text>
+        <text x="74" y="22" fill="#7c5fd6" font-size="10" font-weight="900" class="zzz z2">z</text>
+        <text x="82" y="14" fill="#7c5fd6" font-size="8"  font-weight="900" class="zzz z3">z</text>`;
+    case 'cheer':
+    case 'proud':
+      return `
+        <text x="10" y="22" font-size="13" class="sparkle">✨</text>
+        <text x="82" y="38" font-size="10" class="sparkle s2">✨</text>
+        <text x="14" y="78" font-size="9"  class="sparkle s3">✨</text>`;
+    case 'concerned':
+      return `<ellipse cx="36" cy="60" rx="2" ry="3" fill="#7ec8e3" opacity="0.9" class="tear"/>`;
+    case 'love':
+      return `
+        <text x="14" y="22" font-size="13" fill="#ff5577" class="heart-float">♥</text>
+        <text x="80" y="32" font-size="10" fill="#ff5577" class="heart-float h2">♥</text>
+        <text x="20" y="80" font-size="9"  fill="#ff5577" class="heart-float h3">♥</text>`;
+    case 'pumped':
+    case 'excited':
+      return `
+        <text x="12" y="22" font-size="12" class="sparkle">⚡</text>
+        <text x="80" y="40" font-size="10" class="sparkle s2">⚡</text>`;
+    case 'star':
+      return `
+        <text x="12" y="22" font-size="11" class="sparkle">⭐</text>
+        <text x="82" y="36" font-size="9"  class="sparkle s2">⭐</text>`;
+    case 'music':
+      return `
+        <text x="78" y="30" font-size="14" fill="#9b3fff" class="note">♪</text>
+        <text x="86" y="20" font-size="11" fill="#9b3fff" class="note n2">♫</text>`;
+    case 'party':
+      return `
+        <text x="12" y="22" font-size="12" class="sparkle">🎉</text>
+        <text x="78" y="34" font-size="10" class="sparkle s2">🎊</text>
+        <text x="18" y="80" font-size="9"  class="sparkle s3">🎉</text>`;
+    case 'wave':
+      // Waving paw poking up from bottom-left.
+      return `
+        <g class="paw-wave">
+          <ellipse cx="22" cy="80" rx="6" ry="4" fill="#222"/>
+          <circle cx="20" cy="76" r="1.4" fill="#222"/>
+          <circle cx="23" cy="74" r="1.4" fill="#222"/>
+          <circle cx="26" cy="76" r="1.4" fill="#222"/>
+        </g>`;
+    case 'cool':
+      // No overlay needed — sunglasses are in the eyes layer.
+      return '';
+    default:
+      return '';
+  }
+}
+
+function pandaSvg(mood) {
+  return `<svg class="panda-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g class="panda-body">
+      ${pandaEars(mood)}
+      <ellipse cx="50" cy="56" rx="34" ry="32" fill="white" stroke="#e6e6e6" stroke-width="0.6"/>
+      ${pandaCheeks(mood)}
+      ${pandaEyes(mood)}
+      <ellipse cx="50" cy="60" rx="2.6" ry="1.8" fill="#1a1a1a"/>
+      ${pandaMouth(mood)}
+    </g>
+    ${pandaOverlay(mood)}
+  </svg>`;
+}
 
 function nameOrFriend() {
   return state.name && state.name.trim() ? state.name.trim() : 'friend';
@@ -3877,22 +4216,27 @@ function maybeShowWelcomeBack() {
   else if (hoursAway >= 96) pendingWelcomeBackPool = MESSAGES.missedYouLong;
 }
 
+// A short-lived mood override set by tapping the panda — lets the user cycle
+// through the fun expressions even when the game state would otherwise pick
+// a single mood.
+let _moodOverride = null;
+let _moodOverrideTimer = null;
+
+function activeMood() {
+  return _moodOverride || pickMood();
+}
+
 function renderMascot() {
-  const mood = pickMood();
+  const mood = activeMood();
   const el = document.getElementById('mascotEl');
-  el.textContent = MOOD_EMOJI[mood] || '🐼';
   el.style.background = MOOD_BG[mood] || MOOD_BG.default;
-
-  // Single mood-based decoration overlay (no sticker-driven accessories)
-  el.querySelectorAll('.accessory').forEach(n => n.remove());
-  const decor = MOOD_DECOR[mood];
-  if (decor) {
-    const span = document.createElement('span');
-    span.className = 'accessory top';
-    span.textContent = decor;
-    el.appendChild(span);
-  }
-
+  // Replace mood-* class for animation hooks (e.g. .mood-pumped pump bounce).
+  el.className = el.className
+    .split(' ')
+    .filter(c => !c.startsWith('mood-'))
+    .concat(`mood-${mood}`)
+    .join(' ');
+  el.innerHTML = pandaSvg(mood);
   document.getElementById('speech').innerHTML = pickMessage();
 }
 
@@ -3900,8 +4244,22 @@ function onMascotTap() {
   mascotMsgIdx++;
   pendingWelcomeBackPool = null;
   const el = document.getElementById('mascotEl');
-  el.classList.add('bounce');
-  setTimeout(() => el.classList.remove('bounce'), 500);
+
+  // Cycle through fun moods on tap so all expressions are discoverable. The
+  // override clears after a few seconds and the natural game-state mood
+  // returns.
+  const next = FUN_MOODS[mascotMsgIdx % FUN_MOODS.length];
+  _moodOverride = next;
+  if (_moodOverrideTimer) clearTimeout(_moodOverrideTimer);
+  _moodOverrideTimer = setTimeout(() => {
+    _moodOverride = null;
+    renderMascot();
+  }, 3500);
+
+  el.classList.remove('bounce', 'wiggle');
+  void el.offsetWidth; // restart animation
+  el.classList.add(mascotMsgIdx % 2 === 0 ? 'bounce' : 'wiggle');
+  setTimeout(() => el.classList.remove('bounce', 'wiggle'), 500);
   Sound.playPop();
   renderMascot();
 }
@@ -3998,6 +4356,23 @@ function renderTopBar() {
   document.getElementById('bucksNum').textContent = bucks;
   document.getElementById('streakPill').classList.toggle('active', streak > 0);
   document.getElementById('bucksPill').classList.toggle('active', bucks > 0);
+
+  const nameEl = document.getElementById('topbarName');
+  if (nameEl) {
+    const name = (state.name || '').trim();
+    if (name) {
+      nameEl.classList.remove('empty');
+      nameEl.textContent = '';
+      const wave = document.createElement('span');
+      wave.className = 'wave';
+      wave.textContent = '👋';
+      nameEl.appendChild(wave);
+      nameEl.appendChild(document.createTextNode(name));
+    } else {
+      nameEl.classList.add('empty');
+      nameEl.textContent = 'Pandi';
+    }
+  }
 
   // Freeze sub-pill — show only when there are freezes
   const freezeSub = document.getElementById('freezeSub');
@@ -5118,6 +5493,7 @@ setTimeout(() => {
 function onNameChange() {
   state.name = document.getElementById('nameInput').value;
   saveState();
+  renderTopBar();
 }
 
 function toggleSound() {
