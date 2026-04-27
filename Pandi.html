@@ -1229,6 +1229,12 @@
   .settings-toggle:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--border); }
   .settings-toggle .st-icon { font-size: 22px; line-height: 1; }
   .settings-toggle .st-label { flex: 1; }
+  .settings-toggle .st-pin {
+    font-size: 14px;
+    opacity: 0.55;
+    line-height: 1;
+  }
+  .settings-toggle.expanded .st-pin { display: none; }
   .settings-toggle .st-chev {
     font-size: 22px;
     color: var(--text-light);
@@ -2086,10 +2092,11 @@
     </div>
   </div>
 
-  <!-- === Settings & More (collapsible — was: Me tab) === -->
+  <!-- === Settings & More (collapsible, PIN-protected — was: Me tab) === -->
   <button class="settings-toggle" id="settingsToggle" onclick="toggleSettings()" aria-expanded="false">
     <span class="st-icon">⚙️</span>
     <span class="st-label">Settings &amp; More</span>
+    <span class="st-pin">🔐</span>
     <span class="st-chev">›</span>
   </button>
   <div class="settings-content" id="settingsContent">
@@ -3082,12 +3089,19 @@ function renderMeIfActive() {
   if (document.getElementById('stats-panel').classList.contains('active')) renderMe();
 }
 
-/* ============= SETTINGS TOGGLE (collapsible Me content) ============= */
-function toggleSettings() {
+/* ============= SETTINGS TOGGLE (collapsible Me content, PIN-protected) ============= */
+async function toggleSettings() {
   const btn = document.getElementById('settingsToggle');
   const content = document.getElementById('settingsContent');
   if (!btn || !content) return;
   const willOpen = !content.classList.contains('expanded');
+
+  if (willOpen) {
+    // Opening requires parent PIN — keeps kid out of name/settings/parent tools/sync.
+    const ok = await requireParent();
+    if (!ok) return;
+  }
+
   content.classList.toggle('expanded', willOpen);
   btn.classList.toggle('expanded', willOpen);
   btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
