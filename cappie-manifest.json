@@ -1,29 +1,29 @@
 {
-  "name": "Pandi — Daily quests with your panda",
-  "short_name": "Pandi",
+  "name": "Cappie — Daily quests with your capybara",
+  "short_name": "Cappie",
   "description": "A daily-quest companion for kids. Piano, reading, math, and badminton — gamified with streaks, a sticker album, and Daddy Bucks.",
-  "start_url": "./Pandi.html",
+  "start_url": "./Cappie.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fffefa",
-  "theme_color": "#6dbf47",
+  "background_color": "#fff4e0",
+  "theme_color": "#b07a4f",
   "categories": ["education", "kids", "productivity", "lifestyle"],
   "icons": [
     {
-      "src": "pandi-icon-192.png",
+      "src": "cappie-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "pandi-icon-512.png",
+      "src": "cappie-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "pandi-icon-1024.png",
+      "src": "cappie-icon-1024.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
