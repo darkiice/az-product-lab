@@ -119,7 +119,8 @@
     font-weight: 900;
   }
   .stat-pill.streak .freeze-sub .freeze-ico { font-size: 11px; }
-  .stat-pill.bucks { color: var(--yellow-dark); }
+  .stat-pill.bucks { color: var(--yellow-dark); cursor: pointer; }
+  .stat-pill.bucks:active { transform: scale(0.94); }
   .stat-pill.bucks .icon { filter: grayscale(0.3); }
   .stat-pill.bucks.active { color: var(--yellow-dark); }
   .stat-pill.bucks.active .icon { filter: none; animation: coin-spin 0.5s; }
@@ -163,17 +164,17 @@
     flex-shrink: 0;
     width: 88px;
     height: 88px;
-    background: linear-gradient(135deg, #ffffff 0%, #f0e1ff 100%);
-    border: 3px solid var(--green);
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
+    border-radius: 22%;
+    display: block;
     user-select: none;
     cursor: pointer;
-    transition: transform 0.15s, background 0.4s;
-    overflow: hidden;
+    transition: transform 0.15s;
     position: relative;
     line-height: 1;
+    /* Soft drop shadow so the icon "lifts" off the page like a sticker. */
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.12));
+    /* Idle breathing applied to the whole icon now that the body is a PNG. */
+    animation: cappie-breathe 3.6s ease-in-out infinite;
   }
   .mascot:active { transform: scale(0.94); }
   .mascot.bounce { animation: mascot-bounce 0.5s; }
@@ -188,30 +189,28 @@
     25% { transform: translateX(-3px) rotate(-3deg); }
     75% { transform: translateX(3px) rotate(3deg); }
   }
-  /* SVG capybara fills the circular mascot frame */
-  .mascot .cappie-svg {
+  @keyframes cappie-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.025); }
+  }
+  /* Capybara icon image fills the rounded mascot frame. */
+  .mascot .cappie-img {
     width: 100%;
     height: 100%;
     display: block;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+  /* Floating mood overlays sit above the icon and may extend past its edges. */
+  .mascot .cappie-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     overflow: visible;
-  }
-  /* Idle breathing — gentle scale */
-  .mascot .cappie-body {
-    transform-origin: 50px 60px;
-    animation: cappie-breathe 3.6s ease-in-out infinite;
-  }
-  @keyframes cappie-breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.025); }
-  }
-  /* Idle blink — squish eye groups vertically */
-  .mascot .cappie-eyes {
-    transform-origin: 50px 52px;
-    animation: cappie-blink 5.4s infinite;
-  }
-  @keyframes cappie-blink {
-    0%, 92%, 100% { transform: scaleY(1); }
-    94%, 96%     { transform: scaleY(0.1); }
+    pointer-events: none;
   }
   /* Floating Z's for sleep mood */
   .mascot .zzz {
@@ -290,9 +289,9 @@
     0%, 100% { transform: scale(1); }
     50%      { transform: scale(1.15) rotate(8deg); }
   }
-  /* Excited bounce for pumped */
-  .mascot.mood-pumped .cappie-body,
-  .mascot.mood-excited .cappie-body {
+  /* Excited bounce for pumped — overrides the idle breathe animation. */
+  .mascot.mood-pumped,
+  .mascot.mood-excited {
     animation: cappie-pump 0.8s ease-in-out infinite;
   }
   @keyframes cappie-pump {
@@ -799,10 +798,11 @@
     flex-shrink: 0;
     line-height: 1;
   }
-  .ar-icon.piano    { background: var(--purple); }
-  .ar-icon.reading  { background: var(--blue); }
-  .ar-icon.math     { background: var(--orange); }
+  .ar-icon.piano     { background: var(--purple); }
+  .ar-icon.reading   { background: var(--blue); }
+  .ar-icon.math      { background: var(--orange); }
   .ar-icon.badminton { background: var(--pink); }
+  .ar-icon.cleanup   { background: var(--mint); }
   .ar-name { flex: 1; font-size: 14px; font-weight: 900; }
   .ar-count { font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums; }
   .ar-bar {
@@ -1959,7 +1959,7 @@
     main, .panel { max-width: 700px; }
 
     /* Bigger mascot + speech bubble at this size */
-    .mascot { width: 110px; height: 110px; font-size: 70px; border-width: 4px; }
+    .mascot { width: 110px; height: 110px; font-size: 70px; }
     .mascot .accessory { font-size: 26px; }
     .speech { font-size: 16px; padding: 16px 18px; }
     .speech::before { top: 28px; }
@@ -2063,7 +2063,7 @@
     <span class="freeze-sub" id="freezeSub" style="display:none;"><span class="freeze-ico">❄️</span><span id="freezeNum">0</span></span>
   </div>
   <div class="topbar-name empty" id="topbarName">Cappie</div>
-  <div class="stat-pill bucks" id="bucksPill">
+  <div class="stat-pill bucks" id="bucksPill" role="button" tabindex="0" aria-label="Open Bucks tab" onclick="goToTab('bucks')">
     <span class="icon">💰</span><span class="num" id="bucksNum">0</span>
   </div>
 </header>
@@ -2078,7 +2078,7 @@
       <div class="mascot-col">
         <div class="mascot" id="mascotEl" onclick="onMascotTap()" aria-label="Cappie the capybara mascot"></div>
       </div>
-      <div class="speech" id="speech">Hi! I'm Cappie 🦫 Let's do today!</div>
+      <div class="speech" id="speech">Hi! I'm Cappie. Let's do today!</div>
     </div>
 
     <div id="todayHero"></div>
@@ -2120,17 +2120,6 @@
       <span class="cta-lbl">Cash Out</span>
       <span class="cta-pin">🔐</span>
     </button>
-  </div>
-
-  <div class="bucks-stats-row">
-    <div class="big-stat green">
-      <div class="label">📅 This week</div>
-      <div class="value"><span id="bucksThisWeek">0</span><span class="unit">DB</span></div>
-    </div>
-    <div class="big-stat purple">
-      <div class="label">🏆 Total earned</div>
-      <div class="value"><span id="bucksTotal">0</span><span class="unit">DB</span></div>
-    </div>
   </div>
 
   <div class="chart-card">
@@ -3324,7 +3313,7 @@ const QUESTS = {
     icon: '🧹',
     color: 'teal',
     required: false,
-    suggested: '5–10 minutes',
+    suggested: '5–15 minutes',
     desc: "Clean up your play area! A tidy space = a clear mind. Plus: rewards stay unlocked when you tidy at least once a week.",
     tips: [
       "<strong>Start with the biggest stuff.</strong> Pick up the things on the floor first — the room transforms fast.",
@@ -4094,22 +4083,14 @@ function cappieOverlay(mood) {
   }
 }
 
+// The capybara face itself is rendered as the static Cappie icon PNG (see
+// renderMascot). This SVG layer only carries the mood-based floating
+// decorations (zzz, hearts, sparkles, music notes, waving paw, etc.) which
+// sit on top of the icon and can extend past its edges.
 function cappieSvg(mood) {
-  return `<svg class="cappie-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <g class="cappie-body">
-      ${cappieTuftAndEars(mood)}
-      <!-- Main brown face (drawn after ears so it overlaps their bottom edges) -->
-      <ellipse cx="50" cy="58" rx="36" ry="33" fill="${CAPPIE_FUR}" stroke="${CAPPIE_OUTLINE}" stroke-width="1.6"/>
-      <!-- Lighter cream muzzle (large oval covering lower-center) -->
-      <ellipse cx="50" cy="70" rx="22" ry="18" fill="${CAPPIE_MUZZLE}"/>
-      ${cappieCheeks(mood)}
-      ${cappieEyebrows(mood)}
-      ${cappieEyes(mood)}
-      ${cappieNose(mood)}
-      ${cappieMouth(mood)}
-    </g>
-    ${cappieOverlay(mood)}
-  </svg>`;
+  const overlay = cappieOverlay(mood);
+  if (!overlay) return '';
+  return `<svg class="cappie-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${overlay}</svg>`;
 }
 
 function nameOrFriend() {
@@ -4118,51 +4099,51 @@ function nameOrFriend() {
 
 const MESSAGES = {
   start: [
-    () => `Hi! I'm Cappie 🦫 Let's get started!`,
+    () => `Hi! I'm Cappie. Let's get started!`,
     () => `New day, new quests! Ready, ${nameOrFriend()}?`,
     () => `Tap a quest below to begin 🌟`
   ],
   morning: [
-    () => `Morning, ${nameOrFriend()}! Today's quests are ready 🦫`,
+    () => `Morning, ${nameOrFriend()}! Today's quests are ready`,
     () => `<strong>Piano</strong> 🎹 and <strong>reading</strong> 📖 every day — you got this.`,
     () => `Will it be <strong>math</strong> 🔢 or <strong>badminton</strong> 🏸 today?`
   ],
   afternoon: [
-    () => `Afternoon snack? Then quests! 🦫`,
+    () => `Afternoon snack? Then quests!`,
     () => `7pm is piano + adventure time. Ready?`,
     () => `${nameOrFriend()}! How was school? Let's tackle today 💪`
   ],
   evening: [
     () => `Quest time! Piano first, or reading? You pick.`,
     () => `Don't forget reading before bed 📖`,
-    () => `Cappie believes in you 🦫`
+    () => `Cappie believes in you`
   ],
   partial: [
     (s) => `Nice start! <strong>${s.questsLeft}</strong> more to finish today.`,
-    () => `Halfway there! Keep the momentum 🦫`,
+    () => `Halfway there! Keep the momentum`,
     () => `One more push and the day is done 💪`
   ],
   cheer: [
     () => `Boom! 🎉 Quest done!`,
-    () => `Amazing, ${nameOrFriend()}! Cappie is proud 🦫`,
+    () => `Amazing, ${nameOrFriend()}! Cappie is proud`,
     () => `That's the stuff! Keep going ⚡`,
     () => `One step closer to a Daddy Buck 💰`
   ],
   proud: [
     (s) => `🏆 Today is <strong>complete</strong>! Streak: <strong>${s.streak}</strong> 🔥`,
-    (s) => `All done! ${s.streak >= 3 ? 'Cappie is dancing 🦫💃' : 'Tomorrow we do it again!'}`,
+    (s) => `All done! ${s.streak >= 3 ? 'Cappie is dancing 💃' : 'Tomorrow we do it again!'}`,
     () => `Day complete! Time to <strong>relax</strong> 🌿`
   ],
   sleep: [
     () => `Zzz... oh hi! Time for bed 💤`,
-    () => `Cappie is sleepy. You should be too 🦫💤`,
+    () => `Cappie is sleepy. You should be too 💤`,
     () => `Tomorrow's quests are waiting!`
   ],
   concerned: [
     () => `🥺 Your play area needs some love, ${nameOrFriend()}…`,
     () => `Cappie is sad. The room hasn't been tidy in a while 🥺`,
     () => `Tidy up so we can spend bucks again 🧹`,
-    () => `A messy room is making Cappie sigh… 🦫💨`
+    () => `A messy room is making Cappie sigh… 💨`
   ],
   midJourney: [
     (s) => `<strong>${s.daysComplete}</strong> days complete! 🎊`,
@@ -4170,19 +4151,19 @@ const MESSAGES = {
     (s) => `Quests today, bucks tomorrow.`
   ],
   missedYouShort: [
-    () => `There you are! 🦫 I missed you.`,
+    () => `There you are! I missed you.`,
     () => `Welcome back, ${nameOrFriend()}!`,
     () => `Cappie was waiting all day for you.`
   ],
   missedYouMedium: [
     () => `🥺 A few days! Glad you're back, ${nameOrFriend()}.`,
-    () => `Cappie did a little capybara sigh of relief 🦫`,
+    () => `Cappie did a little capybara sigh of relief`,
     () => `No worries — let's pick right back up.`
   ],
   missedYouLong: [
     () => `🥺 ${nameOrFriend()}! Long time. Cappie missed you.`,
     () => `The album is still here, the quests are still here. Let's go.`,
-    () => `One quest at a time. You got this 🦫`
+    () => `One quest at a time. You got this`
   ]
 };
 
@@ -4257,14 +4238,17 @@ function activeMood() {
 function renderMascot() {
   const mood = activeMood();
   const el = document.getElementById('mascotEl');
-  el.style.background = MOOD_BG[mood] || MOOD_BG.default;
   // Replace mood-* class for animation hooks (e.g. .mood-pumped pump bounce).
   el.className = el.className
     .split(' ')
     .filter(c => !c.startsWith('mood-'))
     .concat(`mood-${mood}`)
     .join(' ');
-  el.innerHTML = cappieSvg(mood);
+  // The capybara face is the static Cappie icon; mood is conveyed via floating
+  // overlay decorations (sparkles, hearts, zzz, etc.) and container animations.
+  el.innerHTML =
+    `<img class="cappie-img" src="cappie-icon-192.png" alt="Cappie the capybara" draggable="false">` +
+    cappieSvg(mood);
   document.getElementById('speech').innerHTML = pickMessage();
 }
 
@@ -4665,7 +4649,7 @@ function renderStreakBanner() {
 }
 
 function streakMessage(s) {
-  if (s >= 30) return 'Cappie is in awe 🦫✨';
+  if (s >= 30) return 'Cappie is in awe ✨';
   if (s >= 14) return 'You are unstoppable!';
   if (s >= 7) return 'A whole week. Keep going!';
   if (s >= 3) return 'Three+ days strong 💪';
@@ -4889,11 +4873,8 @@ document.getElementById('modal').addEventListener('click', e => {
 /* ============= BUCKS PANEL ============= */
 function renderBucksPanel() {
   const bucks = state.bucks || 0;
-  const total = state.bucksTotalEarned || 0;
   const week = bucksThisWeek();
   document.getElementById('bucksBalance').textContent = bucks;
-  document.getElementById('bucksTotal').textContent = total;
-  document.getElementById('bucksThisWeek').textContent = week;
 
   // Rotating wise words
   const subEl = document.getElementById('bucksSub');
@@ -5571,7 +5552,7 @@ function celebrateBig() {
   const c = document.getElementById('confetti');
   c.innerHTML = '';
   c.classList.add('show');
-  const emojis = ['🎉','🌟','🦫','💚','⚡','🌸','🔥','✨','🎀','🏆'];
+  const emojis = ['🎉','🌟','🌿','💚','⚡','🌸','🔥','✨','🎀','🏆'];
   for (let i = 0; i < 36; i++) {
     const span = document.createElement('span');
     span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
@@ -5584,17 +5565,21 @@ function celebrateBig() {
 }
 
 /* ============= TABS ============= */
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab + '-panel').classList.add('active');
-    if (btn.dataset.tab === 'bucks') renderBucksPanel();
-    if (btn.dataset.tab === 'stats') { renderStats(); renderMe(); }
-    Sound.playPop();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+function goToTab(name) {
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
   });
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('active', p.id === name + '-panel');
+  });
+  if (name === 'bucks') renderBucksPanel();
+  if (name === 'stats') { renderStats(); renderMe(); }
+  Sound.playPop();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => goToTab(btn.dataset.tab));
 });
 
 /* ============= MAIN RENDER ============= */
