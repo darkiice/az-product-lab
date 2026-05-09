@@ -2646,7 +2646,9 @@
     <div id="bestsList"></div>
   </div>
 
-  <div class="chart-card" style="margin-top:14px;">
+  <!-- Tax feature is hidden behind TAXES_ENABLED. Flip the flag back to
+       true (top of script) to bring Tax History + TT4K back. -->
+  <div class="chart-card" id="taxHistoryCard" style="margin-top:14px;display:none;">
     <h3>🧾 Tax History</h3>
 
     <!-- Tax PIN — reuses the cloud sync short code as the family's tax PIN.
@@ -3011,6 +3013,13 @@
 <div class="confetti" id="confetti"></div>
 
 <script>
+/* ============= FEATURE FLAGS =============
+   Toggle TAXES_ENABLED back to true to bring the TurboTax for Kids
+   integration online (Tax History card on Stats, monthly withholding,
+   refund processing). When false, the feature is hidden and any
+   previously-withheld DB is auto-refunded so her balance is whole. */
+const TAXES_ENABLED = false;
+
 /* ============= STATE ============= */
 const STORAGE_KEY = 'pandi-state-v1';
 const defaultState = {
@@ -6053,6 +6062,7 @@ function renderStats() {
 
 /* ============= TAX HISTORY (in Stats tab) ============= */
 function renderTaxHistory() {
+  if (!TAXES_ENABLED) return;     // card is hidden, skip the work
   ensureTaxState();
   const t = state.taxes;
   const listEl = document.getElementById('taxHistoryList');
@@ -6464,6 +6474,7 @@ function earningsForMonth(key) {
 // each month's earnings. Idempotent — checks taxes.withholdings before
 // writing so re-runs are safe.
 function runMonthlyTaxWithholding() {
+  if (!TAXES_ENABLED) return;     // taxes feature is hidden
   ensureTaxState();
   const now = new Date();
   const currentMonth = monthKey(now);
@@ -6511,9 +6522,44 @@ function nextMonthKey(key) {
   return monthKey(x);
 }
 
+// One-time migration when the tax feature is turned OFF. Refunds any
+// previously-withheld DB that was never refunded via TT4K, so her balance
+// reflects "no taxes ever happened". Marker on state.taxes prevents
+// repeat refunds on subsequent loads.
+function maybeRefundOnTaxesDisabled() {
+  if (TAXES_ENABLED) return;
+  if (!state || !state.taxes) return;
+  if (state.taxes._featureOffRefundedAt) return;   // already migrated
+  const withheld = state.taxes.totalWithheld || 0;
+  const refunded = state.taxes.totalRefunded || 0;
+  const owed = Math.max(0, withheld - refunded);
+  if (owed > 0) {
+    state.bucks = (state.bucks || 0) + owed;
+    state.bucksTotalEarned = (state.bucksTotalEarned || 0) + owed;
+    state.bucksLedger = state.bucksLedger || [];
+    state.bucksLedger.unshift({
+      ts: Date.now(),
+      amount: +owed,
+      reason: `🧾 Tax program paused · refund`
+    });
+    if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+    showToast(`🧾 +${owed} DB returned (tax program paused)`, 'gold');
+  }
+  // Clear the tax ledger so a future re-enable starts fresh and idempotent.
+  state.taxes._featureOffRefundedAt = Date.now();
+  state.taxes.withholdings = {};
+  state.taxes.totalWithheld = 0;
+  state.taxes.totalRefunded = 0;
+  state.taxes.totalTaxPaid = 0;
+  state.taxes.lastSweepMonth = null;
+  state.taxes.pendingRefund = null;
+  saveState();
+}
+
 // Inbox pattern: TT4K writes state.taxes.pendingRefund; Cappie applies on
 // next load. Idempotent — checks against existing filings[].period.
 function applyPendingRefund() {
+  if (!TAXES_ENABLED) return;     // taxes feature is hidden
   ensureTaxState();
   const pending = state.taxes.pendingRefund;
   if (!pending || !pending.period || typeof pending.amount !== 'number' || pending.amount <= 0) {
@@ -6838,8 +6884,13 @@ processInvestmentPayouts();
 
 // Tax engine: withhold for any completed months we haven't swept yet, then
 // credit any refund TT4K dropped into the inbox since last load.
+// (Both functions early-return when TAXES_ENABLED is false.)
 runMonthlyTaxWithholding();
 applyPendingRefund();
+
+// One-time refund of any previously-withheld DB if the tax feature has been
+// turned off — keeps her balance whole when we hide the feature later.
+maybeRefundOnTaxesDisabled();
 
 rerender();
 
