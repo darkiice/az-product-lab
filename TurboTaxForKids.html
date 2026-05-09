@@ -7,8 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="TT for Kids" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <title>TurboTax for Kids</title>
 
+<link rel="manifest" href="tt4k-manifest.json" />
 <link rel="apple-touch-icon" href="tt4k-icon.png" />
 <link rel="icon" type="image/png" href="tt4k-icon.png" />
 
@@ -403,15 +405,21 @@
     border-color: var(--watermelon-70);
     color: var(--watermelon-90);
   }
+  .coin.refund {
+    background: #ffe9c2;
+    border-color: #ffb84d;
+    color: #a8660a;
+  }
   .coin-legend {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 18px;
+    gap: 14px;
+    flex-wrap: wrap;
     font-size: 12px;
     font-weight: 700;
     color: var(--pepper-90);
-    margin-top: 8px;
+    margin-top: 10px;
   }
   .coin-legend .lg-dot {
     display: inline-block;
@@ -420,6 +428,68 @@
     margin-right: 5px;
     vertical-align: middle;
   }
+
+  /* ============= PARENT PIN (Expert Final Review) ============= */
+  .pin-prompt-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--pepper-60);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .pin-input-tt4k {
+    display: block;
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+    background: var(--tofu-warm);
+    border: 2px solid var(--pepper-30);
+    border-radius: 14px;
+    padding: 18px 20px;
+    font-family: var(--mono, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.4em;
+    color: var(--pepper-120);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .pin-input-tt4k::placeholder { color: var(--pepper-30); letter-spacing: 0.3em; }
+  .pin-input-tt4k:focus {
+    border-color: var(--watermelon-70);
+    box-shadow: 0 0 0 3px rgba(219, 51, 77, 0.15);
+  }
+  .pin-input-tt4k.shake { animation: pin-shake 0.45s; border-color: var(--watermelon-70); }
+  @keyframes pin-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  .pin-err {
+    text-align: center;
+    color: var(--watermelon-70);
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 18px;
+    margin-top: 10px;
+  }
+  .pin-no-setup {
+    background: var(--tofu-warm);
+    border: 1.5px dashed var(--pepper-30);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pepper-90);
+    line-height: 1.5;
+    text-align: left;
+  }
+  .pin-no-setup strong { color: var(--pepper-120); }
 
   /* ============= REVIEW BIG NUMBERS ============= */
   .review-grid {
@@ -676,22 +746,41 @@
   <section class="screen" id="screen-deductions">
     <div class="step-dots" data-step="3"></div>
     <div class="step-eyebrow"><span class="step-num">2</span> Deductions</div>
-    <h2 class="step-title">How taxes actually work</h2>
-    <p class="step-sub">Cappie takes 10% out of every paycheck — but you don't actually owe that much. Real tax is just $1 for every $20 you earn.</p>
+    <h2 class="step-title">How taxes work</h2>
+    <p class="step-sub">Every time you earn money, a little bit goes to taxes. Here's what's happening with your Daddy Bucks.</p>
 
     <div class="card feature">
-      <div style="font-size:13px; font-weight:800; color:var(--pepper-120); text-transform:uppercase; letter-spacing:0.1em; text-align:center; margin-bottom:6px;">For every $20 you earn</div>
+      <div style="font-size:13px; font-weight:800; color:var(--pepper-120); text-transform:uppercase; letter-spacing:0.1em; text-align:center; margin-bottom:8px;">For every <strong>$20</strong> you earn</div>
       <div class="coin-grid" id="coinGrid"></div>
       <div class="coin-legend">
-        <span><span class="lg-dot" style="background:var(--green);"></span>You keep $19</span>
-        <span><span class="lg-dot" style="background:var(--watermelon-70);"></span>Tax: $1</span>
+        <span><span class="lg-dot" style="background:var(--green);"></span>$18 stays with you</span>
+        <span><span class="lg-dot" style="background:var(--watermelon-70);"></span>$1 is the real tax</span>
+        <span><span class="lg-dot" style="background:#ffb84d;"></span>$1 comes back as a refund</span>
       </div>
     </div>
 
     <div class="card callout">
-      <div style="font-size:13px; font-weight:800; color:var(--watermelon-70); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">💡 Fun fact</div>
-      <div style="font-size:14px; font-weight:600; color:var(--pepper-90); line-height:1.5;">
-        Cappie withholds <strong style="color:var(--pepper-120);">$1 for every $10</strong> you earn — but real tax is only <strong style="color:var(--pepper-120);">$1 for every $20</strong>. That's why you get a refund: Cappie took out a little extra, and now you get it back.
+      <div style="font-size:13px; font-weight:800; color:var(--watermelon-70); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">🤔 What are taxes for?</div>
+      <div style="font-size:14px; font-weight:600; color:var(--pepper-90); line-height:1.55;">
+        Taxes are a tiny share of what people earn that goes into a big pot. Families and the government use that pot to pay for things <em>everyone</em> shares — like:
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; margin-top:12px; font-size:13px; font-weight:700; color:var(--pepper-90); line-height:1.4;">
+        <div>🏠 Your house</div>
+        <div>💡 Electricity</div>
+        <div>💧 Water for your bath</div>
+        <div>🧼 Soap, food, clothes</div>
+        <div>🏫 School &amp; books</div>
+        <div>🚒 Firefighters, parks, roads</div>
+      </div>
+      <div style="font-size:13px; font-weight:600; color:var(--pepper-90); line-height:1.55; margin-top:12px;">
+        So when you pay $1 in taxes, you're chipping in for the lights and the water and the library — really cool, right?
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px; font-weight:800; color:var(--pepper-120); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">📦 Why does Cappie hold $2?</div>
+      <div style="font-size:14px; font-weight:600; color:var(--pepper-90); line-height:1.55;">
+        Cappie keeps <strong>$2 of every $20</strong> in a safe spot — that's called <em>withholding</em>. The real tax is only <strong>$1</strong>. So when you file with TurboTax for Kids, the extra <strong>$1</strong> comes right back to your balance as a <strong style="color:var(--watermelon-70);">refund</strong>! 🎉
       </div>
     </div>
 
@@ -740,16 +829,60 @@
 
     <div class="nav-row">
       <button class="nav-back" data-go="deductions" aria-label="Back">‹</button>
-      <button class="cta" data-go="file">Looks great · Continue</button>
+      <button class="cta" data-go="expert">Looks great · Continue</button>
+    </div>
+  </section>
+
+  <!-- EXPERT FINAL REVIEW (Daddy validates with parent PIN) -->
+  <section class="screen" id="screen-expert">
+    <div class="step-dots" data-step="5"></div>
+    <div class="step-eyebrow"><span class="step-num">4</span> Expert Final Review</div>
+    <h2 class="step-title">Daddy needs to check this</h2>
+    <p class="step-sub">Show this screen to your dad. He'll review your numbers and put in his Cappie parent PIN to file the return.</p>
+
+    <div class="card feature" style="text-align:center; padding:22px 18px;">
+      <div style="font-size:11px; font-weight:800; color:var(--pepper-60); text-transform:uppercase; letter-spacing:0.14em; margin-bottom:8px;">Refund summary</div>
+      <div style="font-size:44px; font-weight:800; color:var(--watermelon-70); font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-0.02em;">
+        +<span id="expertRefundAmt">0</span><span style="font-size:16px; opacity:0.7; margin-left:4px;">DB</span>
+      </div>
+      <div style="font-size:13px; font-weight:600; color:var(--pepper-60); margin-top:8px;" id="expertPeriodLabel">Tax period · —</div>
+    </div>
+
+    <!-- PIN entry, shown when Cappie has a PIN set -->
+    <div class="card" id="expertPinCard">
+      <div class="pin-prompt-label">🔐 Daddy's parent PIN</div>
+      <input
+        id="expertPinInput"
+        class="pin-input-tt4k"
+        type="tel"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="6"
+        autocomplete="off"
+        placeholder="• • • •"
+      />
+      <div class="pin-err" id="expertPinErr"></div>
+    </div>
+
+    <!-- Fallback when no PIN has been set yet -->
+    <div class="card" id="expertNoPinCard" style="display:none;">
+      <div class="pin-no-setup">
+        <strong>No parent PIN set yet.</strong> Open Cappie → Stats tab → Settings &amp; More → Parent Tools to set a 4-digit PIN. Then come back here and Daddy can finish the review.
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-back" data-go="review" aria-label="Back">‹</button>
+      <button class="cta" id="expertVerifyBtn">🔐 Verify and Continue</button>
     </div>
   </section>
 
   <!-- FILE -->
   <section class="screen" id="screen-file">
-    <div class="step-dots" data-step="5"></div>
-    <div class="step-eyebrow"><span class="step-num">4</span> File</div>
+    <div class="step-dots" data-step="6"></div>
+    <div class="step-eyebrow"><span class="step-num">5</span> File</div>
     <h2 class="step-title">Ready to file?</h2>
-    <p class="step-sub">When you tap below, your refund goes straight to your Cappie balance. Whoosh!</p>
+    <p class="step-sub">Daddy reviewed it. Tap below and your refund goes straight to your Cappie balance. Whoosh!</p>
 
     <div class="card feature" style="text-align:center; padding:26px 18px;">
       <div style="font-size:13px; font-weight:800; color:var(--pepper-60); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px;">Your refund</div>
@@ -944,7 +1077,7 @@ function renderStepDots() {
   document.querySelectorAll('.step-dots').forEach(holder => {
     const step = Number(holder.dataset.step) || 1;
     holder.innerHTML = '';
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 6; i++) {
       const d = document.createElement('div');
       d.className = 'step-dot';
       if (i < step) d.classList.add('complete');
@@ -954,15 +1087,18 @@ function renderStepDots() {
   });
 }
 
-/* ============= COIN GRID (deductions visual) ============= */
+/* ============= COIN GRID (deductions visual) =============
+   20 coins total: 18 stay with her, 1 is real tax, 1 comes back as refund. */
 function renderCoinGrid() {
   const g = document.getElementById('coinGrid');
   if (!g) return;
-  // 20 coins; 1 watermelon (tax), 19 green (kept). Two rows of 10.
   g.innerHTML = '';
   for (let i = 0; i < 20; i++) {
     const c = document.createElement('div');
-    c.className = 'coin' + (i === 19 ? ' tax' : '');
+    let cls = 'coin';
+    if      (i === 18) cls += ' tax';     // last red coin = real tax
+    else if (i === 19) cls += ' refund';  // last yellow coin = refund back
+    c.className = cls;
     c.textContent = '$1';
     g.appendChild(c);
   }
@@ -1066,7 +1202,11 @@ function renderFile(ret, win, windowOpen) {
   const fileBtn = document.getElementById('fileButton');
   const lockMsg = document.getElementById('fileLockMsg');
   const lockCD = document.getElementById('fileLockCountdown');
-  if (windowOpen && ret.refund > 0 && !alreadyFiled(win.periodId)) {
+
+  // Gate: Daddy must have approved this exact period in this session.
+  const reviewedThisPeriod = expertReviewPassed && expertReviewedPeriod === win.periodId;
+
+  if (windowOpen && ret.refund > 0 && !alreadyFiled(win.periodId) && reviewedThisPeriod) {
     fileBtn.disabled = false;
     fileBtn.classList.remove('locked');
     fileBtn.textContent = `🧾 File My Return · +${ret.refund} DB`;
@@ -1084,12 +1224,81 @@ function renderFile(ret, win, windowOpen) {
     fileBtn.classList.add('locked');
     fileBtn.textContent = '✓ Already filed for this period';
     lockMsg.style.display = 'none';
+  } else if (!reviewedThisPeriod) {
+    fileBtn.disabled = true;
+    fileBtn.classList.add('locked');
+    fileBtn.textContent = '🔐 Daddy needs to approve first';
+    lockMsg.style.display = 'none';
   } else {
     // refund == 0
     fileBtn.disabled = true;
     fileBtn.classList.add('locked');
     fileBtn.textContent = 'No refund this period';
     lockMsg.style.display = 'none';
+  }
+}
+
+/* ============= EXPERT FINAL REVIEW (parent PIN) ============= */
+let expertReviewPassed = false;   // gate for the final File button
+let expertReviewedPeriod = null;  // tracks which period was approved
+
+async function sha256Hex(s) {
+  const buf = new TextEncoder().encode(s);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function renderExpertReview(ret, win) {
+  document.getElementById('expertRefundAmt').textContent = ret.refund;
+  document.getElementById('expertPeriodLabel').textContent = `Tax period · ${win.label}`;
+  const hasPin = !!(state && state.parent && state.parent.pinHash);
+  const pinCard = document.getElementById('expertPinCard');
+  const noPinCard = document.getElementById('expertNoPinCard');
+  const verifyBtn = document.getElementById('expertVerifyBtn');
+  if (hasPin) {
+    pinCard.style.display = '';
+    noPinCard.style.display = 'none';
+    verifyBtn.disabled = false;
+    verifyBtn.classList.remove('locked');
+    verifyBtn.textContent = '🔐 Verify and Continue';
+  } else {
+    pinCard.style.display = 'none';
+    noPinCard.style.display = '';
+    verifyBtn.disabled = true;
+    verifyBtn.classList.add('locked');
+    verifyBtn.textContent = '🔐 PIN required';
+  }
+}
+
+async function tryVerifyExpertPin() {
+  if (!state || !state.parent || !state.parent.pinHash) return;
+  const inp = document.getElementById('expertPinInput');
+  const err = document.getElementById('expertPinErr');
+  const pin = (inp.value || '').trim();
+  err.textContent = '';
+  if (!/^\d{4,6}$/.test(pin)) {
+    err.textContent = 'PIN should be 4–6 digits.';
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    return;
+  }
+  const hash = await sha256Hex(pin);
+  if (hash === state.parent.pinHash) {
+    expertReviewPassed = true;
+    expertReviewedPeriod = activeWindow ? activeWindow.periodId : null;
+    inp.value = '';
+    err.textContent = '';
+    showScreen('file');
+    // Re-render File screen so the button picks up the unlocked state
+    if (activeWindow) {
+      const ret = buildPeriodReturn(activeWindow);
+      const wstate = currentFilingWindow();
+      renderFile(ret, activeWindow, wstate.open);
+    }
+  } else {
+    err.textContent = 'Wrong PIN. Try again.';
+    inp.value = '';
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    inp.focus();
   }
 }
 
@@ -1162,13 +1371,37 @@ function init() {
   const noState = !state;
 
   // If no Cappie state yet, render a friendly "go play first" welcome.
+  // We branch the message based on whether we're running as an installed
+  // PWA (display-mode: standalone) or in Safari, because iOS won't switch
+  // between Safari and a home-screen PWA when you tap an in-page link.
   if (noState) {
-    document.getElementById('welcomeTitle').innerHTML = `Get started in <span class="accent">Cappie</span> first`;
-    document.getElementById('welcomeSub').textContent = `Earn some Daddy Bucks in Cappie, then come back at the next filing day to claim your refund.`;
-    document.getElementById('welcomeCountdown').innerHTML = '';
+    const inStandalone =
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      window.navigator.standalone === true;
+    const titleEl = document.getElementById('welcomeTitle');
+    const subEl   = document.getElementById('welcomeSub');
     const startBtn = document.getElementById('welcomeStart');
-    startBtn.textContent = 'Open Cappie';
-    startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
+    const peekBtn  = document.getElementById('welcomePeek');
+    document.getElementById('welcomeCountdown').innerHTML = '';
+    document.getElementById('welcomeGreet').textContent = `Hi there!`;
+    titleEl.innerHTML = `Get started in <span class="accent">Cappie</span> first`;
+    if (inStandalone) {
+      // Same scope — navigation stays in the standalone view.
+      subEl.textContent = `Earn some Daddy Bucks in Cappie, then come back here at the next filing day to claim your refund.`;
+      startBtn.textContent = 'Open Cappie';
+      startBtn.classList.remove('locked');
+      startBtn.disabled = false;
+      startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
+    } else {
+      // In Safari — tapping any in-page link just navigates Safari, not the
+      // installed Cappie PWA. Tell her to launch Cappie from her home screen.
+      subEl.innerHTML = `Earn some Daddy Bucks in Cappie first. <strong style="color:var(--pepper-120);">Tap the 🦫 Cappie icon on your home screen</strong> to open it — that's where your progress lives.`;
+      startBtn.textContent = '🦫 Open Cappie in this browser instead';
+      startBtn.classList.add('locked');
+      startBtn.disabled = false;
+      startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
+    }
+    if (peekBtn) peekBtn.style.display = 'none';
     return;
   }
 
@@ -1224,6 +1457,7 @@ function init() {
 
   renderIncome(ret, activeWindow);
   renderReview(ret, activeWindow);
+  renderExpertReview(ret, activeWindow);
   renderFile(ret, activeWindow, open);
   renderCoinGrid();
   renderStepDots();
@@ -1232,6 +1466,22 @@ function init() {
     if (!open) return;
     doFile();
   };
+
+  // Expert Final Review: parent PIN verify
+  const verifyBtn = document.getElementById('expertVerifyBtn');
+  const pinInp    = document.getElementById('expertPinInput');
+  if (verifyBtn) verifyBtn.onclick = tryVerifyExpertPin;
+  if (pinInp) {
+    pinInp.addEventListener('input', () => {
+      // Strip any non-digit, cap at 6
+      pinInp.value = pinInp.value.replace(/[^0-9]/g, '').slice(0, 6);
+      const err = document.getElementById('expertPinErr');
+      if (err) err.textContent = '';
+    });
+    pinInp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') tryVerifyExpertPin();
+    });
+  }
 }
 
 init();

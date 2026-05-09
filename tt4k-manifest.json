@@ -1,0 +1,20 @@
+{
+  "name": "TurboTax for Kids",
+  "short_name": "TT for Kids",
+  "description": "Files her taxes twice a year and claims her refund — paired with Cappie.",
+  "start_url": "./TurboTaxForKids.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F4EF",
+  "theme_color": "#DB334D",
+  "categories": ["finance", "education", "kids"],
+  "icons": [
+    {
+      "src": "tt4k-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
