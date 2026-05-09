@@ -1717,6 +1717,17 @@
     border-radius: 12px;
     display: grid; place-items: center;
     flex-shrink: 0;
+    overflow: hidden;
+  }
+  /* Real company-logo image (favicon) sitting inside the .sc-emoji /
+     .hr-emoji tiles. Padding gives the logo breathing room within the
+     rounded square; object-fit:contain keeps non-square logos un-stretched. */
+  .stock-card .sc-emoji .brand-logo,
+  .holding-row .hr-emoji .brand-logo {
+    width: 76%;
+    height: 76%;
+    object-fit: contain;
+    display: block;
   }
   .stock-card .sc-info { flex: 1; min-width: 0; }
   .stock-card .sc-name { font-size: 14px; font-weight: 900; line-height: 1.2; }
@@ -1760,6 +1771,7 @@
     border-radius: 10px;
     display: grid; place-items: center;
     flex-shrink: 0;
+    overflow: hidden;
   }
   .holding-row .hr-info { flex: 1; min-width: 0; }
   .holding-row .hr-name { font-size: 13px; font-weight: 900; }
@@ -2797,16 +2809,31 @@ function getRewards() {
 /* ============= INVESTMENTS CATALOG ============= */
 const SHARE_PRICE = 50;
 const MONTHLY_PAYOUT_PER_SHARE = 1;
+// `domain` drives the company-logo image in the catalog and holdings tiles
+// (via Google's S2 favicon API). The `emoji` is kept as a graceful fallback
+// when the favicon can't load (offline, network blip, etc.).
 const STOCKS = [
-  { id: 'intu', emoji: '💰', name: 'Intuit (INTU)',     tagline: 'TurboTax & QuickBooks. Where Daddy works!', accent: 'green'  },
-  { id: 'goog', emoji: '🔎', name: 'Google (GOOG)',     tagline: 'Search, YouTube, and Android.',             accent: 'red'    },
-  { id: 'meta', emoji: '👥', name: 'Meta (META)',       tagline: 'Instagram, WhatsApp, and Facebook.',        accent: 'purple' },
-  { id: 'msft', emoji: '🪟', name: 'Microsoft (MSFT)',  tagline: 'Windows, Xbox, and Minecraft.',             accent: 'purple' },
-  { id: 'spy',  emoji: '📊', name: 'S&P 500 (SPY)',     tagline: '500 big companies bundled together.',       accent: 'yellow' },
-  { id: 'aapl', emoji: '🍎', name: 'Apple (AAPL)',      tagline: 'iPhones, iPads, and Macs.',                 accent: 'red'    }
+  { id: 'intu', emoji: '💰', name: 'Intuit (INTU)',     tagline: 'TurboTax & QuickBooks. Where Daddy works!', accent: 'green',  domain: 'intuit.com'    },
+  { id: 'goog', emoji: '🔎', name: 'Google (GOOG)',     tagline: 'Search, YouTube, and Android.',             accent: 'red',    domain: 'google.com'    },
+  { id: 'meta', emoji: '👥', name: 'Meta (META)',       tagline: 'Instagram, WhatsApp, and Facebook.',        accent: 'purple', domain: 'meta.com'      },
+  { id: 'msft', emoji: '🪟', name: 'Microsoft (MSFT)',  tagline: 'Windows, Xbox, and Minecraft.',             accent: 'purple', domain: 'microsoft.com' },
+  { id: 'spy',  emoji: '📊', name: 'S&P 500 (SPY)',     tagline: '500 big companies bundled together.',       accent: 'yellow', domain: 'spglobal.com'  },
+  { id: 'aapl', emoji: '🍎', name: 'Apple (AAPL)',      tagline: 'iPhones, iPads, and Macs.',                 accent: 'red',    domain: 'apple.com'     }
 ];
 const PAYOUT_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 function stockById(id) { return STOCKS.find(s => s.id === id) || { id, emoji: '📈', name: id, tagline: '', accent: 'green' }; }
+
+// Icon HTML for a stock. When a domain is set, render an <img> backed by
+// Google's S2 favicon endpoint (returns the company's real logo for any
+// major brand). The emoji is kept underneath as a fallback that shows if
+// the image fails to load (onerror swap). No API key, works offline only
+// after first cache hit, but for this app's needs that's plenty.
+function stockIconHTML(s) {
+  if (!s || !s.domain) return s && s.emoji ? s.emoji : '📈';
+  const url = `https://www.google.com/s2/favicons?domain=${s.domain}&sz=128`;
+  const fallback = (s.emoji || '📈').replace(/'/g, "&#39;");
+  return `<img class="brand-logo" src="${url}" alt="${s.name} logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.textContent='${fallback}'">`;
+}
 function holdingsByStock() {
   const m = {};
   ((state.investments && state.investments.lots) || []).forEach(l => {
@@ -6012,7 +6039,7 @@ function renderInvestmentsPanel() {
     const canAfford = bucks >= SHARE_PRICE;
     return `
       <div class="stock-card">
-        <div class="sc-emoji">${s.emoji}</div>
+        <div class="sc-emoji">${stockIconHTML(s)}</div>
         <div class="sc-info">
           <div class="sc-name">${s.name}</div>
           <div class="sc-tag">${s.tagline}</div>
@@ -6038,7 +6065,7 @@ function renderInvestmentsPanel() {
       const countdown = formatCountdown(nextTs - Date.now());
       return `
         <div class="holding-row">
-          <div class="hr-emoji">${s.emoji}</div>
+          <div class="hr-emoji">${stockIconHTML(s)}</div>
           <div class="hr-info">
             <div class="hr-name">${n} × ${s.name}</div>
             <div class="hr-meta">${n * SHARE_PRICE} DB invested · next +<strong>${MONTHLY_PAYOUT_PER_SHARE} DB ${countdown}</strong></div>
