@@ -1850,6 +1850,29 @@
     cursor: not-allowed;
     opacity: 0.7;
   }
+  .stock-card.is-max {
+    background: var(--bg-card);
+    border-color: var(--border-strong);
+  }
+  .stock-card.is-max .sc-buy {
+    background: var(--mint);
+    color: white;
+    box-shadow: 0 3px 0 var(--mint-dark);
+    opacity: 1;
+  }
+  .premium-pill {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: linear-gradient(135deg, var(--yellow) 0%, var(--orange) 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  }
 
   .holding-row {
     display: flex;
@@ -2435,7 +2458,7 @@
 
   <div class="chart-card">
     <h3>🛒 Buy Investments</h3>
-    <div class="invest-help">Each share costs <strong>$50 DB</strong> and pays <strong>+$1 DB every 30 days</strong>, forever.</div>
+    <div class="invest-help">Each share costs <strong>50 DB</strong>. Most pay <strong>+1 DB every 30 days</strong> — but ⭐ <strong>premium picks</strong> (Intuit, Google, S&amp;P 500) pay more.</div>
     <div id="stockCatalog"></div>
   </div>
 
@@ -2453,9 +2476,14 @@
     <h3>💡 How investing works</h3>
     <ul class="tip-list">
       <li>Spend <strong>50 DB</strong> to buy 1 share of any stock.</li>
-      <li><strong>30 days after you buy</strong>, that share pays you <strong>+1 DB</strong> — and again every 30 days after that, forever.</li>
+      <li><strong>30 days after you buy</strong>, that share pays you a dividend — and again every 30 days after that, forever.</li>
+      <li>Most stocks pay <strong>+1 DB</strong> per share. ⭐ <strong>Premium picks</strong> pay more but are limited:
+        <ul style="margin-top:4px; padding-left:18px;">
+          <li><strong>S&amp;P 500</strong> — +3 DB / 30 days · max <strong>1 share</strong></li>
+          <li><strong>Google &amp; Intuit</strong> — +2 DB / 30 days · max <strong>2 shares</strong> each</li>
+        </ul>
+      </li>
       <li>You can <strong>sell anytime</strong> and get your 50 DB back — no penalty.</li>
-      <li>10 shares = +10 DB every 30 days. 50 shares = +50 DB! 🚀</li>
     </ul>
   </div>
 </section>
@@ -2943,18 +2971,28 @@ function getRewards() {
 
 /* ============= INVESTMENTS CATALOG ============= */
 const SHARE_PRICE = 50;
-const MONTHLY_PAYOUT_PER_SHARE = 1;
+const DEFAULT_PAYOUT = 1;     // base: most stocks pay +1 DB / 30 days
+// Per-stock `payout` overrides the default (in DB / 30 days).
+// Per-stock `maxShares` caps how many of that stock the user can hold (omit = unlimited).
 // `domain` drives the company-logo image in the catalog and holdings tiles
 // (via Google's S2 favicon API). The `emoji` is kept as a graceful fallback
 // when the favicon can't load (offline, network blip, etc.).
 const STOCKS = [
-  { id: 'intu', emoji: '💰', name: 'Intuit (INTU)',     tagline: 'TurboTax & QuickBooks. Where Daddy works!', accent: 'green',  domain: 'intuit.com'    },
-  { id: 'goog', emoji: '🔎', name: 'Google (GOOG)',     tagline: 'Search, YouTube, and Android.',             accent: 'red',    domain: 'google.com'    },
+  { id: 'intu', emoji: '💰', name: 'Intuit (INTU)',     tagline: 'TurboTax & QuickBooks. Where Daddy works!', accent: 'green',  domain: 'intuit.com',    payout: 2, maxShares: 2 },
+  { id: 'goog', emoji: '🔎', name: 'Google (GOOG)',     tagline: 'Search, YouTube, and Android.',             accent: 'red',    domain: 'google.com',    payout: 2, maxShares: 2 },
   { id: 'meta', emoji: '👥', name: 'Meta (META)',       tagline: 'Instagram, WhatsApp, and Facebook.',        accent: 'purple', domain: 'meta.com'      },
   { id: 'msft', emoji: '🪟', name: 'Microsoft (MSFT)',  tagline: 'Windows, Xbox, and Minecraft.',             accent: 'purple', domain: 'microsoft.com' },
-  { id: 'spy',  emoji: '📊', name: 'S&P 500 (SPY)',     tagline: '500 big companies bundled together.',       accent: 'yellow', domain: 'spglobal.com'  },
+  { id: 'spy',  emoji: '📊', name: 'S&P 500 (SPY)',     tagline: '500 big companies bundled together.',       accent: 'yellow', domain: 'spglobal.com',  payout: 3, maxShares: 1 },
   { id: 'aapl', emoji: '🍎', name: 'Apple (AAPL)',      tagline: 'iPhones, iPads, and Macs.',                 accent: 'red',    domain: 'apple.com'     }
 ];
+function payoutFor(stockId) {
+  const s = STOCKS.find(x => x.id === stockId);
+  return (s && typeof s.payout === 'number') ? s.payout : DEFAULT_PAYOUT;
+}
+function maxSharesFor(stockId) {
+  const s = STOCKS.find(x => x.id === stockId);
+  return (s && typeof s.maxShares === 'number') ? s.maxShares : Infinity;
+}
 const PAYOUT_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 function stockById(id) { return STOCKS.find(s => s.id === id) || { id, emoji: '📈', name: id, tagline: '', accent: 'green' }; }
 
@@ -2980,18 +3018,27 @@ function totalShares() {
   return ((state.investments && state.investments.lots) || []).reduce((a, l) => a + (l.shares || 0), 0);
 }
 // Returns the next-payout timestamp across all lots (the soonest one), or null
-// if no lots are held.
+// if no lots are held. `dbAtSoonest` is the total DB that will be paid out at
+// that moment, accounting for per-stock payout rates.
 function nextPayoutInfo() {
   const lots = (state.investments && state.investments.lots) || [];
   if (!lots.length) return null;
   let soonestTs = Infinity;
   let sharesAtSoonest = 0;
+  let dbAtSoonest = 0;
   lots.forEach(l => {
     const t = (l.lastPayoutTs || l.ts) + PAYOUT_INTERVAL_MS;
-    if (t < soonestTs) { soonestTs = t; sharesAtSoonest = l.shares; }
-    else if (t === soonestTs) { sharesAtSoonest += l.shares; }
+    const lotDb = (l.shares || 0) * payoutFor(l.stockId);
+    if (t < soonestTs) {
+      soonestTs = t;
+      sharesAtSoonest = l.shares || 0;
+      dbAtSoonest = lotDb;
+    } else if (t === soonestTs) {
+      sharesAtSoonest += (l.shares || 0);
+      dbAtSoonest    += lotDb;
+    }
   });
-  return { ts: soonestTs, msUntil: soonestTs - Date.now(), shares: sharesAtSoonest };
+  return { ts: soonestTs, msUntil: soonestTs - Date.now(), shares: sharesAtSoonest, db: dbAtSoonest };
 }
 function formatCountdown(ms) {
   if (ms <= 0) return 'now';
@@ -6304,6 +6351,12 @@ function newLotId() {
 function buyShare(stockId) {
   ensureInvestmentsState();
   const s = stockById(stockId);
+  const owned = (holdingsByStock()[stockId] || 0);
+  const cap   = maxSharesFor(stockId);
+  if (owned >= cap) {
+    showToast(`Max ${cap} share${cap === 1 ? '' : 's'} of ${s.emoji} ${s.name}`, 'red');
+    return;
+  }
   if ((state.bucks || 0) < SHARE_PRICE) {
     showToast(`Need ${SHARE_PRICE} DB to buy a share`, 'red');
     return;
@@ -6351,8 +6404,8 @@ function sellShare(stockId) {
   showToast(`Sold 1 ${s.emoji} share`, '');
 }
 
-// 30-day rolling payouts: each lot pays $1 × shares for every full
-// PAYOUT_INTERVAL_MS that has elapsed since its lastPayoutTs. Aggregates
+// 30-day rolling payouts: each lot pays (per-stock rate) × shares for every
+// full PAYOUT_INTERVAL_MS that has elapsed since its lastPayoutTs. Aggregates
 // awards by stock so the bucks ledger shows one tidy line per stock.
 function processInvestmentPayouts() {
   ensureInvestmentsState();
@@ -6364,7 +6417,7 @@ function processInvestmentPayouts() {
     const elapsed = now - last;
     if (elapsed < PAYOUT_INTERVAL_MS) return;
     const periods = Math.floor(elapsed / PAYOUT_INTERVAL_MS);
-    const amt = periods * (lot.shares || 0) * MONTHLY_PAYOUT_PER_SHARE;
+    const amt = periods * (lot.shares || 0) * payoutFor(lot.stockId);
     if (amt <= 0) return;
     paidByStock[lot.stockId] = (paidByStock[lot.stockId] || 0) + amt;
     lot.lastPayoutTs = last + periods * PAYOUT_INTERVAL_MS;
@@ -6389,7 +6442,11 @@ function renderInvestmentsPanel() {
   const inv = state.investments;
   const shares = totalShares();
   const portfolio = shares * SHARE_PRICE;
-  const cycleIncome = shares * MONTHLY_PAYOUT_PER_SHARE;
+  // Per-30-days income now varies by stock. Sum each lot's share count × its
+  // stock's payout rate.
+  const cycleIncome = (inv.lots || []).reduce(
+    (sum, l) => sum + (l.shares || 0) * payoutFor(l.stockId), 0
+  );
   const earned = inv.totalEarned || 0;
   const holdings = holdingsByStock();
 
@@ -6401,7 +6458,7 @@ function renderInvestmentsPanel() {
   const np = nextPayoutInfo();
   document.getElementById('investNextPayout').textContent =
     shares > 0 && np
-      ? `Next payout ${formatCountdown(np.msUntil)} · +${np.shares} DB`
+      ? `Next payout ${formatCountdown(np.msUntil)} · +${np.db} DB`
       : `Buy a share to start earning every 30 days!`;
 
   const bucks = state.bucks || 0;
@@ -6409,16 +6466,31 @@ function renderInvestmentsPanel() {
   catalog.innerHTML = STOCKS.map(s => {
     const owned = holdings[s.id] || 0;
     const canAfford = bucks >= SHARE_PRICE;
+    const rate  = payoutFor(s.id);
+    const cap   = maxSharesFor(s.id);
+    const atMax = owned >= cap;
+    const isPremium = rate > DEFAULT_PAYOUT;
+    const capped = Number.isFinite(cap);
+    const metaBits = [
+      `${SHARE_PRICE} DB`,
+      `pays <strong>+${rate} DB / 30 days</strong>${isPremium ? ' ⭐' : ''}`,
+      capped ? `max ${cap}` : null,
+      owned ? `you own ${owned}` : null
+    ].filter(Boolean);
+    let label, disabled;
+    if (atMax)         { label = 'Max owned'; disabled = true;  }
+    else if (!canAfford) { label = `Need ${SHARE_PRICE - bucks}`; disabled = true; }
+    else                 { label = 'Buy';     disabled = false; }
     return `
-      <div class="stock-card">
+      <div class="stock-card${atMax ? ' is-max' : ''}">
         <div class="sc-emoji">${stockIconHTML(s)}</div>
         <div class="sc-info">
-          <div class="sc-name">${s.name}</div>
+          <div class="sc-name">${s.name}${isPremium ? ` <span class="premium-pill">+${rate} DB</span>` : ''}</div>
           <div class="sc-tag">${s.tagline}</div>
-          <div class="sc-meta">${SHARE_PRICE} DB · pays +${MONTHLY_PAYOUT_PER_SHARE} DB / 30 days${owned ? ` · you own ${owned}` : ''}</div>
+          <div class="sc-meta">${metaBits.join(' · ')}</div>
         </div>
-        <button class="sc-buy" ${canAfford ? '' : 'disabled'} onclick="buyShare('${s.id}')">
-          ${canAfford ? 'Buy' : `Need ${SHARE_PRICE - bucks}`}
+        <button class="sc-buy" ${disabled ? 'disabled' : ''} onclick="buyShare('${s.id}')">
+          ${label}
         </button>
       </div>
     `;
@@ -6431,6 +6503,8 @@ function renderInvestmentsPanel() {
   } else {
     holdingsEl.innerHTML = ownedStocks.map(s => {
       const n = holdings[s.id];
+      const rate = payoutFor(s.id);
+      const stockPayout = n * rate;
       // Soonest next payout for THIS stock specifically
       const stockLots = inv.lots.filter(l => l.stockId === s.id);
       const nextTs = Math.min(...stockLots.map(l => (l.lastPayoutTs || l.ts) + PAYOUT_INTERVAL_MS));
@@ -6440,7 +6514,7 @@ function renderInvestmentsPanel() {
           <div class="hr-emoji">${stockIconHTML(s)}</div>
           <div class="hr-info">
             <div class="hr-name">${n} × ${s.name}</div>
-            <div class="hr-meta">${n * SHARE_PRICE} DB invested · next +<strong>${MONTHLY_PAYOUT_PER_SHARE} DB ${countdown}</strong></div>
+            <div class="hr-meta">${n * SHARE_PRICE} DB invested · next +<strong>${stockPayout} DB ${countdown}</strong></div>
           </div>
           <button class="hr-sell" onclick="sellShare('${s.id}')">Sell 1</button>
         </div>
