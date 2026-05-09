@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="tt4kBg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#DB334D"/>
-      <stop offset="100%" stop-color="#A52436"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="110" fill="url(#tt4kBg)"/>
-  <text x="256" y="252" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="300" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central" letter-spacing="-14">tt</text>
-  <text x="256" y="404" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="36" fill="#FFFFFF" text-anchor="middle" letter-spacing="10" opacity="0.85">FOR KIDS</text>
+  <rect width="512" height="512" rx="110" fill="#DB334D"/>
+  <path
+    d="M 143 266 L 225 348 L 384 179"
+    stroke="#FFFFFF"
+    stroke-width="56"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
 </svg>
