@@ -2702,8 +2702,10 @@ async function changeParentPin() {
 const CLOUD_API = 'https://api.jsonblob.com';
 
 // Shared "directory" blob mapping short user-facing codes -> real blob UUIDs.
-// One-time bootstrap: created 2026-04-26 with body { _pandi_directory: true, codes: {} }.
-const DIRECTORY_BLOB_ID = '019dcbb9-7eea-7995-95b5-79b4bb9d2575';
+// JSONBlob deletes blobs after ~30 days of inactivity, so the directory is
+// kept alive by pinging it on every page load (see directoryKeepAlive below).
+// Re-bootstrapped 2026-05-08 after the original blob expired.
+const DIRECTORY_BLOB_ID = '019e0aad-15fd-7732-b520-1a119177aac2';
 
 // Pure-digit alphabet so the code is easy to type on phone numeric keypads.
 // 10 digits ^ 6 positions => 1,000,000 combos — plenty for personal/family use.
@@ -2787,14 +2789,38 @@ async function directoryRegister(syncId) {
   return code;
 }
 
-let _cloudPushTimer = null;
-function scheduleCloudPush() {
+// Push every edit to the cloud immediately, but serialize so rapid-fire edits
+// don't race (a faster PUT could otherwise land before a slower earlier one,
+// leaving stale data in the cloud). Pattern: at most one push in flight at a
+// time. While a push is running, additional edits flip _cloudPushPending; when
+// the current push completes, the loop sends one more push that captures all
+// pending edits in the latest state. _cloudPushFailed is used by auto-pull to
+// retry on focus/visibility/30s-tick so transient network failures self-heal.
+let _cloudPushInFlight = false;
+let _cloudPushPending  = false;
+let _cloudPushFailed   = false;
+
+async function scheduleCloudPush() {
   if (!state.cloud || !state.cloud.syncId) return;
-  clearTimeout(_cloudPushTimer);
-  _cloudPushTimer = setTimeout(() => {
-    _cloudPushTimer = null;
-    cloudPush().catch(e => console.warn('Cloud push failed:', e));
-  }, 1500);
+  _cloudPushPending = true;
+  if (_cloudPushInFlight) return;
+  _cloudPushInFlight = true;
+  try {
+    while (_cloudPushPending) {
+      _cloudPushPending = false;
+      try {
+        await cloudPush();
+        _cloudPushFailed = false;
+      } catch (e) {
+        console.warn('Cloud push failed:', e);
+        _cloudPushFailed = true;
+        // Bail this turn; the next edit (or auto-pull retry) will try again.
+        break;
+      }
+    }
+  } finally {
+    _cloudPushInFlight = false;
+  }
 }
 
 function cloudPayload() {
@@ -2863,8 +2889,12 @@ async function cloudPull(syncId) {
 // Periodic / event-driven pull. Last-writer-wins by `updatedAt`.
 async function cloudAutoPull({ silent = true } = {}) {
   if (!state.cloud || !state.cloud.syncId) return;
-  // Don't clobber unflushed local edits — let the debounced push run first.
-  if (_cloudPushTimer) return;
+  // Retry any push that previously failed, now that we have a chance (focus,
+  // visibility change, or 30s-tick). Done before the pull-skip check below so
+  // a stuck device self-heals without requiring another edit.
+  if (_cloudPushFailed && !_cloudPushInFlight) scheduleCloudPush();
+  // Don't clobber unflushed local edits — let the in-flight / queued push run.
+  if (_cloudPushInFlight || _cloudPushPending) return;
   try {
     const res = await fetch(`${CLOUD_API}/${state.cloud.syncId}`, { cache: 'no-store' });
     if (!res.ok) return;
@@ -5437,11 +5467,12 @@ function renderSyncUI() {
       `;
     } else if (_shortCodeRegState === 'failed') {
       codeBlock = `
-        <div class="pin-row-label" style="margin-top:8px;color:var(--red,#d33);">Couldn't reach sync directory</div>
+        <div class="pin-row-label" style="margin-top:8px;color:var(--red,#d33);">Couldn't reach sync directory — use the long code below</div>
         <div class="sync-code-box">
           <span class="scb-code" style="font-size:.85em;">${state.cloud.syncId}</span>
           <span class="scb-copy" onclick="copySyncCode()">Copy</span>
         </div>
+        <div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);">Paste this on another device to restore — works even when 6-digit codes are unavailable.</div>
         <button class="btn-3d gray" onclick="ensureShortCodeRegistered()" style="margin-top:6px;font-size:.85em;padding:6px 10px;">Retry getting 6-digit code</button>
       `;
     } else {
@@ -5635,13 +5666,13 @@ setInterval(() => {
 
 // === BIDIRECTIONAL CLOUD AUTO-SYNC ===
 // Auto-pulls newer remote state on load, when the tab regains focus, and every
-// 30s while open. Uses last-writer-wins by `updatedAt` (see cloudAutoPull).
+// 10s while open. Uses last-writer-wins by `updatedAt` (see cloudAutoPull).
 cloudAutoPull({ silent: false });
 window.addEventListener('focus', () => cloudAutoPull());
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) cloudAutoPull();
 });
-setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 30 * 1000);
+setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 10 * 1000);
 
 // Migration: if this device already has cloud sync but no short code (user was
 // set up before short codes existed), register one in the background.
@@ -5650,10 +5681,10 @@ if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
 }
 
 // Keep the directory blob alive: a quiet GET on every load resets JSONBlob's
-// inactivity TTL so short codes don't silently expire if the family takes a break.
-if (state.cloud && state.cloud.shortCode) {
-  directoryKeepAlive();
-}
+// inactivity TTL so short codes don't silently expire. Ping unconditionally
+// (not just for users who already have a code) — that way even a single
+// active reader on any device keeps the shared directory healthy for everyone.
+directoryKeepAlive();
 </script>
 </body>
 </html>
