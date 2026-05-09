@@ -1632,6 +1632,158 @@
   }
   .reward-card.locked .rw-emoji { filter: grayscale(0.7); }
 
+  /* ============= INVESTMENTS ============= */
+  .invest-summary-card {
+    margin: 4px 0 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #d6f0c4, #a8e07a);
+    border: 3px solid var(--green-dark);
+    box-shadow: 0 4px 0 var(--green-dark);
+    padding: 16px 18px;
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+  }
+  .invest-summary-card::before {
+    content: '📈';
+    position: absolute;
+    font-size: 92px;
+    opacity: 0.10;
+    top: -10px; right: -8px;
+    transform: rotate(-8deg);
+  }
+  .invest-summary-card .is-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .invest-summary-card .is-col { text-align: center; }
+  .invest-summary-card .is-label {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(0,0,0,0.6);
+  }
+  .invest-summary-card .is-value {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .invest-summary-card .is-value.is-green { color: var(--green-dark); }
+  .invest-summary-card .is-value .is-unit {
+    font-size: 11px;
+    font-weight: 800;
+    margin-left: 3px;
+    opacity: 0.7;
+  }
+  .invest-summary-card .is-foot {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    opacity: 0.75;
+    position: relative;
+    z-index: 1;
+  }
+  .invest-help {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .invest-help strong { color: var(--text); font-weight: 900; }
+
+  .stock-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 0 var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .stock-card .sc-emoji {
+    font-size: 28px;
+    line-height: 1;
+    width: 48px; height: 48px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .stock-card .sc-info { flex: 1; min-width: 0; }
+  .stock-card .sc-name { font-size: 14px; font-weight: 900; line-height: 1.2; }
+  .stock-card .sc-tag { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
+  .stock-card .sc-meta { font-size: 10px; color: var(--green-dark); font-weight: 800; margin-top: 2px; }
+  .stock-card .sc-buy {
+    background: var(--green);
+    color: white;
+    border-radius: 99px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 900;
+    flex-shrink: 0;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--green-dark);
+    transition: all 0.1s;
+    border: none;
+    font-family: inherit;
+  }
+  .stock-card .sc-buy:active { transform: translateY(1px); box-shadow: 0 2px 0 var(--green-dark); }
+  .stock-card .sc-buy:disabled {
+    background: var(--locked);
+    color: var(--text-muted);
+    box-shadow: 0 3px 0 var(--locked-dark);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .holding-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .holding-row:last-child { border: none; }
+  .holding-row .hr-emoji {
+    font-size: 22px; line-height: 1;
+    width: 36px; height: 36px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .holding-row .hr-info { flex: 1; min-width: 0; }
+  .holding-row .hr-name { font-size: 13px; font-weight: 900; }
+  .holding-row .hr-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .holding-row .hr-meta strong { color: var(--green-dark); font-weight: 900; }
+  .holding-row .hr-sell {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 2px solid var(--border-strong);
+    border-radius: 99px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 900;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .holding-row .hr-sell:active { transform: translateY(1px); }
+
+  .ledger-row.invest-buy .lr-icon { background: var(--blue-light); color: var(--blue-dark); }
+  .ledger-row.invest-buy .lr-amount { color: var(--blue-dark); }
+  .ledger-row.invest-sell .lr-icon { background: var(--bg-card); color: var(--text-muted); }
+  .ledger-row.invest-sell .lr-amount { color: var(--text); }
+
   /* === Lock banner (Bucks tab top, when cleanup overdue or close) === */
   .lock-banner {
     background: linear-gradient(135deg, #ffe2e2, white);
@@ -2151,6 +2303,56 @@
   </div>
 </section>
 
+<!-- INVESTMENTS PANEL -->
+<section class="panel" id="investments-panel">
+  <h2>📈 Investments</h2>
+  <p class="sub">Make your bucks make bucks.</p>
+
+  <div class="invest-summary-card">
+    <div class="is-row">
+      <div class="is-col">
+        <div class="is-label">Portfolio</div>
+        <div class="is-value"><span id="investPortfolio">0</span><span class="is-unit">DB</span></div>
+      </div>
+      <div class="is-col">
+        <div class="is-label">Per 30 days</div>
+        <div class="is-value is-green">+<span id="investMonthly">0</span><span class="is-unit">DB</span></div>
+      </div>
+      <div class="is-col">
+        <div class="is-label">Total earned</div>
+        <div class="is-value"><span id="investEarned">0</span><span class="is-unit">DB</span></div>
+      </div>
+    </div>
+    <div class="is-foot" id="investNextPayout">Next payout: —</div>
+  </div>
+
+  <div class="chart-card">
+    <h3>🛒 Buy Investments</h3>
+    <div class="invest-help">Each share costs <strong>$50 DB</strong> and pays <strong>+$1 DB every 30 days</strong>, forever.</div>
+    <div id="stockCatalog"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>💼 Your Holdings</h3>
+    <div id="holdingsList"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>📜 Activity</h3>
+    <div id="investLedger"></div>
+  </div>
+
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>💡 How investing works</h3>
+    <ul class="tip-list">
+      <li>Spend <strong>50 DB</strong> to buy 1 share of any stock.</li>
+      <li><strong>30 days after you buy</strong>, that share pays you <strong>+1 DB</strong> — and again every 30 days after that, forever.</li>
+      <li>You can <strong>sell anytime</strong> and get your 50 DB back — no penalty.</li>
+      <li>10 shares = +10 DB every 30 days. 50 shares = +50 DB! 🚀</li>
+    </ul>
+  </div>
+</section>
+
 <!-- STATS PANEL -->
 <section class="panel" id="stats-panel">
   <h2>📊 Your Stats</h2>
@@ -2334,6 +2536,9 @@
   </button>
   <button class="nav-btn" data-tab="bucks">
     <span class="ico">💰</span><span class="lbl">Bucks</span>
+  </button>
+  <button class="nav-btn" data-tab="investments">
+    <span class="ico">📈</span><span class="lbl">Invest</span>
   </button>
   <button class="nav-btn" data-tab="stats">
     <span class="ico">📊</span><span class="lbl">Stats</span>
@@ -2550,6 +2755,16 @@ const defaultState = {
     lastPushAt: 0,
     lastPullAt: 0,
     lastChangeAt: 0           // bumped on every saveState() — drives last-writer-wins
+  },
+
+  // === INVESTMENTS ===
+  // Each share = $50, pays $1 every 30 days from purchase (rolling).
+  // Each "lot" tracks its own payout clock so older shares accrue independently.
+  investments: {
+    lots: [],                 // [{ id, stockId, shares, ts, lastPayoutTs }]
+    ledger: [],               // [{ ts, type: 'buy'|'sell'|'payout', stockId?, shares?, amount, reason }]
+    totalEarned: 0,           // lifetime payouts (display-only)
+    totalInvested: 0          // running cost basis (deposits − withdrawals)
   }
 };
 let state = loadState();
@@ -2579,6 +2794,53 @@ function getRewards() {
   return list.filter(r => !r.perBuck);
 }
 
+/* ============= INVESTMENTS CATALOG ============= */
+const SHARE_PRICE = 50;
+const MONTHLY_PAYOUT_PER_SHARE = 1;
+const STOCKS = [
+  { id: 'intu', emoji: '💰', name: 'Intuit (INTU)',     tagline: 'TurboTax & QuickBooks. Where Daddy works!', accent: 'green'  },
+  { id: 'goog', emoji: '🔎', name: 'Google (GOOG)',     tagline: 'Search, YouTube, and Android.',             accent: 'red'    },
+  { id: 'meta', emoji: '👥', name: 'Meta (META)',       tagline: 'Instagram, WhatsApp, and Facebook.',        accent: 'purple' },
+  { id: 'msft', emoji: '🪟', name: 'Microsoft (MSFT)',  tagline: 'Windows, Xbox, and Minecraft.',             accent: 'purple' },
+  { id: 'spy',  emoji: '📊', name: 'S&P 500 (SPY)',     tagline: '500 big companies bundled together.',       accent: 'yellow' },
+  { id: 'aapl', emoji: '🍎', name: 'Apple (AAPL)',      tagline: 'iPhones, iPads, and Macs.',                 accent: 'red'    }
+];
+const PAYOUT_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+function stockById(id) { return STOCKS.find(s => s.id === id) || { id, emoji: '📈', name: id, tagline: '', accent: 'green' }; }
+function holdingsByStock() {
+  const m = {};
+  ((state.investments && state.investments.lots) || []).forEach(l => {
+    m[l.stockId] = (m[l.stockId] || 0) + (l.shares || 0);
+  });
+  return m;
+}
+function totalShares() {
+  return ((state.investments && state.investments.lots) || []).reduce((a, l) => a + (l.shares || 0), 0);
+}
+// Returns the next-payout timestamp across all lots (the soonest one), or null
+// if no lots are held.
+function nextPayoutInfo() {
+  const lots = (state.investments && state.investments.lots) || [];
+  if (!lots.length) return null;
+  let soonestTs = Infinity;
+  let sharesAtSoonest = 0;
+  lots.forEach(l => {
+    const t = (l.lastPayoutTs || l.ts) + PAYOUT_INTERVAL_MS;
+    if (t < soonestTs) { soonestTs = t; sharesAtSoonest = l.shares; }
+    else if (t === soonestTs) { sharesAtSoonest += l.shares; }
+  });
+  return { ts: soonestTs, msUntil: soonestTs - Date.now(), shares: sharesAtSoonest };
+}
+function formatCountdown(ms) {
+  if (ms <= 0) return 'now';
+  const days = Math.floor(ms / (24 * 3600 * 1000));
+  if (days >= 1) return `in ${days} day${days === 1 ? '' : 's'}`;
+  const hrs = Math.floor(ms / (3600 * 1000));
+  if (hrs >= 1) return `in ${hrs} hr${hrs === 1 ? '' : 's'}`;
+  const mins = Math.max(1, Math.floor(ms / 60000));
+  return `in ${mins} min${mins === 1 ? '' : 's'}`;
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -2589,7 +2851,13 @@ function loadState() {
         ...defaultState,
         ...parsed,
         parent: { ...defaultState.parent, ...(parsed.parent || {}) },
-        cloud:  { ...defaultState.cloud,  ...(parsed.cloud  || {}) }
+        cloud:  { ...defaultState.cloud,  ...(parsed.cloud  || {}) },
+        investments: {
+          ...defaultState.investments,
+          ...(parsed.investments || {}),
+          lots:   Array.isArray(parsed.investments && parsed.investments.lots)   ? parsed.investments.lots   : [],
+          ledger: Array.isArray(parsed.investments && parsed.investments.ledger) ? parsed.investments.ledger : []
+        }
       };
       // Migration: existing sync users had no `lastChangeAt`. Seed it from
       // `lastPushAt` so the first auto-pull doesn't redundantly "adopt" the
@@ -2597,6 +2865,20 @@ function loadState() {
       if (merged.cloud.syncId && !merged.cloud.lastChangeAt && merged.cloud.lastPushAt) {
         merged.cloud.lastChangeAt = merged.cloud.lastPushAt;
       }
+      // Migration: old calendar-month investments used { holdings, lastPayoutKey }.
+      // Convert each holding to a single lot with its 30-day clock starting now.
+      const oldHoldings = parsed.investments && parsed.investments.holdings;
+      if (oldHoldings && (!merged.investments.lots || merged.investments.lots.length === 0)) {
+        const _now = Date.now();
+        Object.entries(oldHoldings).forEach(([stockId, n], i) => {
+          if (n > 0) merged.investments.lots.push({
+            id: `mig-${_now}-${i}`,
+            stockId, shares: n, ts: _now, lastPayoutTs: _now
+          });
+        });
+      }
+      delete merged.investments.holdings;
+      delete merged.investments.lastPayoutKey;
       return merged;
     }
   } catch (e) {}
@@ -5601,6 +5883,196 @@ function celebrateBig() {
   setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3200);
 }
 
+/* ============= INVESTMENTS ============= */
+function ensureInvestmentsState() {
+  if (!state.investments) state.investments = JSON.parse(JSON.stringify(defaultState.investments));
+  if (!Array.isArray(state.investments.lots))   state.investments.lots = [];
+  if (!Array.isArray(state.investments.ledger)) state.investments.ledger = [];
+  if (typeof state.investments.totalEarned !== 'number')   state.investments.totalEarned = 0;
+  if (typeof state.investments.totalInvested !== 'number') state.investments.totalInvested = 0;
+}
+
+function pushInvestmentLedger(entry) {
+  ensureInvestmentsState();
+  state.investments.ledger.unshift({ ts: Date.now(), ...entry });
+  if (state.investments.ledger.length > 200) state.investments.ledger.length = 200;
+}
+
+function newLotId() {
+  return `lot-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
+
+function buyShare(stockId) {
+  ensureInvestmentsState();
+  const s = stockById(stockId);
+  if ((state.bucks || 0) < SHARE_PRICE) {
+    showToast(`Need ${SHARE_PRICE} DB to buy a share`, 'red');
+    return;
+  }
+  const now = Date.now();
+  state.bucks -= SHARE_PRICE;
+  // Each purchase becomes its own lot with a fresh 30-day clock.
+  state.investments.lots.push({ id: newLotId(), stockId, shares: 1, ts: now, lastPayoutTs: now });
+  state.investments.totalInvested += SHARE_PRICE;
+  // Spend goes to bucks ledger so the top-bar pill + Bucks tab stay accurate
+  state.bucksLedger = state.bucksLedger || [];
+  state.bucksLedger.unshift({ ts: now, amount: -SHARE_PRICE, reason: `📈 Bought ${s.emoji} ${s.name}` });
+  if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+  pushInvestmentLedger({ type: 'buy', stockId, shares: 1, amount: -SHARE_PRICE, reason: `Bought 1 ${s.name}` });
+  saveState();
+  rerender();
+  Sound.playPop();
+  vibrate(20);
+  showToast(`Bought 1 ${s.emoji} share!`, 'gold');
+}
+
+function sellShare(stockId) {
+  ensureInvestmentsState();
+  // LIFO sell: pull from the most recently bought lot of this stock so the
+  // older shares (closest to their next payout) keep accruing.
+  const lots = state.investments.lots;
+  let idx = -1;
+  for (let i = lots.length - 1; i >= 0; i--) {
+    if (lots[i].stockId === stockId && (lots[i].shares || 0) > 0) { idx = i; break; }
+  }
+  if (idx < 0) return;
+  const lot = lots[idx];
+  const s = stockById(stockId);
+  lot.shares -= 1;
+  if (lot.shares <= 0) lots.splice(idx, 1);
+  state.bucks = (state.bucks || 0) + SHARE_PRICE;
+  state.investments.totalInvested = Math.max(0, state.investments.totalInvested - SHARE_PRICE);
+  state.bucksLedger = state.bucksLedger || [];
+  state.bucksLedger.unshift({ ts: Date.now(), amount: SHARE_PRICE, reason: `📉 Sold ${s.emoji} ${s.name}` });
+  if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+  pushInvestmentLedger({ type: 'sell', stockId, shares: 1, amount: SHARE_PRICE, reason: `Sold 1 ${s.name}` });
+  saveState();
+  rerender();
+  Sound.playPop();
+  showToast(`Sold 1 ${s.emoji} share`, '');
+}
+
+// 30-day rolling payouts: each lot pays $1 × shares for every full
+// PAYOUT_INTERVAL_MS that has elapsed since its lastPayoutTs. Aggregates
+// awards by stock so the bucks ledger shows one tidy line per stock.
+function processInvestmentPayouts() {
+  ensureInvestmentsState();
+  const inv = state.investments;
+  const now = Date.now();
+  const paidByStock = {};
+  inv.lots.forEach(lot => {
+    const last = lot.lastPayoutTs || lot.ts;
+    const elapsed = now - last;
+    if (elapsed < PAYOUT_INTERVAL_MS) return;
+    const periods = Math.floor(elapsed / PAYOUT_INTERVAL_MS);
+    const amt = periods * (lot.shares || 0) * MONTHLY_PAYOUT_PER_SHARE;
+    if (amt <= 0) return;
+    paidByStock[lot.stockId] = (paidByStock[lot.stockId] || 0) + amt;
+    lot.lastPayoutTs = last + periods * PAYOUT_INTERVAL_MS;
+  });
+  let totalPaid = 0;
+  Object.entries(paidByStock).forEach(([stockId, amt]) => {
+    const s = stockById(stockId);
+    awardBucks(amt, `📈 Dividend · ${s.emoji} ${s.name}`);
+    pushInvestmentLedger({ type: 'payout', stockId, amount: amt, reason: `Dividend from ${s.name}` });
+    inv.totalEarned += amt;
+    totalPaid += amt;
+  });
+  if (totalPaid > 0) {
+    saveState();
+    showToast(`📈 Dividend paid: +${totalPaid} DB!`, 'gold');
+    setTimeout(() => celebrateBig(), 80);
+  }
+}
+
+function renderInvestmentsPanel() {
+  ensureInvestmentsState();
+  const inv = state.investments;
+  const shares = totalShares();
+  const portfolio = shares * SHARE_PRICE;
+  const cycleIncome = shares * MONTHLY_PAYOUT_PER_SHARE;
+  const earned = inv.totalEarned || 0;
+  const holdings = holdingsByStock();
+
+  const portfolioEl = document.getElementById('investPortfolio');
+  if (!portfolioEl) return; // panel not in DOM (defensive)
+  portfolioEl.textContent = portfolio;
+  document.getElementById('investMonthly').textContent = cycleIncome;
+  document.getElementById('investEarned').textContent = earned;
+  const np = nextPayoutInfo();
+  document.getElementById('investNextPayout').textContent =
+    shares > 0 && np
+      ? `Next payout ${formatCountdown(np.msUntil)} · +${np.shares} DB`
+      : `Buy a share to start earning every 30 days!`;
+
+  const bucks = state.bucks || 0;
+  const catalog = document.getElementById('stockCatalog');
+  catalog.innerHTML = STOCKS.map(s => {
+    const owned = holdings[s.id] || 0;
+    const canAfford = bucks >= SHARE_PRICE;
+    return `
+      <div class="stock-card">
+        <div class="sc-emoji">${s.emoji}</div>
+        <div class="sc-info">
+          <div class="sc-name">${s.name}</div>
+          <div class="sc-tag">${s.tagline}</div>
+          <div class="sc-meta">${SHARE_PRICE} DB · pays +${MONTHLY_PAYOUT_PER_SHARE} DB / 30 days${owned ? ` · you own ${owned}` : ''}</div>
+        </div>
+        <button class="sc-buy" ${canAfford ? '' : 'disabled'} onclick="buyShare('${s.id}')">
+          ${canAfford ? 'Buy' : `Need ${SHARE_PRICE - bucks}`}
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  const holdingsEl = document.getElementById('holdingsList');
+  const ownedStocks = STOCKS.filter(s => (holdings[s.id] || 0) > 0);
+  if (ownedStocks.length === 0) {
+    holdingsEl.innerHTML = `<div class="empty-msg">No shares yet.<br>Buy one above to start earning every 30 days!</div>`;
+  } else {
+    holdingsEl.innerHTML = ownedStocks.map(s => {
+      const n = holdings[s.id];
+      // Soonest next payout for THIS stock specifically
+      const stockLots = inv.lots.filter(l => l.stockId === s.id);
+      const nextTs = Math.min(...stockLots.map(l => (l.lastPayoutTs || l.ts) + PAYOUT_INTERVAL_MS));
+      const countdown = formatCountdown(nextTs - Date.now());
+      return `
+        <div class="holding-row">
+          <div class="hr-emoji">${s.emoji}</div>
+          <div class="hr-info">
+            <div class="hr-name">${n} × ${s.name}</div>
+            <div class="hr-meta">${n * SHARE_PRICE} DB invested · next +<strong>${MONTHLY_PAYOUT_PER_SHARE} DB ${countdown}</strong></div>
+          </div>
+          <button class="hr-sell" onclick="sellShare('${s.id}')">Sell 1</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const ledgerEl = document.getElementById('investLedger');
+  const recent = (inv.ledger || []).slice(0, 10);
+  if (recent.length === 0) {
+    ledgerEl.innerHTML = `<div class="empty-msg">No activity yet.</div>`;
+  } else {
+    ledgerEl.innerHTML = recent.map(e => {
+      const cls = e.type === 'payout' ? '' : (e.type === 'buy' ? 'invest-buy' : 'invest-sell');
+      const icon = e.type === 'payout' ? '+' : (e.type === 'buy' ? '↑' : '↓');
+      const sign = e.amount > 0 ? '+' : '−';
+      const abs = Math.abs(e.amount);
+      return `
+        <div class="ledger-row ${cls}">
+          <div class="lr-icon">${icon}</div>
+          <div class="lr-info">
+            <div class="lr-name">${e.reason}</div>
+            <div class="lr-when">${formatRelativeTime(e.ts)}</div>
+          </div>
+          <div class="lr-amount">${sign}${abs} DB</div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
 /* ============= TABS ============= */
 function goToTab(name) {
   document.querySelectorAll('.nav-btn').forEach(b => {
@@ -5610,6 +6082,7 @@ function goToTab(name) {
     p.classList.toggle('active', p.id === name + '-panel');
   });
   if (name === 'bucks') renderBucksPanel();
+  if (name === 'investments') { processInvestmentPayouts(); renderInvestmentsPanel(); }
   if (name === 'stats') { renderStats(); renderMe(); }
   Sound.playPop();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -5629,6 +6102,8 @@ function rerender() {
   renderMascot();
   renderReminderBanner();
   if (document.getElementById('bucks-panel').classList.contains('active')) renderBucksPanel();
+  const invPanel = document.getElementById('investments-panel');
+  if (invPanel && invPanel.classList.contains('active')) renderInvestmentsPanel();
   if (document.getElementById('stats-panel').classList.contains('active')) { renderStats(); renderMe(); }
 }
 
@@ -5656,6 +6131,9 @@ backfillBucks();
 evaluateBucksRewards();
 evaluateFreezeAward();
 
+// Drop any monthly investment dividends that came due while she was away
+processInvestmentPayouts();
+
 rerender();
 
 // Show freeze banner if we just bridged days
@@ -5674,9 +6152,9 @@ setInterval(() => {
 // Auto-pulls newer remote state on load, when the tab regains focus, and every
 // 10s while open. Uses last-writer-wins by `updatedAt` (see cloudAutoPull).
 cloudAutoPull({ silent: false });
-window.addEventListener('focus', () => cloudAutoPull());
+window.addEventListener('focus', () => { cloudAutoPull(); processInvestmentPayouts(); rerender(); });
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) cloudAutoPull();
+  if (!document.hidden) { cloudAutoPull(); processInvestmentPayouts(); rerender(); }
 });
 setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 10 * 1000);
 
