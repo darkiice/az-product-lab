@@ -429,90 +429,6 @@
     vertical-align: middle;
   }
 
-  /* ============= SWITCH-TO-CAPPIE MODAL =============
-     Used when TT4K is running as its own home-screen PWA and a "go to
-     Cappie" tap would spawn a phantom Cappie inside TT4K's webview. */
-  .switch-modal {
-    position: fixed; inset: 0;
-    background: rgba(34, 26, 24, 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.18s ease;
-  }
-  .switch-modal.show { display: flex; opacity: 1; }
-  .switch-modal-card {
-    background: var(--paper);
-    border-radius: 22px;
-    padding: 28px 22px 22px;
-    max-width: 380px;
-    width: 100%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-    text-align: center;
-    transform: scale(0.96);
-    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .switch-modal.show .switch-modal-card { transform: scale(1); }
-  .switch-modal-mascot {
-    font-size: 56px;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-  .switch-modal-title {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--pepper-120);
-    letter-spacing: -0.01em;
-    margin-bottom: 8px;
-  }
-  .switch-modal-sub {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--pepper-90);
-    line-height: 1.55;
-    margin-bottom: 14px;
-  }
-  .switch-modal-sub strong { color: var(--pepper-120); }
-  .switch-modal-tip {
-    background: var(--tofu-warm);
-    border: 1.5px dashed var(--pepper-30);
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--pepper-90);
-    line-height: 1.55;
-    text-align: left;
-    margin-bottom: 18px;
-  }
-  .switch-modal-tip strong { color: var(--watermelon-70); }
-  .switch-modal-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  .switch-modal-row .cta-secondary {
-    width: auto;
-    min-width: 140px;
-  }
-  .switch-modal-fallback {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    color: var(--pepper-60);
-    font-size: 12px;
-    font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  .switch-modal-fallback:active { opacity: 0.7; }
-
   /* ============= PARENT PIN (Expert Final Review) ============= */
   .pin-prompt-label {
     font-size: 12px;
@@ -784,7 +700,7 @@
 <body>
 
 <header class="topbar">
-  <a class="topbar-back" href="Cappie.html" aria-label="Back to Cappie" data-cappie-link>
+  <a class="topbar-back" href="Cappie.html" aria-label="Back to Cappie">
     <span style="font-size:18px;">‹</span><span>Cappie</span>
   </a>
   <div class="topbar-lockup">
@@ -792,26 +708,6 @@
     <span class="topbar-tt">TurboTax <span class="for-kids">for Kids</span></span>
   </div>
 </header>
-
-<!-- "Switch to Cappie" modal — shown when TT4K is its own standalone PWA
-     and tapping a Cappie link would otherwise spawn a fake Cappie instance
-     inside TT4K's webview. iOS doesn't let one PWA hand off to another. -->
-<div class="switch-modal" id="switchModal" aria-hidden="true">
-  <div class="switch-modal-card" role="dialog" aria-modal="true" aria-labelledby="switchModalTitle">
-    <div class="switch-modal-mascot">🦫</div>
-    <h2 class="switch-modal-title" id="switchModalTitle">Switch to your Cappie app</h2>
-    <p class="switch-modal-sub">
-      You're inside the <strong>TurboTax for Kids</strong> app right now. To open the real <strong>Cappie</strong> on your home screen, tap your <strong>Home button</strong> (or swipe up) and then tap the 🦫 <strong>Cappie</strong> icon.
-    </p>
-    <div class="switch-modal-tip">
-      <strong>Why?</strong> iPhones and iPads keep each home-screen app separate, so we can't jump straight from one app into another. Tapping Home is the fastest way!
-    </div>
-    <div class="switch-modal-row">
-      <button class="cta-secondary" id="switchModalDismiss">Got it</button>
-      <button class="switch-modal-fallback" id="switchModalFallback" type="button">Cappie isn't on my home screen</button>
-    </div>
-  </div>
-</div>
 
 <main>
   <!-- WELCOME / LOCK SCREEN -->
@@ -1025,7 +921,7 @@
     </div>
 
     <div class="cta-row">
-      <a class="cta" href="Cappie.html" data-cappie-link>Back to Cappie</a>
+      <a class="cta" href="Cappie.html">Back to Cappie</a>
     </div>
   </section>
 </main>
@@ -1058,76 +954,6 @@ let state = loadCappieState();
 let previewMode = false;       // true when filing window is closed
 let activeWindow = null;       // current/most-relevant filing window
 let currentScreen = 'welcome';
-
-/* ============= PWA HOST DETECTION =============
-   iOS treats every home-screen PWA as its own app. If TT4K is its own
-   home-screen icon and the user taps a "go to Cappie" link, the link
-   navigates *inside* TT4K's webview — which spawns a phantom Cappie
-   that's NOT the user's real Cappie home-screen app. iOS gives us no
-   way to focus another PWA, but we can detect this situation and prompt
-   the user to switch via the Home button. */
-const IS_STANDALONE = (
-  (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-  window.navigator.standalone === true
-);
-let CAME_FROM_CAPPIE = false;
-try {
-  CAME_FROM_CAPPIE = sessionStorage.getItem('tt4k.cameFromCappie') === '1';
-  // Don't clear immediately — keep it for the duration of this session so
-  // back-navigation (filed receipt → Cappie) still routes correctly.
-} catch (e) { /* sessionStorage may be unavailable in some contexts */ }
-
-// True when we're in TT4K's own standalone container (NOT inside Cappie's
-// webview). This is the only case where navigating to Cappie.html would
-// produce the dreaded "phantom Cappie inside TT4K" situation.
-function isInOwnStandalonePwa() {
-  return IS_STANDALONE && !CAME_FROM_CAPPIE;
-}
-
-function openSwitchModal() {
-  const modal = document.getElementById('switchModal');
-  if (!modal) return;
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden', 'false');
-}
-function closeSwitchModal() {
-  const modal = document.getElementById('switchModal');
-  if (!modal) return;
-  modal.classList.remove('show');
-  modal.setAttribute('aria-hidden', 'true');
-}
-
-// Intercept clicks on any link tagged data-cappie-link when we're in our
-// own standalone PWA — show the switch modal instead of navigating.
-document.addEventListener('click', (e) => {
-  const trigger = e.target.closest('[data-cappie-link]');
-  if (!trigger) return;
-  if (!isInOwnStandalonePwa()) return;     // safe to navigate
-  e.preventDefault();
-  openSwitchModal();
-}, true);
-
-// Wire up the Switch-to-Cappie modal dismiss controls. (This script tag
-// sits at the end of <body>, so the DOM is already parsed.)
-(function bindSwitchModal() {
-  const dismissBtn = document.getElementById('switchModalDismiss');
-  const fallbackBtn = document.getElementById('switchModalFallback');
-  const modal = document.getElementById('switchModal');
-  if (dismissBtn) dismissBtn.addEventListener('click', closeSwitchModal);
-  if (fallbackBtn) {
-    // Escape hatch: if Cappie isn't installed as a separate PWA there's
-    // nothing to switch to, so let the user navigate anyway.
-    fallbackBtn.addEventListener('click', () => {
-      closeSwitchModal();
-      window.location.href = 'Cappie.html';
-    });
-  }
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeSwitchModal();
-    });
-  }
-})();
 
 /* ============= MONTH HELPERS ============= */
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -1545,39 +1371,33 @@ function init() {
   const noState = !state;
 
   // If no Cappie state yet, render a friendly "go play first" welcome.
-  // The button branches on whether TT4K is its own PWA, was opened from
-  // Cappie's PWA, or is just a Safari tab — because iOS can't switch
-  // between two installed PWAs.
+  // We branch the message based on whether we're running as an installed
+  // PWA (display-mode: standalone) or in Safari, because iOS won't switch
+  // between Safari and a home-screen PWA when you tap an in-page link.
   if (noState) {
-    const titleEl  = document.getElementById('welcomeTitle');
-    const subEl    = document.getElementById('welcomeSub');
+    const inStandalone =
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      window.navigator.standalone === true;
+    const titleEl = document.getElementById('welcomeTitle');
+    const subEl   = document.getElementById('welcomeSub');
     const startBtn = document.getElementById('welcomeStart');
     const peekBtn  = document.getElementById('welcomePeek');
     document.getElementById('welcomeCountdown').innerHTML = '';
     document.getElementById('welcomeGreet').textContent = `Hi there!`;
     titleEl.innerHTML = `Get started in <span class="accent">Cappie</span> first`;
-
-    if (isInOwnStandalonePwa()) {
-      // Tapping "Open Cappie" here would spawn a phantom Cappie inside
-      // this TT4K webview — show the home-button instructions instead.
-      subEl.innerHTML = `Earn some Daddy Bucks in Cappie first. <strong style="color:var(--pepper-120);">Press your Home button and tap the 🦫 Cappie icon</strong> — that's where your real progress lives.`;
-      startBtn.textContent = '🦫 How to switch to Cappie';
-      startBtn.classList.remove('locked');
-      startBtn.disabled = false;
-      startBtn.onclick = openSwitchModal;
-    } else if (IS_STANDALONE) {
-      // We're inside Cappie's own webview (came-from-cappie breadcrumb) —
-      // just navigate back; same standalone view.
+    if (inStandalone) {
+      // Same scope — navigation stays in the standalone view.
       subEl.textContent = `Earn some Daddy Bucks in Cappie, then come back here at the next filing day to claim your refund.`;
-      startBtn.textContent = 'Back to Cappie';
+      startBtn.textContent = 'Open Cappie';
       startBtn.classList.remove('locked');
       startBtn.disabled = false;
       startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
     } else {
-      // Plain Safari tab — link works, just opens Cappie.html in Safari.
-      subEl.innerHTML = `Earn some Daddy Bucks in Cappie first, then come back to file. If you have Cappie pinned to your home screen, that's the best place to play!`;
-      startBtn.textContent = 'Open Cappie';
-      startBtn.classList.remove('locked');
+      // In Safari — tapping any in-page link just navigates Safari, not the
+      // installed Cappie PWA. Tell her to launch Cappie from her home screen.
+      subEl.innerHTML = `Earn some Daddy Bucks in Cappie first. <strong style="color:var(--pepper-120);">Tap the 🦫 Cappie icon on your home screen</strong> to open it — that's where your progress lives.`;
+      startBtn.textContent = '🦫 Open Cappie in this browser instead';
+      startBtn.classList.add('locked');
       startBtn.disabled = false;
       startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
     }
