@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#DB334D" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="TT for Kids" />
+<title>TurboTax for Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap" rel="stylesheet">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    /* TurboTax brand kit (lifted from turbotax-season-2026-v8_3.html) */
+    --watermelon-30: #FFB8BE;
+    --watermelon-50: #FF808C;
+    --watermelon-70: #DB334D;
+    --watermelon-90: #A52436;
+    --pepper-120:   #21262A;
+    --pepper-90:    #393E42;
+    --pepper-60:    #6B7075;
+    --pepper-30:    #C8CACC;
+    --tofu-100:     #F4F4EF;
+    --tofu-warm:    #FAFAF6;
+    --white:        #FFFFFF;
+    --green:        #2ea374;
+    --green-light:  #d4f0e3;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+  }
+  body {
+    font-family: 'Avenir Next', 'Avenir', 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--tofu-100);
+    color: var(--pepper-120);
+    -webkit-font-smoothing: antialiased;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    font-weight: 600;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  a { color: inherit; }
+
+  /* ============= TOP BAR ============= */
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: var(--white);
+    border-bottom: 1.5px solid var(--pepper-30);
+    padding: calc(var(--safe-top) + 14px) 18px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 50;
+  }
+  .topbar-back {
+    color: var(--watermelon-70);
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+  }
+  .topbar-back:active { opacity: 0.7; }
+  .topbar-lockup {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1;
+    gap: 3px;
+  }
+  .topbar-intuit {
+    font-weight: 800;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--pepper-60);
+    text-transform: uppercase;
+  }
+  .topbar-tt {
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    color: var(--pepper-120);
+  }
+  .topbar-tt .for-kids {
+    color: var(--watermelon-70);
+    font-weight: 900;
+  }
+
+  /* ============= MAIN ============= */
+  main {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+
+  /* ============= STEP DOTS ============= */
+  .step-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .step-dot {
+    width: 28px;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--pepper-30);
+    transition: background 0.2s, width 0.2s;
+  }
+  .step-dot.active   { background: var(--watermelon-70); width: 36px; }
+  .step-dot.complete { background: var(--watermelon-50); }
+
+  /* ============= SCREEN BASE ============= */
+  .screen { display: none; animation: fade-in 0.35s var(--ease-soft, ease) both; }
+  .screen.active { display: block; }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============= WELCOME / LOCK SCREENS ============= */
+  .hero {
+    text-align: center;
+    padding: 32px 8px 20px;
+  }
+  .hero-mascot {
+    font-size: 84px;
+    line-height: 1;
+    margin-bottom: 18px;
+    display: inline-block;
+    animation: float 3.6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+  .hero-greet {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--watermelon-70);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+  }
+  .hero-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--pepper-120);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .hero-title .accent { color: var(--watermelon-70); }
+  .hero-sub {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--pepper-60);
+    line-height: 1.45;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ============= COUNTDOWN (lock state) ============= */
+  .countdown-card {
+    background: var(--white);
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 20px;
+    padding: 22px 18px;
+    margin: 24px 0 20px;
+    text-align: center;
+  }
+  .countdown-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--pepper-60);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 14px;
+  }
+  .countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .countdown-cell {
+    background: var(--tofu-100);
+    border-radius: 12px;
+    padding: 12px 4px;
+  }
+  .countdown-num {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--watermelon-70);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .countdown-unit {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--pepper-60);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+  }
+  .countdown-foot {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--pepper-90);
+  }
+  .countdown-foot strong { color: var(--watermelon-70); font-weight: 800; }
+
+  /* ============= CTAs ============= */
+  .cta-row { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--watermelon-70);
+    color: var(--white);
+    border-radius: 999px;
+    padding: 18px 24px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 0 var(--watermelon-90);
+    transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+  }
+  .cta:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--watermelon-90);
+  }
+  .cta:disabled, .cta.locked {
+    background: var(--pepper-30);
+    color: var(--pepper-60);
+    box-shadow: 0 4px 0 var(--pepper-60);
+    cursor: not-allowed;
+  }
+  .cta.ghost {
+    background: var(--white);
+    color: var(--pepper-120);
+    border: 1.5px solid var(--pepper-30);
+    box-shadow: none;
+  }
+  .cta.ghost:active { background: var(--tofu-100); }
+
+  .cta-secondary {
+    background: transparent;
+    color: var(--pepper-60);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: underline;
+    padding: 8px;
+  }
+
+  /* ============= STEP CARDS ============= */
+  .step-eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--watermelon-70);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .step-eyebrow .step-num {
+    background: var(--watermelon-70);
+    color: var(--white);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 900;
+  }
+  .step-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--pepper-120);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .step-sub {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--pepper-60);
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card.callout {
+    background: var(--tofu-warm);
+    border-style: dashed;
+  }
+  .card.feature {
+    background: linear-gradient(135deg, #FFF5F6 0%, var(--white) 60%);
+    border-color: var(--watermelon-30);
+  }
+
+  /* ============= INCOME ROWS ============= */
+  .income-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--pepper-30);
+  }
+  .income-row:last-child { border-bottom: none; }
+  .income-row .ir-month {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--pepper-120);
+  }
+  .income-row .ir-detail {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pepper-60);
+    margin-top: 2px;
+  }
+  .income-row .ir-amount {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--green);
+    font-variant-numeric: tabular-nums;
+  }
+  .income-row .ir-amount.zero { color: var(--pepper-60); font-weight: 700; }
+  .income-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 0;
+    margin-top: 8px;
+    border-top: 2px solid var(--pepper-120);
+  }
+  .income-total .it-label {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--pepper-120);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .income-total .it-amount {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--watermelon-70);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ============= COIN VISUAL (deductions) ============= */
+  .coin-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+    margin: 18px 0 8px;
+  }
+  .coin {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: var(--green-light);
+    border: 2px solid var(--green);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--green);
+  }
+  .coin.tax {
+    background: var(--watermelon-30);
+    border-color: var(--watermelon-70);
+    color: var(--watermelon-90);
+  }
+  .coin-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pepper-90);
+    margin-top: 8px;
+  }
+  .coin-legend .lg-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* ============= REVIEW BIG NUMBERS ============= */
+  .review-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .review-card {
+    background: var(--white);
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .review-card.refund {
+    background: linear-gradient(135deg, #FFE5EA 0%, #FFD1D9 100%);
+    border-color: var(--watermelon-50);
+  }
+  .review-card .rc-info { flex: 1; min-width: 0; }
+  .review-card .rc-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--pepper-60);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .review-card .rc-help {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pepper-60);
+    margin-top: 4px;
+  }
+  .review-card .rc-amount {
+    font-size: 28px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .review-card.withheld .rc-amount { color: var(--pepper-120); }
+  .review-card.owed     .rc-amount { color: var(--pepper-120); }
+  .review-card.refund   .rc-amount { color: var(--watermelon-70); }
+  .review-card.refund   .rc-label  { color: var(--watermelon-70); }
+  .review-card .rc-amount .rc-unit {
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 2px;
+    opacity: 0.7;
+  }
+
+  .breakdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--tofu-warm);
+    color: var(--pepper-90);
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 12px;
+  }
+  .breakdown-content { display: none; margin-top: 12px; }
+  .breakdown-content.open { display: block; }
+
+  /* ============= FILED / RECEIPT ============= */
+  .filed-hero { text-align: center; padding: 16px 8px; }
+  .filed-check {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: var(--watermelon-70);
+    display: grid;
+    place-items: center;
+    color: var(--white);
+    font-size: 56px;
+    box-shadow: 0 8px 0 var(--watermelon-90);
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes pop {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+  }
+  .receipt {
+    background: var(--white);
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-top: 22px;
+    box-shadow: 0 6px 18px rgba(33, 38, 42, 0.06);
+  }
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--pepper-30);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .receipt-row:last-child { border-bottom: none; }
+  .receipt-row .rr-label { color: var(--pepper-60); }
+  .receipt-row .rr-value { color: var(--pepper-120); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .receipt-row.refund .rr-value { color: var(--watermelon-70); font-size: 18px; }
+
+  /* ============= LOCK / FILED SCREEN COMPONENTS ============= */
+  .pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--watermelon-70);
+    color: var(--white);
+    border-radius: 99px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .pill-badge.muted { background: var(--pepper-30); color: var(--pepper-90); }
+  .pill-badge.filed { background: var(--green); }
+
+  .stat-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .stat-strip .ss-card {
+    background: var(--white);
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .stat-strip .ss-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--watermelon-70);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-strip .ss-num .ss-unit { font-size: 11px; opacity: 0.7; margin-left: 2px; }
+  .stat-strip .ss-lbl {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--pepper-60);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 6px;
+  }
+
+  /* ============= NAV BAR FOR INTERVIEW ============= */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .nav-row .nav-back {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    background: var(--white);
+    border: 1.5px solid var(--pepper-30);
+    color: var(--pepper-90);
+    font-size: 22px;
+    display: grid;
+    place-items: center;
+    transition: transform 0.1s;
+  }
+  .nav-row .nav-back:active { transform: translateY(2px); }
+  .nav-row .cta { flex: 1; }
+
+  /* ============= CONFETTI ============= */
+  .confetti {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: 200;
+    display: none;
+  }
+  .confetti.show { display: block; }
+  .confetti span {
+    position: absolute;
+    top: -40px;
+    font-size: 22px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); }
+  }
+
+  /* ============= BIGGER SCREENS ============= */
+  @media (min-width: 600px) {
+    .hero-title { font-size: 42px; }
+    .step-title { font-size: 32px; }
+    .review-grid { grid-template-columns: 1fr 1fr; }
+    .review-card.refund { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="topbar-back" href="Cappie.html" aria-label="Back to Cappie">
+    <span style="font-size:18px;">‹</span><span>Cappie</span>
+  </a>
+  <div class="topbar-lockup">
+    <span class="topbar-intuit">INTUIT</span>
+    <span class="topbar-tt">TurboTax <span class="for-kids">for Kids</span></span>
+  </div>
+</header>
+
+<main>
+  <!-- WELCOME / LOCK SCREEN -->
+  <section class="screen active" id="screen-welcome">
+    <div class="hero">
+      <div class="hero-mascot">🧾</div>
+      <div class="hero-greet" id="welcomeGreet">Welcome back!</div>
+      <h1 class="hero-title" id="welcomeTitle">Let's get your <span class="accent">tax refund</span></h1>
+      <p class="hero-sub" id="welcomeSub">Cappie put aside some of every dollar you earned. Now we'll figure out how much comes back to you.</p>
+    </div>
+
+    <div id="welcomeCountdown"></div>
+
+    <div class="cta-row">
+      <button class="cta" id="welcomeStart">Start my return</button>
+      <button class="cta-secondary" id="welcomePeek" style="display:none;">Sneak peek of my return</button>
+    </div>
+  </section>
+
+  <!-- INCOME -->
+  <section class="screen" id="screen-income">
+    <div class="step-dots" data-step="2"></div>
+    <div class="step-eyebrow"><span class="step-num">1</span> Income</div>
+    <h2 class="step-title">Here's what you earned</h2>
+    <p class="step-sub" id="incomeSub">We grabbed every Daddy Buck you earned during this tax period — straight from your Cappie ledger.</p>
+
+    <div class="card" id="incomeList"></div>
+
+    <div class="nav-row">
+      <button class="nav-back" data-go="welcome" aria-label="Back">‹</button>
+      <button class="cta" data-go="deductions">Looks right · Continue</button>
+    </div>
+  </section>
+
+  <!-- DEDUCTIONS -->
+  <section class="screen" id="screen-deductions">
+    <div class="step-dots" data-step="3"></div>
+    <div class="step-eyebrow"><span class="step-num">2</span> Deductions</div>
+    <h2 class="step-title">How taxes actually work</h2>
+    <p class="step-sub">Cappie takes 10% out of every paycheck — but you don't actually owe that much. Real tax is just $1 for every $20 you earn.</p>
+
+    <div class="card feature">
+      <div style="font-size:13px; font-weight:800; color:var(--pepper-120); text-transform:uppercase; letter-spacing:0.1em; text-align:center; margin-bottom:6px;">For every $20 you earn</div>
+      <div class="coin-grid" id="coinGrid"></div>
+      <div class="coin-legend">
+        <span><span class="lg-dot" style="background:var(--green);"></span>You keep $19</span>
+        <span><span class="lg-dot" style="background:var(--watermelon-70);"></span>Tax: $1</span>
+      </div>
+    </div>
+
+    <div class="card callout">
+      <div style="font-size:13px; font-weight:800; color:var(--watermelon-70); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">💡 Fun fact</div>
+      <div style="font-size:14px; font-weight:600; color:var(--pepper-90); line-height:1.5;">
+        Cappie withholds <strong style="color:var(--pepper-120);">$1 for every $10</strong> you earn — but real tax is only <strong style="color:var(--pepper-120);">$1 for every $20</strong>. That's why you get a refund: Cappie took out a little extra, and now you get it back.
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-back" data-go="income" aria-label="Back">‹</button>
+      <button class="cta" data-go="review">Got it · Continue</button>
+    </div>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="screen" id="screen-review">
+    <div class="step-dots" data-step="4"></div>
+    <div class="step-eyebrow"><span class="step-num">3</span> Review</div>
+    <h2 class="step-title">Your refund</h2>
+    <p class="step-sub" id="reviewSub">Here's the full picture for this tax period.</p>
+
+    <div class="review-grid">
+      <div class="review-card withheld">
+        <div class="rc-info">
+          <div class="rc-label">Withheld</div>
+          <div class="rc-help">10% of earnings</div>
+        </div>
+        <div class="rc-amount"><span id="reviewWithheld">0</span><span class="rc-unit">DB</span></div>
+      </div>
+      <div class="review-card owed">
+        <div class="rc-info">
+          <div class="rc-label">Tax owed</div>
+          <div class="rc-help">5% of earnings</div>
+        </div>
+        <div class="rc-amount">−<span id="reviewOwed">0</span><span class="rc-unit">DB</span></div>
+      </div>
+      <div class="review-card refund">
+        <div class="rc-info">
+          <div class="rc-label">Your refund</div>
+          <div class="rc-help">Withheld − Tax owed</div>
+        </div>
+        <div class="rc-amount">+<span id="reviewRefund">0</span><span class="rc-unit">DB</span></div>
+      </div>
+    </div>
+
+    <button class="breakdown-toggle" id="breakdownToggle">
+      <span>Show month-by-month</span>
+      <span id="breakdownChevron">›</span>
+    </button>
+    <div class="breakdown-content card" id="breakdownContent"></div>
+
+    <div class="nav-row">
+      <button class="nav-back" data-go="deductions" aria-label="Back">‹</button>
+      <button class="cta" data-go="file">Looks great · Continue</button>
+    </div>
+  </section>
+
+  <!-- FILE -->
+  <section class="screen" id="screen-file">
+    <div class="step-dots" data-step="5"></div>
+    <div class="step-eyebrow"><span class="step-num">4</span> File</div>
+    <h2 class="step-title">Ready to file?</h2>
+    <p class="step-sub">When you tap below, your refund goes straight to your Cappie balance. Whoosh!</p>
+
+    <div class="card feature" style="text-align:center; padding:26px 18px;">
+      <div style="font-size:13px; font-weight:800; color:var(--pepper-60); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px;">Your refund</div>
+      <div style="font-size:54px; font-weight:800; color:var(--watermelon-70); font-variant-numeric:tabular-nums; line-height:1; letter-spacing:-0.02em;">
+        +<span id="fileRefundAmt">0</span><span style="font-size:18px; opacity:0.7; margin-left:4px;">DB</span>
+      </div>
+      <div style="font-size:13px; font-weight:600; color:var(--pepper-60); margin-top:10px;" id="filePeriodLabel">Tax period · —</div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-back" data-go="review" aria-label="Back">‹</button>
+      <button class="cta" id="fileButton">🧾 File My Return</button>
+    </div>
+    <div id="fileLockMsg" style="font-size:13px; font-weight:700; color:var(--pepper-60); text-align:center; margin-top:14px; display:none;">
+      Filing opens in <strong id="fileLockCountdown" style="color:var(--watermelon-70);">—</strong>. Come back then!
+    </div>
+  </section>
+
+  <!-- FILED RECEIPT -->
+  <section class="screen" id="screen-filed">
+    <div class="filed-hero">
+      <div class="filed-check">✓</div>
+      <span class="pill-badge filed">FILED</span>
+      <h2 class="step-title" style="margin-top:14px;">All done!</h2>
+      <p class="step-sub" id="filedSub">Your refund is on its way to your Cappie balance.</p>
+    </div>
+
+    <div class="receipt">
+      <div class="receipt-row"><span class="rr-label">Tax period</span><span class="rr-value" id="receiptPeriod">—</span></div>
+      <div class="receipt-row"><span class="rr-label">Months covered</span><span class="rr-value" id="receiptMonths">—</span></div>
+      <div class="receipt-row"><span class="rr-label">Total earnings</span><span class="rr-value"><span id="receiptEarnings">0</span> DB</span></div>
+      <div class="receipt-row"><span class="rr-label">Withheld (10%)</span><span class="rr-value"><span id="receiptWithheld">0</span> DB</span></div>
+      <div class="receipt-row"><span class="rr-label">Real tax (5%)</span><span class="rr-value"><span id="receiptOwed">0</span> DB</span></div>
+      <div class="receipt-row refund"><span class="rr-label">Refunded to Cappie</span><span class="rr-value">+<span id="receiptRefund">0</span> DB</span></div>
+      <div class="receipt-row"><span class="rr-label">Filed at</span><span class="rr-value" id="receiptFiledAt">—</span></div>
+    </div>
+
+    <div class="cta-row">
+      <a class="cta" href="Cappie.html">Back to Cappie</a>
+    </div>
+  </section>
+</main>
+
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ============= STATE (shared with Cappie via localStorage) ============= */
+const STORAGE_KEY = 'pandi-state-v1';
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const TAX_WITHHOLD_DIVISOR = 10;
+const TAX_OWED_DIVISOR     = 20;
+
+function loadCappieState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+function saveCappieState(s) {
+  try {
+    if (s.cloud) s.cloud.lastChangeAt = Date.now();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch (e) {}
+}
+let state = loadCappieState();
+let previewMode = false;       // true when filing window is closed
+let activeWindow = null;       // current/most-relevant filing window
+let currentScreen = 'welcome';
+
+/* ============= MONTH HELPERS ============= */
+function pad2(n) { return String(n).padStart(2, '0'); }
+function monthKey(y, m0) { return `${y}-${pad2(m0 + 1)}`; }
+function monthLabel(key) {
+  const [y, m] = key.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
+}
+function shortMonthLabel(key) {
+  const [y, m] = key.split('-').map(Number);
+  return `${MONTHS[m - 1]}`;
+}
+
+/* ============= FILING WINDOW LOGIC =============
+   Two filing windows per year:
+   - H1 = Oct (year n-1) … Mar (year n) → file Apr 15-30 of year n  (period 'YYYY-H1')
+   - H2 = Apr … Sep (year n)            → file Oct 15-31 of year n  (period 'YYYY-H2')
+*/
+function buildFilingWindow(periodId) {
+  // periodId like '2026-H1' or '2026-H2'
+  const [yStr, half] = periodId.split('-');
+  const year = Number(yStr);
+  if (half === 'H1') {
+    const months = [];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(year - 1, 9 + i, 1); // Oct(year-1) + i
+      months.push(monthKey(d.getFullYear(), d.getMonth()));
+    }
+    return {
+      periodId,
+      label: `Oct ${year - 1} – Mar ${year}`,
+      monthsCovered: months,
+      opensAt: new Date(year, 3, 15, 0, 0, 0),       // Apr 15
+      closesAt: new Date(year, 3, 30, 23, 59, 59),   // Apr 30
+      filingDayLabel: `April 15, ${year}`
+    };
+  } else {
+    const months = [];
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(year, 3 + i, 1); // Apr + i
+      months.push(monthKey(d.getFullYear(), d.getMonth()));
+    }
+    return {
+      periodId,
+      label: `Apr – Sep ${year}`,
+      monthsCovered: months,
+      opensAt: new Date(year, 9, 15, 0, 0, 0),
+      closesAt: new Date(year, 9, 31, 23, 59, 59),
+      filingDayLabel: `October 15, ${year}`
+    };
+  }
+}
+function currentFilingWindow(now = new Date()) {
+  const y = now.getFullYear();
+  const candidates = [
+    buildFilingWindow(`${y}-H1`),
+    buildFilingWindow(`${y}-H2`),
+    buildFilingWindow(`${y + 1}-H1`)
+  ];
+  // Open right now?
+  for (const w of candidates) {
+    if (now >= w.opensAt && now <= w.closesAt) {
+      return { open: true, window: w };
+    }
+  }
+  // Otherwise return the next one upcoming
+  for (const w of candidates) {
+    if (now < w.opensAt) {
+      return { open: false, window: w };
+    }
+  }
+  return { open: false, window: candidates[candidates.length - 1] };
+}
+
+/* ============= INCOME PULL =============
+   Sum positive bucksLedger entries inside each month of the period.
+   Mirrors the math Cappie's withholding sweep used. */
+function earningsForMonth(key) {
+  if (!state) return 0;
+  const [y, m] = key.split('-').map(Number);
+  const start = new Date(y, m - 1, 1).getTime();
+  const end   = new Date(y, m, 1).getTime();
+  return (state.bucksLedger || [])
+    .filter(e => e.ts >= start && e.ts < end && e.amount > 0)
+    .reduce((s, e) => s + e.amount, 0);
+}
+function buildPeriodReturn(win) {
+  const months = win.monthsCovered.map(k => {
+    // Prefer the canonical withholding record if Cappie already swept it,
+    // so there's no risk of disagreement on rounding.
+    const rec = (state && state.taxes && state.taxes.withholdings && state.taxes.withholdings[k]) || null;
+    const earnings = rec ? (rec.earnings || 0) : earningsForMonth(k);
+    const withheld = rec ? (rec.withheld || 0) : Math.floor(earnings / TAX_WITHHOLD_DIVISOR);
+    return { key: k, earnings, withheld };
+  });
+  const totalEarnings = months.reduce((s, m) => s + m.earnings, 0);
+  const totalWithheld = months.reduce((s, m) => s + m.withheld, 0);
+  const totalOwed     = Math.floor(totalEarnings / TAX_OWED_DIVISOR);
+  const refund        = Math.max(0, totalWithheld - totalOwed);
+  return { months, totalEarnings, totalWithheld, totalOwed, refund };
+}
+function alreadyFiled(periodId) {
+  return ((state && state.taxes && state.taxes.filings) || []).some(f => f.period === periodId);
+}
+
+/* ============= UI ROUTING ============= */
+function showScreen(name) {
+  currentScreen = name;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('[data-go]').forEach(btn => {
+  btn.addEventListener('click', () => showScreen(btn.dataset.go));
+});
+
+/* ============= STEP DOTS ============= */
+function renderStepDots() {
+  document.querySelectorAll('.step-dots').forEach(holder => {
+    const step = Number(holder.dataset.step) || 1;
+    holder.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const d = document.createElement('div');
+      d.className = 'step-dot';
+      if (i < step) d.classList.add('complete');
+      else if (i === step) d.classList.add('active');
+      holder.appendChild(d);
+    }
+  });
+}
+
+/* ============= COIN GRID (deductions visual) ============= */
+function renderCoinGrid() {
+  const g = document.getElementById('coinGrid');
+  if (!g) return;
+  // 20 coins; 1 watermelon (tax), 19 green (kept). Two rows of 10.
+  g.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const c = document.createElement('div');
+    c.className = 'coin' + (i === 19 ? ' tax' : '');
+    c.textContent = '$1';
+    g.appendChild(c);
+  }
+}
+
+/* ============= COUNTDOWN (welcome + lock) ============= */
+let countdownTimer = null;
+function renderCountdown(targetDate) {
+  const ms = targetDate - new Date();
+  const out = document.getElementById('welcomeCountdown');
+  if (!out) return;
+  const days = Math.max(0, Math.floor(ms / (24 * 3600 * 1000)));
+  const hours = Math.max(0, Math.floor((ms % (24 * 3600 * 1000)) / (3600 * 1000)));
+  const mins  = Math.max(0, Math.floor((ms % (3600 * 1000)) / 60000));
+  const secs  = Math.max(0, Math.floor((ms % 60000) / 1000));
+  out.innerHTML = `
+    <div class="countdown-card">
+      <div class="countdown-label">Filing opens in</div>
+      <div class="countdown-grid">
+        <div class="countdown-cell"><div class="countdown-num">${days}</div><div class="countdown-unit">Days</div></div>
+        <div class="countdown-cell"><div class="countdown-num">${pad2(hours)}</div><div class="countdown-unit">Hrs</div></div>
+        <div class="countdown-cell"><div class="countdown-num">${pad2(mins)}</div><div class="countdown-unit">Min</div></div>
+        <div class="countdown-cell"><div class="countdown-num">${pad2(secs)}</div><div class="countdown-unit">Sec</div></div>
+      </div>
+      <div class="countdown-foot">Next filing day: <strong>${activeWindow.filingDayLabel}</strong></div>
+    </div>
+  `;
+}
+function startCountdownTimer() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  if (!activeWindow) return;
+  renderCountdown(activeWindow.opensAt);
+  countdownTimer = setInterval(() => {
+    if (new Date() >= activeWindow.opensAt) {
+      clearInterval(countdownTimer);
+      // Reload so the unlocked state takes over cleanly
+      location.reload();
+      return;
+    }
+    renderCountdown(activeWindow.opensAt);
+  }, 1000);
+}
+
+/* ============= INCOME SCREEN ============= */
+function renderIncome(ret, win) {
+  const list = document.getElementById('incomeList');
+  if (!list) return;
+  const sub = document.getElementById('incomeSub');
+  if (sub) sub.textContent = `Tax period: ${win.label}. We grabbed every Daddy Buck you earned during these months — straight from your Cappie ledger.`;
+  const rows = ret.months.map(m => `
+    <div class="income-row">
+      <div>
+        <div class="ir-month">${monthLabel(m.key)}</div>
+        <div class="ir-detail">Earnings · 10% withheld = ${m.withheld} DB</div>
+      </div>
+      <div class="ir-amount ${m.earnings === 0 ? 'zero' : ''}">${m.earnings} DB</div>
+    </div>
+  `).join('');
+  list.innerHTML = rows + `
+    <div class="income-total">
+      <div class="it-label">Total earnings</div>
+      <div class="it-amount">${ret.totalEarnings} <span style="font-size:14px; opacity:0.7;">DB</span></div>
+    </div>
+  `;
+}
+
+/* ============= REVIEW SCREEN ============= */
+function renderReview(ret, win) {
+  document.getElementById('reviewWithheld').textContent = ret.totalWithheld;
+  document.getElementById('reviewOwed').textContent     = ret.totalOwed;
+  document.getElementById('reviewRefund').textContent   = ret.refund;
+  const sub = document.getElementById('reviewSub');
+  if (sub) sub.textContent = `Tax period: ${win.label}. Here's the full picture.`;
+  const bd = document.getElementById('breakdownContent');
+  bd.innerHTML = ret.months.map(m => {
+    const owed = Math.floor(m.earnings / TAX_OWED_DIVISOR);
+    const refund = Math.max(0, (m.withheld || 0) - owed);
+    return `
+      <div class="income-row">
+        <div>
+          <div class="ir-month">${monthLabel(m.key)}</div>
+          <div class="ir-detail">Earned ${m.earnings} · Withheld ${m.withheld} · Owed ${owed}</div>
+        </div>
+        <div class="ir-amount">+${refund} DB</div>
+      </div>
+    `;
+  }).join('');
+  const tog = document.getElementById('breakdownToggle');
+  const chev = document.getElementById('breakdownChevron');
+  tog.onclick = () => {
+    const open = bd.classList.toggle('open');
+    chev.textContent = open ? '⌄' : '›';
+    tog.querySelector('span').textContent = open ? 'Hide month-by-month' : 'Show month-by-month';
+  };
+}
+
+/* ============= FILE SCREEN ============= */
+function renderFile(ret, win, windowOpen) {
+  document.getElementById('fileRefundAmt').textContent = ret.refund;
+  document.getElementById('filePeriodLabel').textContent = `Tax period · ${win.label}`;
+  const fileBtn = document.getElementById('fileButton');
+  const lockMsg = document.getElementById('fileLockMsg');
+  const lockCD = document.getElementById('fileLockCountdown');
+  if (windowOpen && ret.refund > 0 && !alreadyFiled(win.periodId)) {
+    fileBtn.disabled = false;
+    fileBtn.classList.remove('locked');
+    fileBtn.textContent = `🧾 File My Return · +${ret.refund} DB`;
+    lockMsg.style.display = 'none';
+  } else if (!windowOpen) {
+    fileBtn.disabled = true;
+    fileBtn.classList.add('locked');
+    fileBtn.textContent = '🔒 Filing closed';
+    lockMsg.style.display = 'block';
+    const ms = activeWindow.opensAt - new Date();
+    const days = Math.max(0, Math.ceil(ms / (24*3600*1000)));
+    lockCD.textContent = `${days} day${days === 1 ? '' : 's'} (${activeWindow.filingDayLabel})`;
+  } else if (alreadyFiled(win.periodId)) {
+    fileBtn.disabled = true;
+    fileBtn.classList.add('locked');
+    fileBtn.textContent = '✓ Already filed for this period';
+    lockMsg.style.display = 'none';
+  } else {
+    // refund == 0
+    fileBtn.disabled = true;
+    fileBtn.classList.add('locked');
+    fileBtn.textContent = 'No refund this period';
+    lockMsg.style.display = 'none';
+  }
+}
+
+/* ============= FILE ACTION ============= */
+function doFile() {
+  if (!state || !activeWindow) return;
+  const ret = buildPeriodReturn(activeWindow);
+  if (ret.refund <= 0) return;
+  if (alreadyFiled(activeWindow.periodId)) {
+    showFiledReceipt(ret, activeWindow);
+    return;
+  }
+  state.taxes = state.taxes || { withholdings: {}, filings: [], totalWithheld: 0, totalRefunded: 0, totalTaxPaid: 0 };
+  state.taxes.filings = state.taxes.filings || [];
+  const filing = {
+    period: activeWindow.periodId,
+    filedAt: Date.now(),
+    monthsCovered: activeWindow.monthsCovered.slice(),
+    totalEarnings: ret.totalEarnings,
+    totalWithheld: ret.totalWithheld,
+    totalOwed: ret.totalOwed,
+    refund: ret.refund
+  };
+  state.taxes.filings.unshift(filing);
+  // Inbox: Cappie credits this on its next load.
+  state.taxes.pendingRefund = {
+    period: activeWindow.periodId,
+    amount: ret.refund,
+    ts: Date.now()
+  };
+  saveCappieState(state);
+  fireConfetti();
+  setTimeout(() => showFiledReceipt(ret, activeWindow), 250);
+}
+
+function showFiledReceipt(ret, win) {
+  document.getElementById('receiptPeriod').textContent = `${win.periodId} (${win.label})`;
+  document.getElementById('receiptMonths').textContent = `${win.monthsCovered.length} months`;
+  document.getElementById('receiptEarnings').textContent = ret.totalEarnings;
+  document.getElementById('receiptWithheld').textContent = ret.totalWithheld;
+  document.getElementById('receiptOwed').textContent     = ret.totalOwed;
+  document.getElementById('receiptRefund').textContent   = ret.refund;
+  document.getElementById('receiptFiledAt').textContent  = new Date().toLocaleString();
+  const sub = document.getElementById('filedSub');
+  if (sub) sub.innerHTML = `Your <strong style="color:var(--watermelon-70);">+${ret.refund} DB</strong> refund will land in Cappie next time you open it.`;
+  showScreen('filed');
+}
+
+/* ============= CONFETTI ============= */
+function fireConfetti() {
+  const c = document.getElementById('confetti');
+  if (!c) return;
+  c.classList.add('show');
+  c.innerHTML = '';
+  const emojis = ['🧾','💰','🎉','✨','💸','🌟','🪙','🎀'];
+  for (let i = 0; i < 48; i++) {
+    const span = document.createElement('span');
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    span.style.left = (Math.random() * 100) + 'vw';
+    span.style.animationDuration = (1.6 + Math.random() * 1.6) + 's';
+    span.style.animationDelay = (Math.random() * 0.3) + 's';
+    c.appendChild(span);
+  }
+  setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3500);
+}
+
+/* ============= INIT ============= */
+function init() {
+  state = loadCappieState();
+  const noState = !state;
+
+  // If no Cappie state yet, render a friendly "go play first" welcome.
+  if (noState) {
+    document.getElementById('welcomeTitle').innerHTML = `Get started in <span class="accent">Cappie</span> first`;
+    document.getElementById('welcomeSub').textContent = `Earn some Daddy Bucks in Cappie, then come back at the next filing day to claim your refund.`;
+    document.getElementById('welcomeCountdown').innerHTML = '';
+    const startBtn = document.getElementById('welcomeStart');
+    startBtn.textContent = 'Open Cappie';
+    startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
+    return;
+  }
+
+  const wstate = currentFilingWindow();
+  activeWindow = wstate.window;
+  const open = wstate.open;
+  previewMode = !open;
+
+  // Already filed for this exact window? Jump straight to the receipt.
+  if (open && alreadyFiled(activeWindow.periodId)) {
+    const ret = buildPeriodReturn(activeWindow);
+    showFiledReceipt(ret, activeWindow);
+    renderStepDots();
+    return;
+  }
+
+  const ret = buildPeriodReturn(activeWindow);
+
+  // Welcome screen content
+  const greet = document.getElementById('welcomeGreet');
+  const title = document.getElementById('welcomeTitle');
+  const sub   = document.getElementById('welcomeSub');
+  const startBtn = document.getElementById('welcomeStart');
+  const peekBtn  = document.getElementById('welcomePeek');
+
+  if (open) {
+    greet.textContent = `Filing window OPEN`;
+    title.innerHTML = `Time to claim your <span class="accent">refund</span></span>`;
+    sub.innerHTML = `Tax period: <strong style="color:var(--pepper-120);">${activeWindow.label}</strong>. You'll get <strong style="color:var(--watermelon-70);">+${ret.refund} DB</strong> back.`;
+    document.getElementById('welcomeCountdown').innerHTML = `
+      <div class="card feature" style="text-align:center;">
+        <span class="pill-badge">Filing day · ${activeWindow.filingDayLabel}</span>
+        <div class="stat-strip">
+          <div class="ss-card"><div class="ss-num">${ret.totalEarnings}<span class="ss-unit">DB</span></div><div class="ss-lbl">Earned</div></div>
+          <div class="ss-card"><div class="ss-num">+${ret.refund}<span class="ss-unit">DB</span></div><div class="ss-lbl">Your refund</div></div>
+        </div>
+      </div>
+    `;
+    startBtn.textContent = `Start my return · +${ret.refund} DB`;
+    startBtn.onclick = () => showScreen('income');
+    peekBtn.style.display = 'none';
+  } else {
+    greet.textContent = `See you on ${activeWindow.filingDayLabel.split(',')[0]}!`;
+    title.innerHTML = `Filing isn't open <span class="accent">yet</span>`;
+    sub.textContent = `You can file twice a year — every April 15 and October 15. We'll keep track of everything Cappie withholds until then.`;
+    startBtn.textContent = 'Filing closed';
+    startBtn.classList.add('locked');
+    startBtn.disabled = true;
+    peekBtn.style.display = 'block';
+    peekBtn.onclick = () => showScreen('income');
+    startCountdownTimer();
+  }
+
+  renderIncome(ret, activeWindow);
+  renderReview(ret, activeWindow);
+  renderFile(ret, activeWindow, open);
+  renderCoinGrid();
+  renderStepDots();
+
+  document.getElementById('fileButton').onclick = () => {
+    if (!open) return;
+    doFile();
+  };
+}
+
+init();
+</script>
+</body>
+</html>

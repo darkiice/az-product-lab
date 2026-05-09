@@ -820,6 +820,101 @@
     transition: width 0.4s;
   }
 
+  /* ============= TAX HISTORY ============= */
+  .tax-totals {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .tax-total-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .tax-total-card.withheld { background: linear-gradient(135deg, #ffe5ea 0%, #ffd1d9 100%); border-color: #ffb8be; }
+  .tax-total-card.refunded { background: linear-gradient(135deg, var(--green-light) 0%, #c8e8b8 100%); border-color: #b2db9c; }
+  .tax-total-card.paid     { background: linear-gradient(135deg, var(--bg-card) 0%, #e0dccf 100%); border-color: var(--border-strong); }
+  .tax-total-label {
+    font-size: 10px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: rgba(0,0,0,0.55);
+    margin-bottom: 4px;
+  }
+  .tax-total-value {
+    font-size: 22px; font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .tax-total-value .tt-unit { font-size: 11px; font-weight: 800; margin-left: 2px; opacity: 0.7; }
+  .tt4k-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #DB334D 0%, #c42a40 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    font-weight: 900;
+    text-decoration: none;
+    box-shadow: 0 3px 0 #a52436;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .tt4k-link:active { transform: translateY(2px); box-shadow: 0 1px 0 #a52436; }
+  .tt4k-link .tt4k-ico {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.18);
+    display: grid; place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .tt4k-link .tt4k-text { flex: 1; min-width: 0; }
+  .tt4k-link .tt4k-title { font-size: 14px; font-weight: 900; }
+  .tt4k-link .tt4k-sub   { font-size: 11px; font-weight: 700; opacity: 0.9; margin-top: 2px; }
+  .tt4k-link .tt4k-arrow { font-size: 22px; opacity: 0.8; }
+  .tax-month-row {
+    display: grid;
+    grid-template-columns: 1.1fr 0.8fr 0.8fr 0.8fr;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tax-month-row:last-child { border-bottom: none; }
+  .tax-month-row.header {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-light);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 6px;
+  }
+  .tax-month-row .tm-month { font-weight: 900; }
+  .tax-month-row .tm-earned   { color: var(--green-dark); font-weight: 800; }
+  .tax-month-row .tm-withheld { color: #DB334D;           font-weight: 800; }
+  .tax-month-row .tm-refunded { color: var(--green-dark); font-weight: 800; }
+  .tax-month-row .tm-status {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 6px;
+    border-radius: 99px;
+    text-align: center;
+    background: var(--bg-card);
+    color: var(--text-muted);
+  }
+  .tax-month-row .tm-status.filed   { background: var(--green-light); color: var(--green-dark); }
+  .tax-month-row .tm-status.pending { background: #ffe5ea; color: #DB334D; }
+
   /* ============= TOGGLES ============= */
   .toggle-row {
     display: flex;
@@ -2404,6 +2499,33 @@
     <div id="bestsList"></div>
   </div>
 
+  <div class="chart-card" style="margin-top:14px;">
+    <h3>🧾 Tax History</h3>
+    <a class="tt4k-link" href="TurboTaxForKids.html">
+      <div class="tt4k-ico">🧾</div>
+      <div class="tt4k-text">
+        <div class="tt4k-title">Open TurboTax for Kids</div>
+        <div class="tt4k-sub" id="tt4kLinkSub">Claim your refund every April &amp; October 15</div>
+      </div>
+      <div class="tt4k-arrow">›</div>
+    </a>
+    <div class="tax-totals">
+      <div class="tax-total-card withheld">
+        <div class="tax-total-label">Lifetime withheld</div>
+        <div class="tax-total-value"><span id="taxTotalWithheld">0</span><span class="tt-unit">DB</span></div>
+      </div>
+      <div class="tax-total-card refunded">
+        <div class="tax-total-label">Lifetime refunded</div>
+        <div class="tax-total-value"><span id="taxTotalRefunded">0</span><span class="tt-unit">DB</span></div>
+      </div>
+      <div class="tax-total-card paid">
+        <div class="tax-total-label">Total tax paid</div>
+        <div class="tax-total-value"><span id="taxTotalPaid">0</span><span class="tt-unit">DB</span></div>
+      </div>
+    </div>
+    <div id="taxHistoryList"></div>
+  </div>
+
   <div class="cal-card">
     <div class="cal-header">
       <button class="cal-nav" id="calPrev" onclick="calMove(-1)">‹</button>
@@ -2777,6 +2899,19 @@ const defaultState = {
     ledger: [],               // [{ ts, type: 'buy'|'sell'|'payout', stockId?, shares?, amount, reason }]
     totalEarned: 0,           // lifetime payouts (display-only)
     totalInvested: 0          // running cost basis (deposits − withdrawals)
+  },
+
+  // === TAXES (TurboTax for Kids) ===
+  // Cappie withholds 10% of monthly earnings; she files with TT4K twice a year
+  // (Apr 15 / Oct 15) for a 5% refund (the other 5% is her real tax owed).
+  taxes: {
+    withholdings: {},         // { 'YYYY-MM': { earnings, withheld, ts } }
+    filings: [],              // [{ period: 'YYYY-H1'|'YYYY-H2', filedAt, monthsCovered: ['YYYY-MM',...], totalEarnings, totalWithheld, totalOwed, refund }]
+    totalWithheld: 0,         // lifetime withheld (sum of withholdings)
+    totalRefunded: 0,         // lifetime refunded back via filings
+    totalTaxPaid: 0,          // lifetime real tax paid (= totalWithheld − totalRefunded after filings)
+    lastSweepMonth: null,     // 'YYYY-MM' last month we ran the withholding sweep through
+    pendingRefund: null       // { period, amount, ts } — TT4K writes this; Cappie credits + clears on next load
   }
 };
 let state = loadState();
@@ -2884,6 +3019,12 @@ function loadState() {
           ...(parsed.investments || {}),
           lots:   Array.isArray(parsed.investments && parsed.investments.lots)   ? parsed.investments.lots   : [],
           ledger: Array.isArray(parsed.investments && parsed.investments.ledger) ? parsed.investments.ledger : []
+        },
+        taxes: {
+          ...defaultState.taxes,
+          ...(parsed.taxes || {}),
+          withholdings: (parsed.taxes && parsed.taxes.withholdings && typeof parsed.taxes.withholdings === 'object') ? parsed.taxes.withholdings : {},
+          filings:      Array.isArray(parsed.taxes && parsed.taxes.filings) ? parsed.taxes.filings : []
         }
       };
       // Migration: existing sync users had no `lastChangeAt`. Seed it from
@@ -5725,7 +5866,101 @@ function renderStats() {
     </div>
   `;
 
+  renderTaxHistory();
   renderCalendar();
+}
+
+/* ============= TAX HISTORY (in Stats tab) ============= */
+function renderTaxHistory() {
+  ensureTaxState();
+  const t = state.taxes;
+  const listEl = document.getElementById('taxHistoryList');
+  if (!listEl) return;
+
+  // Lifetime totals
+  document.getElementById('taxTotalWithheld').textContent = t.totalWithheld || 0;
+  document.getElementById('taxTotalRefunded').textContent = t.totalRefunded || 0;
+  document.getElementById('taxTotalPaid').textContent     = Math.max(0, (t.totalWithheld || 0) - (t.totalRefunded || 0));
+
+  // Subtitle on the TT4K link reflects the next filing window
+  const subEl = document.getElementById('tt4kLinkSub');
+  if (subEl && typeof nextFilingWindowLabel === 'function') {
+    subEl.textContent = nextFilingWindowLabel();
+  }
+
+  // Build a per-month table from withholdings + filings
+  const months = Object.keys(t.withholdings || {}).sort().reverse(); // newest first
+  if (months.length === 0) {
+    listEl.innerHTML = `<div class="empty-msg">No tax months yet. Cappie will withhold 10% at the close of each month — earn some bucks first!</div>`;
+    return;
+  }
+
+  // Map month → filing (if filed)
+  const monthToFiling = {};
+  (t.filings || []).forEach(f => {
+    (f.monthsCovered || []).forEach(m => { monthToFiling[m] = f; });
+  });
+
+  const rows = months.map(m => {
+    const w = t.withholdings[m] || { earnings: 0, withheld: 0 };
+    const filing = monthToFiling[m];
+    let refundedShare = 0;
+    let status = 'pending';
+    if (filing) {
+      // Pro-rata refund share for this month inside the filing period.
+      // Total refund × (this month's withheld / period's total withheld).
+      const periodWithheld = (filing.totalWithheld || 0);
+      refundedShare = periodWithheld > 0
+        ? Math.round((w.withheld || 0) / periodWithheld * (filing.refund || 0))
+        : 0;
+      status = 'filed';
+    }
+    return `
+      <div class="tax-month-row">
+        <div class="tm-month">${monthLabel(m)}</div>
+        <div class="tm-earned">${w.earnings || 0} DB</div>
+        <div class="tm-withheld">−${w.withheld || 0}</div>
+        <div class="tm-refunded">+${refundedShare}</div>
+      </div>`;
+  }).join('');
+
+  listEl.innerHTML = `
+    <div class="tax-month-row header">
+      <div>Month</div>
+      <div>Earned</div>
+      <div>Withheld</div>
+      <div>Refunded</div>
+    </div>
+    ${rows}
+  `;
+}
+
+// Returns a friendly label for the next filing window (or "Filing OPEN!" if
+// we're inside one). Kept here so the Stats tab can use it without depending
+// on TT4K being loaded.
+function nextFilingWindowLabel(now = new Date()) {
+  const y = now.getFullYear();
+  // Window starts on Apr 15 and Oct 15 each year, runs through end of month.
+  const apr15 = new Date(y, 3, 15);
+  const aprEnd = new Date(y, 3, 30, 23, 59, 59);
+  const oct15 = new Date(y, 9, 15);
+  const octEnd = new Date(y, 9, 31, 23, 59, 59);
+  if (now >= apr15 && now <= aprEnd) {
+    const daysLeft = Math.ceil((aprEnd - now) / (24*3600*1000));
+    return `Filing window OPEN! ${daysLeft} day${daysLeft === 1 ? '' : 's'} left to file`;
+  }
+  if (now >= oct15 && now <= octEnd) {
+    const daysLeft = Math.ceil((octEnd - now) / (24*3600*1000));
+    return `Filing window OPEN! ${daysLeft} day${daysLeft === 1 ? '' : 's'} left to file`;
+  }
+  // Otherwise compute distance to next opening
+  let next;
+  if (now < apr15) next = apr15;
+  else if (now < oct15) next = oct15;
+  else next = new Date(y + 1, 3, 15); // next April
+  const days = Math.ceil((next - now) / (24*3600*1000));
+  const label = next.getMonth() === 3 ? 'April 15' : 'October 15';
+  return `Next filing day: ${label} · ${days} day${days === 1 ? '' : 's'} away`;
 }
 
 /* ============= ME (now lives inside Stats panel) ============= */
@@ -5908,6 +6143,143 @@ function celebrateBig() {
     c.appendChild(span);
   }
   setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3200);
+}
+
+/* ============= TAXES (TurboTax for Kids) =============
+   - Withholding: 10% of monthly earnings, deducted on the 1st of the next month.
+   - Real tax owed: 5% of earnings.
+   - Refund (claimed twice/year via TT4K): withholding − tax owed = ~5%.
+   All values floor()'d to whole dollars. */
+const TAX_WITHHOLD_DIVISOR = 10;   // floor(earnings / 10)  → 10% withheld
+const TAX_OWED_DIVISOR     = 20;   // floor(earnings / 20)  →  5% real tax
+function ensureTaxState() {
+  if (!state.taxes) state.taxes = JSON.parse(JSON.stringify(defaultState.taxes));
+  if (!state.taxes.withholdings || typeof state.taxes.withholdings !== 'object') state.taxes.withholdings = {};
+  if (!Array.isArray(state.taxes.filings)) state.taxes.filings = [];
+  if (typeof state.taxes.totalWithheld !== 'number') state.taxes.totalWithheld = 0;
+  if (typeof state.taxes.totalRefunded !== 'number') state.taxes.totalRefunded = 0;
+  if (typeof state.taxes.totalTaxPaid !== 'number')  state.taxes.totalTaxPaid  = 0;
+}
+
+function monthKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+function prevMonthKey(d) {
+  const x = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+  return monthKey(x);
+}
+function monthLabel(key) {
+  // 'YYYY-MM' → 'Mar 2026'
+  const [y, m] = key.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
+}
+// Sum positive ledger entries (earnings only) for a given YYYY-MM key.
+// Excludes any tax-withholding rows we ourselves wrote (negative anyway).
+function earningsForMonth(key) {
+  const [y, m] = key.split('-').map(Number);
+  const start = new Date(y, m - 1, 1).getTime();
+  const end   = new Date(y, m, 1).getTime();
+  return (state.bucksLedger || [])
+    .filter(e => e.ts >= start && e.ts < end && e.amount > 0)
+    .reduce((s, e) => s + e.amount, 0);
+}
+
+// Run on every app load. Sweeps every completed month between
+// taxes.lastSweepMonth and (now - 1 month), inclusive, withholding 10% of
+// each month's earnings. Idempotent — checks taxes.withholdings before
+// writing so re-runs are safe.
+function runMonthlyTaxWithholding() {
+  ensureTaxState();
+  const now = new Date();
+  const currentMonth = monthKey(now);
+  const lastCompletedMonth = prevMonthKey(now); // we only ever withhold completed months
+  // First-ever run: start fresh from the most recent completed month.
+  // (Don't backfill all prior months — could push balance very negative.)
+  if (!state.taxes.lastSweepMonth) {
+    state.taxes.lastSweepMonth = lastCompletedMonth;
+    saveState();
+    return;
+  }
+  // Walk forward from the month AFTER lastSweepMonth up through lastCompletedMonth.
+  let cursor = nextMonthKey(state.taxes.lastSweepMonth);
+  let didSomething = false;
+  // Safety: bail after 24 months to avoid runaway loops on weird clocks.
+  let safety = 0;
+  while (cursor <= lastCompletedMonth && cursor < currentMonth && safety++ < 24) {
+    if (!state.taxes.withholdings[cursor]) {
+      const earnings = earningsForMonth(cursor);
+      const withheld = Math.floor(earnings / TAX_WITHHOLD_DIVISOR);
+      if (withheld > 0) {
+        state.bucks = (state.bucks || 0) - withheld;
+        state.bucksLedger = state.bucksLedger || [];
+        state.bucksLedger.unshift({
+          ts: Date.now(),
+          amount: -withheld,
+          reason: `🧾 Tax withholding · ${monthLabel(cursor)}`
+        });
+        if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+        state.taxes.totalWithheld = (state.taxes.totalWithheld || 0) + withheld;
+        state.taxes.totalTaxPaid  = (state.taxes.totalTaxPaid  || 0) + withheld;
+      }
+      // Always record the sweep — even $0 months — so we know we processed it.
+      state.taxes.withholdings[cursor] = { earnings, withheld, ts: Date.now() };
+      didSomething = true;
+    }
+    state.taxes.lastSweepMonth = cursor;
+    cursor = nextMonthKey(cursor);
+  }
+  if (didSomething) saveState();
+}
+function nextMonthKey(key) {
+  const [y, m] = key.split('-').map(Number);
+  const x = new Date(y, m, 1); // m is 1-based, new Date with m gives next month (0-based)
+  return monthKey(x);
+}
+
+// Inbox pattern: TT4K writes state.taxes.pendingRefund; Cappie applies on
+// next load. Idempotent — checks against existing filings[].period.
+function applyPendingRefund() {
+  ensureTaxState();
+  const pending = state.taxes.pendingRefund;
+  if (!pending || !pending.period || typeof pending.amount !== 'number' || pending.amount <= 0) {
+    state.taxes.pendingRefund = null;
+    return;
+  }
+  // Only credit once per period.
+  const alreadyCredited = (state.taxes.filings || []).some(f =>
+    f.period === pending.period && f._refundCreditedToBucks
+  );
+  if (alreadyCredited) {
+    state.taxes.pendingRefund = null;
+    saveState();
+    return;
+  }
+  const amt = Math.floor(pending.amount);
+  if (amt > 0) {
+    state.bucks = (state.bucks || 0) + amt;
+    state.bucksTotalEarned = (state.bucksTotalEarned || 0) + amt;
+    state.bucksLedger = state.bucksLedger || [];
+    state.bucksLedger.unshift({
+      ts: Date.now(),
+      amount: amt,
+      reason: `🧾 Tax refund · ${pending.period}`
+    });
+    if (state.bucksLedger.length > 200) state.bucksLedger.length = 200;
+    state.taxes.totalRefunded = (state.taxes.totalRefunded || 0) + amt;
+    state.taxes.totalTaxPaid  = Math.max(0, (state.taxes.totalTaxPaid || 0) - amt);
+    // Mark the matching filing as credited.
+    const filing = (state.taxes.filings || []).find(f => f.period === pending.period);
+    if (filing) filing._refundCreditedToBucks = true;
+  }
+  state.taxes.pendingRefund = null;
+  saveState();
+  // Visible feedback on next render
+  setTimeout(() => {
+    showToast(`🧾 Tax refund: +${amt} DB!`, 'gold');
+    setTimeout(() => celebrateBig(), 80);
+  }, 600);
 }
 
 /* ============= INVESTMENTS ============= */
@@ -6161,6 +6533,11 @@ evaluateFreezeAward();
 // Drop any monthly investment dividends that came due while she was away
 processInvestmentPayouts();
 
+// Tax engine: withhold for any completed months we haven't swept yet, then
+// credit any refund TT4K dropped into the inbox since last load.
+runMonthlyTaxWithholding();
+applyPendingRefund();
+
 rerender();
 
 // Show freeze banner if we just bridged days
@@ -6179,9 +6556,9 @@ setInterval(() => {
 // Auto-pulls newer remote state on load, when the tab regains focus, and every
 // 10s while open. Uses last-writer-wins by `updatedAt` (see cloudAutoPull).
 cloudAutoPull({ silent: false });
-window.addEventListener('focus', () => { cloudAutoPull(); processInvestmentPayouts(); rerender(); });
+window.addEventListener('focus', () => { cloudAutoPull(); processInvestmentPayouts(); runMonthlyTaxWithholding(); applyPendingRefund(); rerender(); });
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) { cloudAutoPull(); processInvestmentPayouts(); rerender(); }
+  if (!document.hidden) { cloudAutoPull(); processInvestmentPayouts(); runMonthlyTaxWithholding(); applyPendingRefund(); rerender(); }
 });
 setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 10 * 1000);
 
