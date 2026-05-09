@@ -4,10 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#fafaf9" />
-<title>az · product lab</title>
+<title>az product lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,800;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Nunito Sans is the open-source fallback for Avenir Next on devices that don't ship it. -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -21,32 +22,27 @@
     --ink-light: #b3aca3;
     --line: #e0dccf;
     --orange: #e15c2a;
-    --orange-soft: #f4a572;
 
-    --serif: 'Fraunces', 'EB Garamond', Georgia, serif;
-    --mono:  'JetBrains Mono', ui-monospace, monospace;
+    /* Intuit's house typeface; Nunito Sans is the closest free fallback. */
+    --sans: 'Avenir Next', 'Avenir', 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   }
 
   html, body { min-height: 100%; }
   body {
-    font-family: var(--serif);
+    font-family: var(--sans);
+    font-weight: 500;
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
   }
 
-  .mono {
-    font-family: var(--mono);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.06em;
-  }
-
   /* ============= MASTHEAD ============= */
   .masthead {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 64px 32px 40px;
+    padding: 56px 32px 32px;
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: end;
@@ -54,48 +50,59 @@
     border-bottom: 1px solid var(--line);
   }
   .brand {
-    font-family: var(--serif);
-    font-weight: 500;
-    font-size: clamp(40px, 8vw, 88px);
-    line-height: 0.95;
-    letter-spacing: -0.035em;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(26px, 3.6vw, 34px);
+    line-height: 1;
+    letter-spacing: -0.015em;
     color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
   }
-  .brand .it { font-style: italic; font-weight: 400; color: var(--ink-soft); }
-  .brand .dot { color: var(--orange); font-style: normal; }
+  .brand-mark {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--orange);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .brand .lab { color: var(--ink-mute); font-weight: 400; }
   .meta-col {
     text-align: right;
     color: var(--ink-mute);
   }
   .meta-eyebrow {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     color: var(--ink-mute);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .tagline {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 17px;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 14px;
     color: var(--ink-soft);
     max-width: 320px;
-    line-height: 1.4;
+    line-height: 1.5;
   }
-  .tagline .ampersand { color: var(--orange); font-weight: 500; }
 
   /* ============= NAV STRIP ============= */
   .navstrip {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 18px 32px;
+    padding: 16px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.2em;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ink-mute);
     border-bottom: 1px solid var(--line);
@@ -169,11 +176,6 @@
 
   /* Branded backdrops behind each icon — keep the per-app color story.
      Subtle radial vignettes make the icon feel "lit from above." */
-  .poster.forward {
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 30%, #f6f1e6 0%, #e7decd 65%, #d4c8af 100%);
-    color: #2d2317;
-  }
   .poster.mileo {
     background:
       radial-gradient(ellipse 80% 60% at 50% 30%, #6fde18 0%, #4faf02 60%, #3d8c00 100%);
@@ -202,12 +204,11 @@
     border-style: dashed;
   }
   .poster.placeholder .next-mark {
-    font-family: var(--serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: clamp(80px, 16vw, 130px);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(48px, 9vw, 72px);
     color: var(--ink-light);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 
   /* ============= LABELING UNDER POSTER ============= */
@@ -219,56 +220,58 @@
     padding-right: 4px;
   }
   .work-num {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 10px;
     letter-spacing: 0.16em;
     color: var(--ink-light);
     text-transform: uppercase;
   }
   .work-name {
-    font-family: var(--serif);
-    font-weight: 500;
-    font-size: 24px;
-    letter-spacing: -0.015em;
-    line-height: 1.1;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
     color: var(--ink);
   }
   .work-name em {
-    font-style: italic;
+    font-style: normal;
     font-weight: 400;
-    color: var(--ink-soft);
+    color: var(--ink-mute);
+    margin-left: 4px;
   }
   .work-name .arrow { color: var(--orange); margin-left: 6px; transition: margin-left 0.25s ease; }
   .work:hover .work-name .arrow { margin-left: 12px; }
   .work-desc {
-    font-family: var(--serif);
-    font-size: 14.5px;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 14px;
     color: var(--ink-mute);
-    line-height: 1.5;
+    line-height: 1.55;
     margin-top: -4px;
     max-width: 44ch;
   }
   .work-tags {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     margin-top: 2px;
   }
   .work-tag {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 3px;
-    background: rgba(28,25,23,0.06);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: rgba(28,25,23,0.05);
     color: var(--ink-soft);
-    font-weight: 500;
   }
   .work-tag.dot::before {
     content: '•';
     color: var(--orange);
-    margin-right: 6px;
+    margin-right: 5px;
   }
 
   /* ============= FOOTER ============= */
@@ -281,18 +284,19 @@
     grid-template-columns: 1fr auto;
     gap: 16px;
     align-items: baseline;
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ink-mute);
   }
   footer .signoff {
-    font-family: var(--serif);
-    font-style: italic;
+    font-family: var(--sans);
+    font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--ink-soft);
   }
   footer a { color: var(--ink-mute); text-decoration: none; transition: color 0.2s; }
@@ -322,45 +326,24 @@
 <body>
 
 <header class="masthead">
-  <h1 class="brand">az<span class="dot">·</span><span class="it">product</span><span class="dot">·</span>lab</h1>
+  <h1 class="brand">
+    <span class="brand-mark"></span>
+    <span>az <span class="lab">product lab</span></span>
+  </h1>
   <div class="meta-col">
     <div class="meta-eyebrow">Personal Workshop</div>
-    <p class="tagline">A small workshop for personal product experiments <span class="ampersand">&amp;</span> weekend builds.</p>
+    <p class="tagline">A small workshop for personal product experiments and weekend builds.</p>
   </div>
 </header>
 
 <div class="navstrip">
-  <div class="left">
-    <span>▸ Selected works</span>
-    <span style="color: var(--ink-light);">Alex Zhou</span>
-  </div>
-  <div class="right mono">
-    <span id="workCount">04</span> &nbsp;projects
+  <div class="left">Selected works · Alex Zhou</div>
+  <div class="right">
+    <span id="workCount">03</span> &nbsp;projects
   </div>
 </div>
 
 <section class="gallery">
-
-  <!-- WORK · FORWARD -->
-  <a class="work" href="./Forward.html">
-    <div class="poster forward">
-      <div class="poster-inner">
-        <div class="poster-art">
-          <img class="app-icon" src="forward-icon.svg" alt="Forward app icon" />
-        </div>
-      </div>
-    </div>
-    <div class="work-label">
-      <div class="work-name">Forward <span class="arrow">→</span></div>
-      <div class="work-num">№ 01</div>
-    </div>
-    <p class="work-desc">A twelve-week half-marathon training app. Plan, track, and check off your runs with strength and swim cross-training built in. Editorial design.</p>
-    <div class="work-tags">
-      <span class="work-tag dot">Fitness</span>
-      <span class="work-tag">PWA</span>
-      <span class="work-tag">Installable</span>
-    </div>
-  </a>
 
   <!-- WORK · MILEO -->
   <a class="work" href="./Mileo.html">
@@ -373,9 +356,9 @@
     </div>
     <div class="work-label">
       <div class="work-name">Mileo <em>the llama</em><span class="arrow">→</span></div>
-      <div class="work-num">№ 02</div>
+      <div class="work-num">№ 01</div>
     </div>
-    <p class="work-desc">The same training plan as Forward, reimagined as a Duolingo-style game. Streaks, XP, a winding lesson path, and a llama mascot named Mileo who cheers you on.</p>
+    <p class="work-desc">A Duolingo-style half-marathon training game. Streaks, XP, a winding lesson path, and a llama mascot named Mileo who cheers you on.</p>
     <div class="work-tags">
       <span class="work-tag dot">Fitness</span>
       <span class="work-tag">Gamified</span>
@@ -394,7 +377,7 @@
     </div>
     <div class="work-label">
       <div class="work-name">Cappie <em>the capybara</em><span class="arrow">→</span></div>
-      <div class="work-num">№ 03</div>
+      <div class="work-num">№ 02</div>
     </div>
     <p class="work-desc">A daily-quest companion for kids. Piano, reading, math, and badminton — gamified with streaks, a sticker album, and Daddy Bucks she trades for real rewards.</p>
     <div class="work-tags">
@@ -415,7 +398,7 @@
     </div>
     <div class="work-label">
       <div class="work-name">TurboTax <em>for Kids</em><span class="arrow">→</span></div>
-      <div class="work-num">№ 04</div>
+      <div class="work-num">№ 03</div>
     </div>
     <p class="work-desc">Cappie withholds 10% of every dollar she earns; twice a year — every April 15 and October 15 — she opens TurboTax for Kids to file a return and claim a refund back to her balance.</p>
     <div class="work-tags">
@@ -430,13 +413,13 @@
     <div class="poster placeholder">
       <div class="poster-inner">
         <div class="poster-art">
-          <div class="next-mark"><em>next</em></div>
+          <div class="next-mark">next</div>
         </div>
       </div>
     </div>
     <div class="work-label">
-      <div class="work-name" style="color:var(--ink-light);"><em>untitled</em></div>
-      <div class="work-num">№ 05</div>
+      <div class="work-name" style="color:var(--ink-light); font-weight:400;">Untitled</div>
+      <div class="work-num">№ 04</div>
     </div>
     <p class="work-desc">Whatever's next will live here.</p>
   </div>
