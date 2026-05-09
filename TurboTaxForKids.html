@@ -700,7 +700,7 @@
 <body>
 
 <header class="topbar">
-  <a class="topbar-back" href="Cappie.html" aria-label="Back to Cappie">
+  <a class="topbar-back" id="topbarBack" href="Cappie.html" aria-label="Back to Cappie" data-cappie-link>
     <span style="font-size:18px;">‹</span><span>Cappie</span>
   </a>
   <div class="topbar-lockup">
@@ -710,6 +710,42 @@
 </header>
 
 <main>
+  <!-- TAX PIN LOCK — shown when TT4K is opened standalone (not from Cappie).
+       Validates against state.cloud.shortCode (the family's cloud sync code,
+       reused as the Tax PIN). Unlock persists in sessionStorage. -->
+  <section class="screen" id="screen-lock">
+    <div class="hero">
+      <div class="hero-mascot">🔒</div>
+      <div class="hero-greet">Tax PIN required</div>
+      <h1 class="hero-title">Enter your <span class="accent">Tax PIN</span></h1>
+      <p class="hero-sub" id="lockSub">Find your 6-digit Tax PIN in <strong style="color:var(--pepper-120);">Cappie → Stats → Tax History</strong>. Enter it below to keep filing private.</p>
+    </div>
+
+    <div class="card" id="lockPinCard">
+      <input
+        id="lockPinInput"
+        class="pin-input-tt4k"
+        type="tel"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="6"
+        autocomplete="off"
+        placeholder="• • • • • •"
+      />
+      <div class="pin-err" id="lockPinErr"></div>
+    </div>
+
+    <div class="card" id="lockNoPinCard" style="display:none;">
+      <div class="pin-no-setup" id="lockNoPinMsg">
+        <strong>No Tax PIN set up yet.</strong> Open Cappie on this device, go to Stats → Tax History, and tap "Set up Tax PIN". Then come back here.
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button class="cta" id="lockUnlockBtn">🔑 Unlock TurboTax for Kids</button>
+    </div>
+  </section>
+
   <!-- WELCOME / LOCK SCREEN -->
   <section class="screen active" id="screen-welcome">
     <div class="hero">
@@ -921,7 +957,7 @@
     </div>
 
     <div class="cta-row">
-      <a class="cta" href="Cappie.html">Back to Cappie</a>
+      <a class="cta" id="receiptBackToCappie" href="Cappie.html" data-cappie-link>Back to Cappie</a>
     </div>
   </section>
 </main>
@@ -954,6 +990,27 @@ let state = loadCappieState();
 let previewMode = false;       // true when filing window is closed
 let activeWindow = null;       // current/most-relevant filing window
 let currentScreen = 'welcome';
+
+/* ============= ENTRY GATE =============
+   TT4K can be entered two ways:
+     1. Launched from Cappie (sessionStorage breadcrumb set by Cappie's
+        link click) — no PIN required, full back-to-Cappie navigation.
+     2. Launched directly (Safari, home-screen PWA, etc.) — must enter the
+        family's 6-digit Tax PIN (state.cloud.shortCode) to proceed. No
+        back-to-Cappie navigation is shown, since iOS can't switch to a
+        separate PWA anyway. */
+const SESSION_FROM_CAPPIE = (() => {
+  try { return sessionStorage.getItem('tt4k.cameFromCappie') === '1'; } catch (e) { return false; }
+})();
+let SESSION_UNLOCKED = (() => {
+  try { return sessionStorage.getItem('tt4k.unlocked') === '1'; } catch (e) { return false; }
+})();
+function isCameFromCappie() { return SESSION_FROM_CAPPIE; }
+function isUnlocked()       { return SESSION_FROM_CAPPIE || SESSION_UNLOCKED; }
+function markUnlocked() {
+  SESSION_UNLOCKED = true;
+  try { sessionStorage.setItem('tt4k.unlocked', '1'); } catch (e) {}
+}
 
 /* ============= MONTH HELPERS ============= */
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -1365,43 +1422,132 @@ function fireConfetti() {
   setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3500);
 }
 
+/* ============= LOCK SCREEN =============
+   Shown when TT4K is launched directly (not from Cappie). User must enter
+   the family Tax PIN (which is state.cloud.shortCode in Cappie) to proceed.
+   Once verified, the unlock is cached in sessionStorage for the rest of
+   this session. */
+function renderLockScreen() {
+  const lockNoPinCard = document.getElementById('lockNoPinCard');
+  const lockNoPinMsg  = document.getElementById('lockNoPinMsg');
+  const lockPinCard   = document.getElementById('lockPinCard');
+  const unlockBtn     = document.getElementById('lockUnlockBtn');
+  const subEl         = document.getElementById('lockSub');
+  const lockPinInput  = document.getElementById('lockPinInput');
+  const lockPinErr    = document.getElementById('lockPinErr');
+
+  // Hide the top-bar back arrow on the lock screen — there's no "back"
+  // until the user has authenticated (and they didn't come from Cappie).
+  const topbarBack = document.getElementById('topbarBack');
+  if (topbarBack) topbarBack.style.display = 'none';
+
+  const code = state && state.cloud && state.cloud.shortCode;
+  const hasState = !!state;
+
+  if (code) {
+    lockPinCard.style.display = '';
+    lockNoPinCard.style.display = 'none';
+    unlockBtn.disabled = false;
+    unlockBtn.classList.remove('locked');
+    unlockBtn.textContent = '🔑 Unlock TurboTax for Kids';
+    subEl.innerHTML = `Find your 6-digit Tax PIN in <strong style="color:var(--pepper-120);">Cappie → Stats → Tax History</strong>. Enter it below to keep filing private.`;
+    setTimeout(() => lockPinInput && lockPinInput.focus(), 250);
+  } else {
+    lockPinCard.style.display = 'none';
+    lockNoPinCard.style.display = '';
+    unlockBtn.disabled = true;
+    unlockBtn.classList.add('locked');
+    unlockBtn.textContent = '🔒 Set up Tax PIN in Cappie first';
+    if (!hasState) {
+      lockNoPinMsg.innerHTML = `<strong>No Cappie data on this device yet.</strong> Open Cappie, earn some Daddy Bucks, then visit Stats → Tax History to set up a Tax PIN.`;
+      subEl.innerHTML = `TurboTax for Kids needs a Cappie account on this device.`;
+    } else {
+      lockNoPinMsg.innerHTML = `<strong>No Tax PIN set up yet.</strong> Open Cappie on this device, go to Stats → Tax History, and tap "🔑 Set up Tax PIN". Then come back here.`;
+      subEl.innerHTML = `Almost there — Cappie just needs a Tax PIN before you can file.`;
+    }
+  }
+
+  if (lockPinErr) lockPinErr.textContent = '';
+  showScreen('lock');
+}
+
+async function tryUnlockTaxPin() {
+  const inp = document.getElementById('lockPinInput');
+  const err = document.getElementById('lockPinErr');
+  if (!inp || !state || !state.cloud || !state.cloud.shortCode) return;
+  const entered = (inp.value || '').replace(/[\s-]/g, '');
+  if (!/^\d{6}$/.test(entered)) {
+    err.textContent = 'Tax PIN should be 6 digits.';
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    return;
+  }
+  if (entered === state.cloud.shortCode) {
+    markUnlocked();
+    err.textContent = '';
+    inp.value = '';
+    // Hand off to normal init — same code path as a fresh load.
+    runMainFlow();
+  } else {
+    err.textContent = 'That PIN doesn\'t match. Check Cappie → Stats → Tax History.';
+    inp.value = '';
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    inp.focus();
+  }
+}
+
 /* ============= INIT ============= */
 function init() {
   state = loadCappieState();
+
+  // Show or hide the top-bar back arrow based on whether the user came
+  // from the actual Cappie app. iOS won't switch between two PWAs, so we
+  // only display Cappie navigation links if we're sure tapping them
+  // returns to the same webview.
+  const topbarBack = document.getElementById('topbarBack');
+  if (topbarBack) topbarBack.style.display = isCameFromCappie() ? '' : 'none';
+
+  // Hide the receipt's "Back to Cappie" CTA in the same situation.
+  const receiptBack = document.getElementById('receiptBackToCappie');
+  if (receiptBack) receiptBack.style.display = isCameFromCappie() ? '' : 'none';
+
+  // Entry gate: if not unlocked, show the Tax PIN lock screen.
+  if (!isUnlocked()) {
+    renderLockScreen();
+    return;
+  }
+
+  runMainFlow();
+}
+
+/* ============= MAIN FLOW =============
+   Builds the welcome / income / deductions / review / expert / file screens.
+   Runs after the user is unlocked (or arrived via the Cappie breadcrumb). */
+function runMainFlow() {
   const noState = !state;
 
   // If no Cappie state yet, render a friendly "go play first" welcome.
-  // We branch the message based on whether we're running as an installed
-  // PWA (display-mode: standalone) or in Safari, because iOS won't switch
-  // between Safari and a home-screen PWA when you tap an in-page link.
   if (noState) {
-    const inStandalone =
-      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-      window.navigator.standalone === true;
-    const titleEl = document.getElementById('welcomeTitle');
-    const subEl   = document.getElementById('welcomeSub');
+    const titleEl  = document.getElementById('welcomeTitle');
+    const subEl    = document.getElementById('welcomeSub');
     const startBtn = document.getElementById('welcomeStart');
     const peekBtn  = document.getElementById('welcomePeek');
     document.getElementById('welcomeCountdown').innerHTML = '';
     document.getElementById('welcomeGreet').textContent = `Hi there!`;
     titleEl.innerHTML = `Get started in <span class="accent">Cappie</span> first`;
-    if (inStandalone) {
-      // Same scope — navigation stays in the standalone view.
+    if (isCameFromCappie()) {
       subEl.textContent = `Earn some Daddy Bucks in Cappie, then come back here at the next filing day to claim your refund.`;
-      startBtn.textContent = 'Open Cappie';
+      startBtn.textContent = 'Back to Cappie';
       startBtn.classList.remove('locked');
       startBtn.disabled = false;
       startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
     } else {
-      // In Safari — tapping any in-page link just navigates Safari, not the
-      // installed Cappie PWA. Tell her to launch Cappie from her home screen.
-      subEl.innerHTML = `Earn some Daddy Bucks in Cappie first. <strong style="color:var(--pepper-120);">Tap the 🦫 Cappie icon on your home screen</strong> to open it — that's where your progress lives.`;
-      startBtn.textContent = '🦫 Open Cappie in this browser instead';
-      startBtn.classList.add('locked');
-      startBtn.disabled = false;
-      startBtn.onclick = () => { window.location.href = 'Cappie.html'; };
+      // No Cappie navigation when we didn't come from the Cappie app —
+      // iOS can't switch to a separate PWA anyway.
+      subEl.innerHTML = `Open Cappie on this device, earn some Daddy Bucks, then come back to file your taxes here.`;
+      startBtn.style.display = 'none';
     }
     if (peekBtn) peekBtn.style.display = 'none';
+    showScreen('welcome');
     return;
   }
 
@@ -1417,6 +1563,9 @@ function init() {
     renderStepDots();
     return;
   }
+
+  // Make sure we land on welcome (we may be transitioning from the lock screen).
+  showScreen('welcome');
 
   const ret = buildPeriodReturn(activeWindow);
 
@@ -1483,6 +1632,23 @@ function init() {
     });
   }
 }
+
+// Wire up the Tax PIN lock screen (input + unlock button + Enter key).
+(function bindLockScreen() {
+  const unlockBtn = document.getElementById('lockUnlockBtn');
+  const inp = document.getElementById('lockPinInput');
+  if (unlockBtn) unlockBtn.addEventListener('click', tryUnlockTaxPin);
+  if (inp) {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/[^0-9]/g, '').slice(0, 6);
+      const err = document.getElementById('lockPinErr');
+      if (err) err.textContent = '';
+    });
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tryUnlockTaxPin();
+    });
+  }
+})();
 
 init();
 </script>

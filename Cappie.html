@@ -865,6 +865,108 @@
     transition: transform 0.1s, box-shadow 0.1s;
   }
   .tt4k-link:active { transform: translateY(2px); box-shadow: 0 1px 0 #a52436; }
+  /* === Tax PIN card (re-uses cloud sync 6-digit short code) === */
+  .tax-pin-card {
+    background: linear-gradient(135deg, #FFE3D6 0%, #FFD0BD 100%);
+    border: 2px solid #DB334D;
+    border-radius: 14px;
+    padding: 14px 16px 16px;
+    margin-bottom: 12px;
+  }
+  .tax-pin-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .tax-pin-head .tp-ico {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: #DB334D;
+    color: white;
+    display: grid; place-items: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .tax-pin-head .tp-label {
+    font-size: 11px;
+    font-weight: 900;
+    color: #8a1f30;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    line-height: 1.1;
+  }
+  .tax-pin-head .tp-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: #8a1f30;
+    margin-top: 2px;
+  }
+  .tax-pin-display {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .tax-pin-digits {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    color: #DB334D;
+    font-variant-numeric: tabular-nums;
+    user-select: all;
+    flex: 1;
+  }
+  .tax-pin-digits.masked { letter-spacing: 0.32em; color: #c19; }
+  .tax-pin-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .tax-pin-btn {
+    background: #f4f4ef;
+    border: 1.5px solid #d8d6cf;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #5a4a4a;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .tax-pin-btn:active { background: #e8e6df; }
+  .tax-pin-hint {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6a4549;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .tax-pin-setup {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .tax-pin-setup-msg {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #6a4549;
+    margin-bottom: 10px;
+    line-height: 1.45;
+  }
+  .tax-pin-setup-btn {
+    background: #DB334D;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #a52436;
+  }
+  .tax-pin-setup-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #a52436; }
   .tt4k-link .tt4k-ico {
     width: 36px; height: 36px;
     border-radius: 10px;
@@ -2529,7 +2631,22 @@
 
   <div class="chart-card" style="margin-top:14px;">
     <h3>🧾 Tax History</h3>
-    <a class="tt4k-link" href="TurboTaxForKids.html">
+
+    <!-- Tax PIN — reuses the cloud sync short code as the family's tax PIN.
+         TurboTax for Kids asks for this PIN unless launched from Cappie. -->
+    <div class="tax-pin-card" id="taxPinCard">
+      <div class="tax-pin-head">
+        <div class="tp-ico">🔑</div>
+        <div>
+          <div class="tp-label">Daughter's Tax PIN</div>
+          <div class="tp-name">Use to file in TurboTax for Kids</div>
+        </div>
+      </div>
+      <div id="taxPinBody"></div>
+    </div>
+
+    <a class="tt4k-link" href="TurboTaxForKids.html"
+       onclick="try { sessionStorage.setItem('tt4k.cameFromCappie', '1'); } catch(e) {}">
       <div class="tt4k-ico">🧾</div>
       <div class="tt4k-text">
         <div class="tt4k-title">Open TurboTax for Kids</div>
@@ -5935,6 +6052,8 @@ function renderTaxHistory() {
     subEl.textContent = nextFilingWindowLabel();
   }
 
+  renderTaxPinCard();
+
   // Build a per-month table from withholdings + filings
   const months = Object.keys(t.withholdings || {}).sort().reverse(); // newest first
   if (months.length === 0) {
@@ -5980,6 +6099,96 @@ function renderTaxHistory() {
     </div>
     ${rows}
   `;
+}
+
+/* ============= TAX PIN CARD (reuses cloud sync short code) ============= */
+let _taxPinMasked = true;   // default to masked for privacy on shared screens
+
+function renderTaxPinCard() {
+  const body = document.getElementById('taxPinBody');
+  if (!body) return;
+  const cloud = state.cloud || {};
+  const code = cloud.shortCode || null;
+  const hasSync = !!cloud.syncId;
+  const fetching = (typeof _shortCodeRegState !== 'undefined') && _shortCodeRegState === 'pending';
+
+  if (code) {
+    const display = _taxPinMasked ? '••••••' : code;
+    body.innerHTML = `
+      <div class="tax-pin-display">
+        <div class="tax-pin-digits${_taxPinMasked ? ' masked' : ''}" id="taxPinDigits">${display}</div>
+        <div class="tax-pin-actions">
+          <button class="tax-pin-btn" onclick="toggleTaxPinReveal()">${_taxPinMasked ? '👁 Show' : '🙈 Hide'}</button>
+          <button class="tax-pin-btn" onclick="copyTaxPin()">📋 Copy</button>
+        </div>
+      </div>
+      <div class="tax-pin-hint">Enter this 6-digit PIN in <strong>TurboTax for Kids</strong> when she files her taxes. It's the same code as your cloud sync code — keep it safe.</div>
+    `;
+  } else if (hasSync && fetching) {
+    body.innerHTML = `
+      <div class="tax-pin-setup">
+        <div class="tax-pin-setup-msg">⏳ Generating your Tax PIN…</div>
+      </div>
+    `;
+  } else if (hasSync) {
+    body.innerHTML = `
+      <div class="tax-pin-setup">
+        <div class="tax-pin-setup-msg">No Tax PIN yet. Tap below to register one for TurboTax for Kids.</div>
+        <button class="tax-pin-setup-btn" onclick="generateTaxPin()">🔑 Get Tax PIN</button>
+      </div>
+    `;
+  } else {
+    body.innerHTML = `
+      <div class="tax-pin-setup">
+        <div class="tax-pin-setup-msg">A Tax PIN keeps her taxes private — only someone with the PIN can file in TurboTax for Kids. Set it up once, then she's good to go.</div>
+        <button class="tax-pin-setup-btn" onclick="setupTaxPin()">🔑 Set up Tax PIN</button>
+      </div>
+    `;
+  }
+}
+
+function toggleTaxPinReveal() {
+  _taxPinMasked = !_taxPinMasked;
+  renderTaxPinCard();
+}
+
+function copyTaxPin() {
+  const code = state.cloud && state.cloud.shortCode;
+  if (!code) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(
+      () => showToast('🔑 Tax PIN copied!', 'gold'),
+      () => showToast('❌ Copy failed', 'red')
+    );
+  } else {
+    // Fallback: select + execCommand
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = code; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('🔑 Tax PIN copied!', 'gold');
+    } catch (e) { showToast('❌ Copy failed', 'red'); }
+  }
+}
+
+async function generateTaxPin() {
+  if (!state.cloud || !state.cloud.syncId) {
+    return setupTaxPin();
+  }
+  await ensureShortCodeRegistered();
+  renderTaxPinCard();
+}
+
+async function setupTaxPin() {
+  // Cloud sync not configured — bootstrap it (this prompts for parent PIN).
+  try {
+    await setupCloudSync();
+    // setupCloudSync also kicks off short code registration.
+    setTimeout(renderTaxPinCard, 400);
+  } catch (e) {
+    console.error('Tax PIN setup failed', e);
+  }
 }
 
 // Returns a friendly label for the next filing window (or "Filing OPEN!" if
