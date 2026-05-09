@@ -141,42 +141,15 @@
   .poster-inner {
     position: absolute;
     inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    place-items: center;
     padding: 26px 28px;
   }
-  .poster-corner {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    opacity: 0.7;
-  }
   .poster-art {
-    flex: 1;
     display: grid;
     place-items: center;
     position: relative;
     line-height: 1;
-  }
-  .poster-foot {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    opacity: 0.75;
-  }
-  .poster-foot .y {
-    font-family: var(--serif);
-    font-style: italic;
-    letter-spacing: 0;
-    text-transform: none;
-    opacity: 0.85;
-    font-size: 14px;
   }
 
   /* === APP ICON (centered iOS-style) === */
@@ -372,13 +345,8 @@
   <a class="work" href="./Forward.html">
     <div class="poster forward">
       <div class="poster-inner">
-        <div class="poster-corner">№ 01 / FITNESS</div>
         <div class="poster-art">
           <img class="app-icon" src="forward-icon.svg" alt="Forward app icon" />
-        </div>
-        <div class="poster-foot">
-          <span>HALF MARATHON · TRAINING</span>
-          <span class="y">2026</span>
         </div>
       </div>
     </div>
@@ -398,13 +366,8 @@
   <a class="work" href="./Mileo.html">
     <div class="poster mileo">
       <div class="poster-inner">
-        <div class="poster-corner">№ 02 / GAMIFIED</div>
         <div class="poster-art">
           <img class="app-icon" src="mileo-icon-512.png" alt="Mileo app icon" />
-        </div>
-        <div class="poster-foot">
-          <span>STREAKS · XP · LESSONS</span>
-          <span class="y">2026</span>
         </div>
       </div>
     </div>
@@ -424,13 +387,8 @@
   <a class="work" href="./Cappie.html">
     <div class="poster cappie">
       <div class="poster-inner">
-        <div class="poster-corner">№ 03 / FAMILY</div>
         <div class="poster-art">
           <img class="app-icon" src="cappie-icon-512.png" alt="Cappie app icon" />
-        </div>
-        <div class="poster-foot">
-          <span>DAILY QUESTS · DADDY BUCKS</span>
-          <span class="y">2026</span>
         </div>
       </div>
     </div>
@@ -450,13 +408,8 @@
   <a class="work" href="./TurboTaxForKids.html">
     <div class="poster tt4k">
       <div class="poster-inner">
-        <div class="poster-corner" style="opacity:0.85;">№ 04 / FAMILY</div>
         <div class="poster-art">
           <img class="app-icon" src="tt4k-icon.svg" alt="TurboTax for Kids app icon" />
-        </div>
-        <div class="poster-foot">
-          <span>FILES TWICE A YEAR · APR 15 &amp; OCT 15</span>
-          <span class="y">2026</span>
         </div>
       </div>
     </div>
@@ -476,13 +429,8 @@
   <div class="work" style="cursor:default;">
     <div class="poster placeholder">
       <div class="poster-inner">
-        <div class="poster-corner" style="color:var(--ink-light);">№ 05 / IN PROGRESS</div>
         <div class="poster-art">
           <div class="next-mark"><em>next</em></div>
-        </div>
-        <div class="poster-foot" style="color:var(--ink-light);">
-          <span>WHATEVER COMES NEXT</span>
-          <span class="y">soon</span>
         </div>
       </div>
     </div>
