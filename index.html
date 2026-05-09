@@ -179,95 +179,43 @@
     font-size: 14px;
   }
 
-  /* === POSTER · FORWARD (editorial cream) === */
-  .poster.forward {
-    background: linear-gradient(180deg, #f1ece2 0%, #e7decd 100%);
-    color: #2d2317;
+  /* === APP ICON (centered iOS-style) === */
+  .app-icon {
+    width: 58%;
+    aspect-ratio: 1 / 1;
+    max-width: 240px;
+    border-radius: 22%;
+    display: block;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.18) inset,
+      0 18px 40px -12px rgba(28, 25, 23, 0.45),
+      0 4px 14px -4px rgba(28, 25, 23, 0.25);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .poster.forward .big-num {
-    font-family: var(--serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: clamp(110px, 20vw, 200px);
-    letter-spacing: -0.04em;
-    line-height: 0.85;
-    color: #2d2317;
-  }
-  .poster.forward .big-num small {
-    font-style: normal;
-    font-size: 0.34em;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    vertical-align: top;
-    margin-left: 0.2em;
-    opacity: 0.65;
-  }
+  .work:hover .app-icon { transform: scale(1.04) rotate(-1deg); }
 
-  /* === POSTER · MILEO (duolingo green) === */
+  /* Branded backdrops behind each icon — keep the per-app color story.
+     Subtle radial vignettes make the icon feel "lit from above." */
+  .poster.forward {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, #f6f1e6 0%, #e7decd 65%, #d4c8af 100%);
+    color: #2d2317;
+  }
   .poster.mileo {
-    background: linear-gradient(160deg, #58cc02 0%, #3d8c00 100%);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, #6fde18 0%, #4faf02 60%, #3d8c00 100%);
     color: #fff;
   }
-  .poster.mileo .llama-emoji {
-    font-size: clamp(110px, 22vw, 180px);
-    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
-  }
-  .poster.mileo .path-line {
-    position: absolute;
-    bottom: 18%;
-    left: 8%;
-    right: 8%;
-    height: 38px;
-    border: 2px dashed rgba(255,255,255,0.45);
-    border-bottom: none;
-    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  }
-
-  /* === POSTER · CAPPIE (cream + sage capybara) === */
   .poster.cappie {
-    background: linear-gradient(165deg, #fff8e7 0%, #e1f4d3 70%, #c8e8b8 100%);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, #fff8e7 0%, #e1f4d3 60%, #b9d9a3 100%);
     color: #4a3b22;
   }
-  .poster.cappie .cap-emoji {
-    font-size: clamp(110px, 22vw, 180px);
-    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.12));
-  }
-  .poster.cappie .float-coin,
-  .poster.cappie .float-star {
-    position: absolute;
-    font-size: 28px;
-  }
-  .poster.cappie .float-coin { top: 22%; right: 18%; transform: rotate(-12deg); }
-  .poster.cappie .float-star { bottom: 28%; left: 18%; transform: rotate(8deg); font-size: 22px; }
-
-  /* === POSTER · TURBOTAX FOR KIDS (watermelon) === */
   .poster.tt4k {
-    background: linear-gradient(155deg, #DB334D 0%, #A52436 100%);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, #f04760 0%, #DB334D 55%, #A52436 100%);
     color: #fff;
   }
-  .poster.tt4k .receipt-art {
-    font-size: clamp(110px, 22vw, 180px);
-    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.22));
-  }
-  .poster.tt4k .lockup {
-    text-align: left;
-    line-height: 1;
-  }
-  .poster.tt4k .lockup .label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    opacity: 0.75;
-  }
-  .poster.tt4k .lockup .name {
-    font-family: var(--serif);
-    font-weight: 600;
-    font-size: 18px;
-    margin-top: 4px;
-    letter-spacing: -0.01em;
-  }
-  .poster.tt4k .lockup .name em { font-style: italic; font-weight: 400; opacity: 0.9; }
 
   /* === POSTER · COMING SOON === */
   .poster.placeholder {
@@ -426,7 +374,7 @@
       <div class="poster-inner">
         <div class="poster-corner">№ 01 / FITNESS</div>
         <div class="poster-art">
-          <div class="big-num">12<small>WK</small></div>
+          <img class="app-icon" src="forward-icon.svg" alt="Forward app icon" />
         </div>
         <div class="poster-foot">
           <span>HALF MARATHON · TRAINING</span>
@@ -452,8 +400,7 @@
       <div class="poster-inner">
         <div class="poster-corner">№ 02 / GAMIFIED</div>
         <div class="poster-art">
-          <div class="llama-emoji">🦙</div>
-          <div class="path-line"></div>
+          <img class="app-icon" src="mileo-icon-512.png" alt="Mileo app icon" />
         </div>
         <div class="poster-foot">
           <span>STREAKS · XP · LESSONS</span>
@@ -479,9 +426,7 @@
       <div class="poster-inner">
         <div class="poster-corner">№ 03 / FAMILY</div>
         <div class="poster-art">
-          <span class="float-coin">🪙</span>
-          <span class="float-star">⭐</span>
-          <div class="cap-emoji">🦫</div>
+          <img class="app-icon" src="cappie-icon-512.png" alt="Cappie app icon" />
         </div>
         <div class="poster-foot">
           <span>DAILY QUESTS · DADDY BUCKS</span>
@@ -507,13 +452,10 @@
       <div class="poster-inner">
         <div class="poster-corner" style="opacity:0.85;">№ 04 / FAMILY</div>
         <div class="poster-art">
-          <div class="receipt-art">🧾</div>
+          <img class="app-icon" src="tt4k-icon.svg" alt="TurboTax for Kids app icon" />
         </div>
         <div class="poster-foot">
-          <div class="lockup">
-            <div class="label">INTUIT</div>
-            <div class="name">TurboTax <em>for Kids</em></div>
-          </div>
+          <span>FILES TWICE A YEAR · APR 15 &amp; OCT 15</span>
           <span class="y">2026</span>
         </div>
       </div>
