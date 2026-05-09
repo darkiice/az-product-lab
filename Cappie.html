@@ -1914,7 +1914,8 @@
     border-radius: 12px;
     display: grid; place-items: center;
     flex-shrink: 0;
-    overflow: hidden;
+    overflow: visible;        /* let the corner badge spill outside */
+    position: relative;       /* anchor for .premium-pill */
   }
   /* Real company-logo image (favicon) sitting inside the .sc-emoji /
      .hr-emoji tiles. Padding gives the logo breathing room within the
@@ -1962,18 +1963,26 @@
     box-shadow: 0 3px 0 var(--mint-dark);
     opacity: 1;
   }
+  /* Corner badge on the stock icon tile — same spot on every card so the
+     "+2 DB / +3 DB" indicator never jumps between right-of-name and below
+     it depending on title length. */
   .premium-pill {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 2px 8px;
+    position: absolute;
+    top: -7px;
+    right: -10px;
+    padding: 2px 6px;
     border-radius: 99px;
     background: linear-gradient(135deg, var(--yellow) 0%, var(--orange) 100%);
     color: white;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 900;
-    letter-spacing: 0.04em;
-    vertical-align: middle;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    white-space: nowrap;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    pointer-events: none;
+    z-index: 2;
   }
 
   .holding-row {
@@ -6692,9 +6701,12 @@ function renderInvestmentsPanel() {
     else                 { label = 'Buy';     disabled = false; }
     return `
       <div class="stock-card${atMax ? ' is-max' : ''}">
-        <div class="sc-emoji">${stockIconHTML(s)}</div>
+        <div class="sc-emoji">
+          ${stockIconHTML(s)}
+          ${isPremium ? `<span class="premium-pill">+${rate} DB</span>` : ''}
+        </div>
         <div class="sc-info">
-          <div class="sc-name">${s.name}${isPremium ? ` <span class="premium-pill">+${rate} DB</span>` : ''}</div>
+          <div class="sc-name">${s.name}</div>
           <div class="sc-tag">${s.tagline}</div>
           <div class="sc-meta">${metaBits.join(' · ')}</div>
         </div>
