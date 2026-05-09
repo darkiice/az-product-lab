@@ -3,268 +3,559 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#1c1917" />
-<title>az-product-lab</title>
+<meta name="theme-color" content="#fafaf9" />
+<title>az · product lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,800;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
   :root {
-    --bg: #fafaf9;
+    --bg: #f6f4ee;
+    --bg-warm: #fbf9f3;
+    --paper: #ffffff;
     --ink: #1c1917;
-    --stone-100: #f5f5f4;
-    --stone-200: #e7e5e4;
-    --stone-300: #d6d3d1;
-    --stone-400: #a8a29e;
-    --stone-500: #78716c;
-    --stone-600: #57534e;
-    --stone-700: #44403c;
-    --stone-900: #1c1917;
-    --orange: #f97316;
+    --ink-soft: #3a3631;
+    --ink-mute: #807870;
+    --ink-light: #b3aca3;
+    --line: #e0dccf;
+    --orange: #e15c2a;
+    --orange-soft: #f4a572;
+
+    --serif: 'Fraunces', 'EB Garamond', Georgia, serif;
+    --mono:  'JetBrains Mono', ui-monospace, monospace;
   }
-  html, body { height: 100%; }
+
+  html, body { min-height: 100%; }
   body {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--serif);
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
-  }
-  .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
-
-  header {
-    background: var(--stone-900);
-    color: white;
-    padding: 56px 24px 64px;
-    position: relative;
-    overflow: hidden;
-  }
-  header::before {
-    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.4;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  .header-inner { max-width: 720px; margin: 0 auto; position: relative; }
-  .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--stone-400);
-    margin-bottom: 12px;
-  }
-  h1 {
-    font-size: 52px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-  h1 .accent { color: var(--orange); font-weight: 400; font-style: italic; }
-  .tagline {
-    font-size: 16px;
-    color: var(--stone-300);
-    font-style: italic;
-    margin-top: 14px;
-    max-width: 540px;
     line-height: 1.5;
   }
 
-  main { max-width: 720px; margin: -32px auto 0; padding: 0 24px 80px; position: relative; }
+  .mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
 
-  .section-label {
-    font-family: 'JetBrains Mono', monospace;
+  /* ============= MASTHEAD ============= */
+  .masthead {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 64px 32px 40px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(40px, 8vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+  }
+  .brand .it { font-style: italic; font-weight: 400; color: var(--ink-soft); }
+  .brand .dot { color: var(--orange); font-style: normal; }
+  .meta-col {
+    text-align: right;
+    color: var(--ink-mute);
+  }
+  .meta-eyebrow {
+    font-family: var(--mono);
     font-size: 11px;
-    letter-spacing: 0.25em;
     text-transform: uppercase;
-    color: var(--stone-500);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    margin-bottom: 8px;
   }
-  .section-label .count { color: var(--stone-400); }
+  .tagline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 320px;
+    line-height: 1.4;
+  }
+  .tagline .ampersand { color: var(--orange); font-weight: 500; }
 
-  .product-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 24px;
-  }
-  .product-card {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    background: white;
-    border: 2px solid var(--stone-900);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 6px 6px 0 var(--stone-900);
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-  .product-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 var(--stone-900);
-  }
-  .product-card:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--stone-900);
-  }
-  .product-card .top {
+  /* ============= NAV STRIP ============= */
+  .navstrip {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 18px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .product-card h2 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-  .product-card h2 .arrow { color: var(--orange); font-weight: 400; font-style: italic; margin-left: 4px; }
-  .product-card .open {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--stone-500);
-    flex-shrink: 0;
-  }
-  .product-card .desc {
-    font-size: 15px;
-    color: var(--stone-600);
-    line-height: 1.55;
-    margin-bottom: 16px;
-  }
-  .product-card .meta {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding-top: 14px;
-    border-top: 1px solid var(--stone-200);
-  }
-  .tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 4px;
-    background: var(--stone-100);
-    color: var(--stone-700);
-    font-weight: 600;
-  }
-  .tag.fitness { background: #fed7aa; color: #9a3412; }
-  .tag.pwa { background: #e0f2fe; color: #075985; }
-  .tag.installable { background: #d1fae5; color: #065f46; }
-  .tag.family { background: #fce7f3; color: #9d174d; }
-  .tag.stickers { background: #fef3c7; color: #92400e; }
-
-  .placeholder {
-    background: var(--stone-100);
-    border: 2px dashed var(--stone-300);
-    border-radius: 16px;
-    padding: 32px;
-    text-align: center;
-    color: var(--stone-500);
-    font-size: 14px;
-    font-style: italic;
-  }
-  .placeholder .mono {
-    display: block;
-    font-style: normal;
+    font-family: var(--mono);
     font-size: 11px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--stone-400);
-    margin-bottom: 6px;
+    color: var(--ink-mute);
+    border-bottom: 1px solid var(--line);
+  }
+  .navstrip .left { display: flex; gap: 22px; }
+  .navstrip a, .navstrip span { color: var(--ink-mute); text-decoration: none; }
+  .navstrip a:hover { color: var(--ink); }
+  .navstrip .right { color: var(--ink-light); }
+
+  /* ============= GRID ============= */
+  .gallery {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 36px 32px 80px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 24px;
   }
 
-  footer {
-    text-align: center;
-    padding: 24px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--stone-400);
+  .work {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.25s ease;
   }
-  footer a { color: var(--stone-600); text-decoration: none; }
+  .work:hover { transform: translateY(-3px); }
+
+  /* ============= POSTER (the visual tile) ============= */
+  .poster {
+    aspect-ratio: 4 / 3;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    transition: box-shadow 0.25s ease;
+  }
+  .work:hover .poster {
+    box-shadow: 0 14px 32px -12px rgba(28, 25, 23, 0.18);
+  }
+  .poster-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 26px 28px;
+  }
+  .poster-corner {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .poster-art {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    position: relative;
+    line-height: 1;
+  }
+  .poster-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .poster-foot .y {
+    font-family: var(--serif);
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0.85;
+    font-size: 14px;
+  }
+
+  /* === POSTER · FORWARD (editorial cream) === */
+  .poster.forward {
+    background: linear-gradient(180deg, #f1ece2 0%, #e7decd 100%);
+    color: #2d2317;
+  }
+  .poster.forward .big-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(110px, 20vw, 200px);
+    letter-spacing: -0.04em;
+    line-height: 0.85;
+    color: #2d2317;
+  }
+  .poster.forward .big-num small {
+    font-style: normal;
+    font-size: 0.34em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    vertical-align: top;
+    margin-left: 0.2em;
+    opacity: 0.65;
+  }
+
+  /* === POSTER · MILEO (duolingo green) === */
+  .poster.mileo {
+    background: linear-gradient(160deg, #58cc02 0%, #3d8c00 100%);
+    color: #fff;
+  }
+  .poster.mileo .llama-emoji {
+    font-size: clamp(110px, 22vw, 180px);
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
+  }
+  .poster.mileo .path-line {
+    position: absolute;
+    bottom: 18%;
+    left: 8%;
+    right: 8%;
+    height: 38px;
+    border: 2px dashed rgba(255,255,255,0.45);
+    border-bottom: none;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+
+  /* === POSTER · CAPPIE (cream + sage capybara) === */
+  .poster.cappie {
+    background: linear-gradient(165deg, #fff8e7 0%, #e1f4d3 70%, #c8e8b8 100%);
+    color: #4a3b22;
+  }
+  .poster.cappie .cap-emoji {
+    font-size: clamp(110px, 22vw, 180px);
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.12));
+  }
+  .poster.cappie .float-coin,
+  .poster.cappie .float-star {
+    position: absolute;
+    font-size: 28px;
+  }
+  .poster.cappie .float-coin { top: 22%; right: 18%; transform: rotate(-12deg); }
+  .poster.cappie .float-star { bottom: 28%; left: 18%; transform: rotate(8deg); font-size: 22px; }
+
+  /* === POSTER · TURBOTAX FOR KIDS (watermelon) === */
+  .poster.tt4k {
+    background: linear-gradient(155deg, #DB334D 0%, #A52436 100%);
+    color: #fff;
+  }
+  .poster.tt4k .receipt-art {
+    font-size: clamp(110px, 22vw, 180px);
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.22));
+  }
+  .poster.tt4k .lockup {
+    text-align: left;
+    line-height: 1;
+  }
+  .poster.tt4k .lockup .label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .poster.tt4k .lockup .name {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 4px;
+    letter-spacing: -0.01em;
+  }
+  .poster.tt4k .lockup .name em { font-style: italic; font-weight: 400; opacity: 0.9; }
+
+  /* === POSTER · COMING SOON === */
+  .poster.placeholder {
+    background:
+      repeating-linear-gradient(45deg,
+        var(--bg-warm) 0,
+        var(--bg-warm) 12px,
+        #f0ebde 12px,
+        #f0ebde 13px);
+    color: var(--ink-mute);
+    border-style: dashed;
+  }
+  .poster.placeholder .next-mark {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(80px, 16vw, 130px);
+    color: var(--ink-light);
+    letter-spacing: -0.02em;
+  }
+
+  /* ============= LABELING UNDER POSTER ============= */
+  .work-label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 10px;
+    padding-right: 4px;
+  }
+  .work-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--ink-light);
+    text-transform: uppercase;
+  }
+  .work-name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .work-name em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+  .work-name .arrow { color: var(--orange); margin-left: 6px; transition: margin-left 0.25s ease; }
+  .work:hover .work-name .arrow { margin-left: 12px; }
+  .work-desc {
+    font-family: var(--serif);
+    font-size: 14.5px;
+    color: var(--ink-mute);
+    line-height: 1.5;
+    margin-top: -4px;
+    max-width: 44ch;
+  }
+  .work-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .work-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(28,25,23,0.06);
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .work-tag.dot::before {
+    content: '•';
+    color: var(--orange);
+    margin-right: 6px;
+  }
+
+  /* ============= FOOTER ============= */
+  footer {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 32px 56px;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  footer .signoff {
+    font-family: var(--serif);
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  footer a { color: var(--ink-mute); text-decoration: none; transition: color 0.2s; }
   footer a:hover { color: var(--orange); }
 
-  @media (max-width: 540px) {
-    header { padding: 44px 20px 56px; }
-    h1 { font-size: 40px; }
-    main { padding: 0 20px 60px; }
-    .product-card h2 { font-size: 22px; }
+  /* ============= RESPONSIVE ============= */
+  @media (max-width: 760px) {
+    .masthead {
+      grid-template-columns: 1fr;
+      gap: 18px;
+      padding: 44px 22px 28px;
+    }
+    .meta-col { text-align: left; }
+    .tagline { max-width: none; }
+    .navstrip { padding: 14px 22px; }
+    .navstrip .left { gap: 14px; }
+    .gallery {
+      grid-template-columns: 1fr;
+      padding: 28px 22px 60px;
+      gap: 36px;
+    }
+    .work-name { font-size: 22px; }
+    footer { padding: 24px 22px 40px; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="eyebrow">Personal Workshop</div>
-    <h1>az<span class="accent">·</span>product<span class="accent">·</span>lab</h1>
-    <p class="tagline">A small workshop for personal product experiments. Built one weekend at a time.</p>
+<header class="masthead">
+  <h1 class="brand">az<span class="dot">·</span><span class="it">product</span><span class="dot">·</span>lab</h1>
+  <div class="meta-col">
+    <div class="meta-eyebrow">Personal Workshop</div>
+    <p class="tagline">A small workshop for personal product experiments <span class="ampersand">&amp;</span> weekend builds.</p>
   </div>
 </header>
 
-<main>
-  <div class="section-label">
-    <span>▸ Products</span>
-    <span class="count mono">03</span>
+<div class="navstrip">
+  <div class="left">
+    <span>▸ Selected works</span>
+    <span style="color: var(--ink-light);">Alex Zhou</span>
   </div>
+  <div class="right mono">
+    <span id="workCount">04</span> &nbsp;projects
+  </div>
+</div>
 
-  <div class="product-list">
-    <a class="product-card" href="./Forward.html">
-      <div class="top">
-        <h2>Forward<span class="arrow">→</span></h2>
-        <span class="open">Open ↗</span>
-      </div>
-      <div class="desc">A twelve-week half marathon training app. Plan, track, and check off your runs with strength and swim cross-training built in. Editorial design.</div>
-      <div class="meta">
-        <span class="tag fitness">Fitness</span>
-        <span class="tag pwa">PWA</span>
-        <span class="tag installable">Installable</span>
-      </div>
-    </a>
+<section class="gallery">
 
-    <a class="product-card" href="./Mileo.html">
-      <div class="top">
-        <h2>Mileo<span class="arrow" style="color:#58cc02">🦙</span></h2>
-        <span class="open">Open ↗</span>
+  <!-- WORK · FORWARD -->
+  <a class="work" href="./Forward.html">
+    <div class="poster forward">
+      <div class="poster-inner">
+        <div class="poster-corner">№ 01 / FITNESS</div>
+        <div class="poster-art">
+          <div class="big-num">12<small>WK</small></div>
+        </div>
+        <div class="poster-foot">
+          <span>HALF MARATHON · TRAINING</span>
+          <span class="y">2026</span>
+        </div>
       </div>
-      <div class="desc">Same training plan as Forward, reimagined as a Duolingo-style game. Streaks, XP, a winding lesson path, and a llama mascot named Mileo who cheers you on.</div>
-      <div class="meta">
-        <span class="tag fitness">Fitness</span>
-        <span class="tag pwa">PWA</span>
-        <span class="tag" style="background:#d7ffb8;color:#3d7a02">Gamified</span>
-      </div>
-    </a>
-
-    <a class="product-card" href="./Cappie.html">
-      <div class="top">
-        <h2>Cappie<span class="arrow" style="color:#b07a4f">🦫</span></h2>
-        <span class="open">Open ↗</span>
-      </div>
-      <div class="desc">A daily-quest companion for kids. Piano, reading, math, and badminton — gamified with streaks, a sticker album, and Daddy Bucks she trades for real rewards. Capybara mascot included.</div>
-      <div class="meta">
-        <span class="tag family">Family</span>
-        <span class="tag pwa">PWA</span>
-        <span class="tag stickers">Stickers</span>
-      </div>
-    </a>
-
-    <div class="placeholder">
-      <span class="mono">▸ Future Product</span>
-      Whatever's next will live here.
     </div>
+    <div class="work-label">
+      <div class="work-name">Forward <span class="arrow">→</span></div>
+      <div class="work-num">№ 01</div>
+    </div>
+    <p class="work-desc">A twelve-week half-marathon training app. Plan, track, and check off your runs with strength and swim cross-training built in. Editorial design.</p>
+    <div class="work-tags">
+      <span class="work-tag dot">Fitness</span>
+      <span class="work-tag">PWA</span>
+      <span class="work-tag">Installable</span>
+    </div>
+  </a>
+
+  <!-- WORK · MILEO -->
+  <a class="work" href="./Mileo.html">
+    <div class="poster mileo">
+      <div class="poster-inner">
+        <div class="poster-corner">№ 02 / GAMIFIED</div>
+        <div class="poster-art">
+          <div class="llama-emoji">🦙</div>
+          <div class="path-line"></div>
+        </div>
+        <div class="poster-foot">
+          <span>STREAKS · XP · LESSONS</span>
+          <span class="y">2026</span>
+        </div>
+      </div>
+    </div>
+    <div class="work-label">
+      <div class="work-name">Mileo <em>the llama</em><span class="arrow">→</span></div>
+      <div class="work-num">№ 02</div>
+    </div>
+    <p class="work-desc">The same training plan as Forward, reimagined as a Duolingo-style game. Streaks, XP, a winding lesson path, and a llama mascot named Mileo who cheers you on.</p>
+    <div class="work-tags">
+      <span class="work-tag dot">Fitness</span>
+      <span class="work-tag">Gamified</span>
+      <span class="work-tag">PWA</span>
+    </div>
+  </a>
+
+  <!-- WORK · CAPPIE -->
+  <a class="work" href="./Cappie.html">
+    <div class="poster cappie">
+      <div class="poster-inner">
+        <div class="poster-corner">№ 03 / FAMILY</div>
+        <div class="poster-art">
+          <span class="float-coin">🪙</span>
+          <span class="float-star">⭐</span>
+          <div class="cap-emoji">🦫</div>
+        </div>
+        <div class="poster-foot">
+          <span>DAILY QUESTS · DADDY BUCKS</span>
+          <span class="y">2026</span>
+        </div>
+      </div>
+    </div>
+    <div class="work-label">
+      <div class="work-name">Cappie <em>the capybara</em><span class="arrow">→</span></div>
+      <div class="work-num">№ 03</div>
+    </div>
+    <p class="work-desc">A daily-quest companion for kids. Piano, reading, math, and badminton — gamified with streaks, a sticker album, and Daddy Bucks she trades for real rewards.</p>
+    <div class="work-tags">
+      <span class="work-tag dot">Family</span>
+      <span class="work-tag">Stickers</span>
+      <span class="work-tag">PWA</span>
+    </div>
+  </a>
+
+  <!-- WORK · TURBOTAX FOR KIDS -->
+  <a class="work" href="./TurboTaxForKids.html">
+    <div class="poster tt4k">
+      <div class="poster-inner">
+        <div class="poster-corner" style="opacity:0.85;">№ 04 / FAMILY</div>
+        <div class="poster-art">
+          <div class="receipt-art">🧾</div>
+        </div>
+        <div class="poster-foot">
+          <div class="lockup">
+            <div class="label">INTUIT</div>
+            <div class="name">TurboTax <em>for Kids</em></div>
+          </div>
+          <span class="y">2026</span>
+        </div>
+      </div>
+    </div>
+    <div class="work-label">
+      <div class="work-name">TurboTax <em>for Kids</em><span class="arrow">→</span></div>
+      <div class="work-num">№ 04</div>
+    </div>
+    <p class="work-desc">Cappie withholds 10% of every dollar she earns; twice a year — every April 15 and October 15 — she opens TurboTax for Kids to file a return and claim a refund back to her balance.</p>
+    <div class="work-tags">
+      <span class="work-tag dot">Family</span>
+      <span class="work-tag">Cappie integration</span>
+      <span class="work-tag">Tax sim</span>
+    </div>
+  </a>
+
+  <!-- WORK · NEXT -->
+  <div class="work" style="cursor:default;">
+    <div class="poster placeholder">
+      <div class="poster-inner">
+        <div class="poster-corner" style="color:var(--ink-light);">№ 05 / IN PROGRESS</div>
+        <div class="poster-art">
+          <div class="next-mark"><em>next</em></div>
+        </div>
+        <div class="poster-foot" style="color:var(--ink-light);">
+          <span>WHATEVER COMES NEXT</span>
+          <span class="y">soon</span>
+        </div>
+      </div>
+    </div>
+    <div class="work-label">
+      <div class="work-name" style="color:var(--ink-light);"><em>untitled</em></div>
+      <div class="work-num">№ 05</div>
+    </div>
+    <p class="work-desc">Whatever's next will live here.</p>
   </div>
-</main>
+
+</section>
 
 <footer>
-  <a href="https://github.intuit.com/azhou2/az-product-lab" target="_blank">View on GitHub</a>
+  <span class="signoff">Built one weekend at a time.</span>
+  <a href="https://github.intuit.com/azhou2/az-product-lab" target="_blank" rel="noopener">GitHub ↗</a>
 </footer>
 
 </body>
