@@ -905,34 +905,42 @@
   .tax-pin-display {
     background: white;
     border-radius: 10px;
-    padding: 10px 12px;
+    padding: 12px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
   }
   .tax-pin-digits {
     font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 800;
     letter-spacing: 0.22em;
     color: #DB334D;
     font-variant-numeric: tabular-nums;
     user-select: all;
-    flex: 1;
+    text-align: center;
+    line-height: 1.1;
   }
   .tax-pin-digits.masked { letter-spacing: 0.32em; color: #c19; }
-  .tax-pin-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .tax-pin-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
   .tax-pin-btn {
+    flex: 1;
+    max-width: 140px;
     background: #f4f4ef;
     border: 1.5px solid #d8d6cf;
     border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 12px;
+    padding: 8px 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #5a4a4a;
     cursor: pointer;
     line-height: 1;
+    text-align: center;
   }
   .tax-pin-btn:active { background: #e8e6df; }
   .tax-pin-hint {
