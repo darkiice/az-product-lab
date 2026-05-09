@@ -971,6 +971,53 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const TAX_WITHHOLD_DIVISOR = 10;
 const TAX_OWED_DIVISOR     = 20;
 
+/* ============= CLOUD SYNC LOOKUP (mirrors Cappie's directory blob) =============
+   Lets a fresh device unlock TT4K just by typing the 6-digit Tax PIN: we
+   look it up in the shared directory blob to get the cloud sync UUID,
+   pull the Cappie state, save it locally, and proceed. */
+const CLOUD_API = 'https://api.jsonblob.com';
+const DIRECTORY_BLOB_ID = '019e0aad-15fd-7732-b520-1a119177aac2';
+
+async function directoryLookup(rawCode) {
+  const code = String(rawCode || '').trim();
+  if (!/^\d{6}$/.test(code)) return null;
+  const res = await fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Directory unavailable (HTTP ' + res.status + ')');
+  const dir = await res.json();
+  if (!dir || dir._pandi_directory !== true || !dir.codes) return null;
+  return dir.codes[code] || null;
+}
+
+async function cloudPullSyncId(syncId) {
+  const res = await fetch(`${CLOUD_API}/${syncId}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Cloud data not found (HTTP ' + res.status + ')');
+  const data = await res.json();
+  if (!data || !data.pandiState) throw new Error('Cloud data is invalid');
+  return { pandiState: data.pandiState, updatedAt: data.updatedAt || 0 };
+}
+
+// Restore Cappie state on this device using the 6-digit Tax PIN. Returns
+// the freshly-saved state, or throws on failure.
+async function restoreCappieFromTaxPin(pin) {
+  const syncId = await directoryLookup(pin);
+  if (!syncId) throw new Error('Tax PIN not found in cloud');
+  const { pandiState, updatedAt } = await cloudPullSyncId(syncId);
+  // Stamp the cloud envelope onto the restored state so Cappie's auto-pull
+  // logic doesn't immediately overwrite it.
+  const restored = {
+    ...pandiState,
+    cloud: {
+      ...(pandiState.cloud || {}),
+      syncId,
+      shortCode: pin,
+      lastPullAt: Date.now(),
+      lastChangeAt: updatedAt || Date.now(),
+    }
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+  return restored;
+}
+
 function loadCappieState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1423,75 +1470,103 @@ function fireConfetti() {
 }
 
 /* ============= LOCK SCREEN =============
-   Shown when TT4K is launched directly (not from Cappie). User must enter
-   the family Tax PIN (which is state.cloud.shortCode in Cappie) to proceed.
-   Once verified, the unlock is cached in sessionStorage for the rest of
-   this session. */
+   Shown when TT4K is launched directly (not from Cappie). User enters the
+   family Tax PIN (state.cloud.shortCode). If this device already has
+   Cappie data, we match locally. If not, we look up the PIN in the cloud
+   directory blob and pull the full state — so a fresh device can file
+   taxes without first opening Cappie.
+
+   Once verified, the unlock is cached in sessionStorage for the session. */
 function renderLockScreen() {
-  const lockNoPinCard = document.getElementById('lockNoPinCard');
-  const lockNoPinMsg  = document.getElementById('lockNoPinMsg');
   const lockPinCard   = document.getElementById('lockPinCard');
+  const lockNoPinCard = document.getElementById('lockNoPinCard');
   const unlockBtn     = document.getElementById('lockUnlockBtn');
   const subEl         = document.getElementById('lockSub');
   const lockPinInput  = document.getElementById('lockPinInput');
   const lockPinErr    = document.getElementById('lockPinErr');
 
-  // Hide the top-bar back arrow on the lock screen — there's no "back"
-  // until the user has authenticated (and they didn't come from Cappie).
+  // Hide the top-bar back arrow on the lock screen — no "back" until the
+  // user has authenticated (and they didn't come from Cappie).
   const topbarBack = document.getElementById('topbarBack');
   if (topbarBack) topbarBack.style.display = 'none';
 
-  const code = state && state.cloud && state.cloud.shortCode;
-  const hasState = !!state;
+  // Always show the PIN entry. Even if there's no local state, the user
+  // can enter their Tax PIN and we'll restore from the cloud.
+  lockPinCard.style.display = '';
+  lockNoPinCard.style.display = 'none';
+  unlockBtn.disabled = false;
+  unlockBtn.classList.remove('locked');
+  unlockBtn.textContent = '🔑 Unlock TurboTax for Kids';
 
-  if (code) {
-    lockPinCard.style.display = '';
-    lockNoPinCard.style.display = 'none';
-    unlockBtn.disabled = false;
-    unlockBtn.classList.remove('locked');
-    unlockBtn.textContent = '🔑 Unlock TurboTax for Kids';
+  const hasLocalCode = !!(state && state.cloud && state.cloud.shortCode);
+  if (hasLocalCode) {
     subEl.innerHTML = `Find your 6-digit Tax PIN in <strong style="color:var(--pepper-120);">Cappie → Stats → Tax History</strong>. Enter it below to keep filing private.`;
-    setTimeout(() => lockPinInput && lockPinInput.focus(), 250);
   } else {
-    lockPinCard.style.display = 'none';
-    lockNoPinCard.style.display = '';
-    unlockBtn.disabled = true;
-    unlockBtn.classList.add('locked');
-    unlockBtn.textContent = '🔒 Set up Tax PIN in Cappie first';
-    if (!hasState) {
-      lockNoPinMsg.innerHTML = `<strong>No Cappie data on this device yet.</strong> Open Cappie, earn some Daddy Bucks, then visit Stats → Tax History to set up a Tax PIN.`;
-      subEl.innerHTML = `TurboTax for Kids needs a Cappie account on this device.`;
-    } else {
-      lockNoPinMsg.innerHTML = `<strong>No Tax PIN set up yet.</strong> Open Cappie on this device, go to Stats → Tax History, and tap "🔑 Set up Tax PIN". Then come back here.`;
-      subEl.innerHTML = `Almost there — Cappie just needs a Tax PIN before you can file.`;
-    }
+    subEl.innerHTML = `Enter your 6-digit Tax PIN to file your taxes. We'll pull your Cappie info from the cloud so you can pick up right where you left off.`;
   }
 
   if (lockPinErr) lockPinErr.textContent = '';
+  setTimeout(() => lockPinInput && lockPinInput.focus(), 250);
   showScreen('lock');
 }
 
 async function tryUnlockTaxPin() {
   const inp = document.getElementById('lockPinInput');
   const err = document.getElementById('lockPinErr');
-  if (!inp || !state || !state.cloud || !state.cloud.shortCode) return;
+  const unlockBtn = document.getElementById('lockUnlockBtn');
+  if (!inp) return;
   const entered = (inp.value || '').replace(/[\s-]/g, '');
   if (!/^\d{6}$/.test(entered)) {
     err.textContent = 'Tax PIN should be 6 digits.';
     inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
     return;
   }
-  if (entered === state.cloud.shortCode) {
-    markUnlocked();
-    err.textContent = '';
-    inp.value = '';
-    // Hand off to normal init — same code path as a fresh load.
-    runMainFlow();
-  } else {
+
+  // Fast path — local state already has a matching shortCode.
+  if (state && state.cloud && state.cloud.shortCode) {
+    if (entered === state.cloud.shortCode) {
+      markUnlocked();
+      err.textContent = '';
+      inp.value = '';
+      runMainFlow();
+      return;
+    }
     err.textContent = 'That PIN doesn\'t match. Check Cappie → Stats → Tax History.';
     inp.value = '';
     inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
     inp.focus();
+    return;
+  }
+
+  // Cloud restore path — no local state (or no shortCode locally), so look
+  // up the PIN in the directory blob and pull Cappie state.
+  err.textContent = '';
+  const originalLabel = unlockBtn.textContent;
+  unlockBtn.disabled = true;
+  unlockBtn.classList.add('locked');
+  unlockBtn.textContent = '☁️ Pulling your Cappie info…';
+  try {
+    const restored = await restoreCappieFromTaxPin(entered);
+    state = restored;
+    markUnlocked();
+    inp.value = '';
+    runMainFlow();
+  } catch (e) {
+    console.warn('Tax PIN cloud restore failed:', e);
+    const msg = (e && e.message) || '';
+    if (/not found/i.test(msg)) {
+      err.textContent = 'That PIN didn\'t match any Cappie account. Double-check the 6 digits in Cappie → Stats → Tax History.';
+    } else if (/network|fetch|HTTP|unavailable/i.test(msg)) {
+      err.textContent = 'Couldn\'t reach the cloud. Check your internet and try again.';
+    } else {
+      err.textContent = 'Something went wrong. Try again in a moment.';
+    }
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    inp.focus();
+  } finally {
+    unlockBtn.disabled = false;
+    unlockBtn.classList.remove('locked');
+    unlockBtn.textContent = originalLabel;
   }
 }
 
