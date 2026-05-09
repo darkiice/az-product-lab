@@ -3065,9 +3065,13 @@ function exportProgress() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast('📁 Progress exported', '');
 }
-async function importProgress() {
-  const ok = await requireParent();
-  if (!ok) return;
+function importProgress() {
+  // IMPORTANT: open the file picker FIRST, before any `await`. iOS/Safari and
+  // Chrome only honor a programmatic <input type="file">.click() when the
+  // call happens inside a fresh user-activation window. Awaiting the PIN
+  // modal first (the previous implementation) consumed that token, so the
+  // picker silently never opened — which is the bug parents reported as
+  // "PIN works but nothing happens". We validate the PIN AFTER file pick.
   const inp = document.createElement('input');
   inp.type = 'file';
   inp.accept = '.json,application/json';
@@ -3075,10 +3079,12 @@ async function importProgress() {
     const f = inp.files && inp.files[0];
     if (!f) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const imported = JSON.parse(reader.result);
         if (!imported || !imported.log) throw new Error('Not a valid Cappie progress file');
+        const ok = await requireParent();
+        if (!ok) return;
         if (!confirm('Replace this device\'s progress with the imported file?')) return;
         const localPin = state.parent ? state.parent.pinHash : null;
         state = {
