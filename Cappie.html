@@ -3008,6 +3008,61 @@
   </div>
 </div>
 
+<!-- RESTORE-FROM-CLOUD MODAL -->
+<div class="modal-backdrop" id="restoreModal">
+  <div class="modal">
+    <div class="modal-header" style="background:var(--blue);">
+      <button class="close-x" onclick="closeRestoreModal()">✕</button>
+      <div class="big-icon">☁️</div>
+      <div class="pill">CLOUD SYNC</div>
+      <h3>Restore from another device</h3>
+      <div class="sub" id="restoreSub">Type the 6-digit sync code from your other device</div>
+    </div>
+    <div class="modal-body">
+      <!-- STEP 1: enter code -->
+      <div id="restoreStepEnter">
+        <div class="pin-row-label">6-digit sync code</div>
+        <input id="restoreCodeInput" class="pin-input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="11" placeholder="• • • • • •" autocomplete="off" />
+        <div class="pin-row-hint" style="font-size:.8em;color:var(--text-muted);margin-top:4px;">
+          Find it in the other device's <strong>Stats → Settings &amp; More → Sync</strong>.
+        </div>
+        <details style="margin-top:10px;">
+          <summary style="cursor:pointer;font-size:.85em;font-weight:700;color:var(--text-muted);">Use a long device code instead</summary>
+          <div class="pin-row-label" style="margin-top:8px;">Device code (UUID)</div>
+          <input id="restoreUuidInput" class="name-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" style="font-family:ui-monospace,Menlo,monospace;font-size:11px;" />
+        </details>
+        <div class="err-msg" id="restoreErr"></div>
+      </div>
+
+      <!-- STEP 2: confirm replace -->
+      <div id="restoreStepConfirm" style="display:none;">
+        <div style="text-align:center;padding:8px 4px;">
+          <div style="font-size:32px;line-height:1;margin-bottom:6px;">✅</div>
+          <div style="font-weight:900;font-size:16px;margin-bottom:6px;">Found it!</div>
+          <div style="font-size:13px;color:var(--text-muted);font-weight:600;line-height:1.5;" id="restoreConfirmDetail">
+            Cloud progress was last updated <strong id="restoreUpdatedAt">just now</strong>.
+          </div>
+          <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-top:10px;line-height:1.5;">
+            Tap <strong>Restore</strong> to replace this device's progress with the cloud copy.
+            <br/>This can't be undone.
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: progress (lookup / pull / restore) -->
+      <div id="restoreStepProgress" style="display:none;text-align:center;padding:12px 4px;">
+        <div style="font-size:32px;line-height:1;margin-bottom:8px;">⏳</div>
+        <div style="font-weight:900;font-size:15px;" id="restoreProgressLabel">Working…</div>
+      </div>
+    </div>
+    <div class="modal-footer" id="restoreFooter">
+      <button class="btn-3d" id="restoreLookupBtn" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark,#1a6bb3);" onclick="submitRestoreLookup()">Find code</button>
+      <button class="btn-3d" id="restoreConfirmBtn" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark,#1a6bb3);display:none;" onclick="submitRestoreConfirm()">Restore</button>
+      <button class="btn-secondary" id="restoreCancelBtn" onclick="closeRestoreModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST + CONFETTI -->
 <div class="toast" id="toast"></div>
 <div class="confetti" id="confetti"></div>
@@ -3341,6 +3396,34 @@ async function changeParentPin() {
 /* ============= CLOUD SYNC (via api.jsonblob.com) ============= */
 const CLOUD_API = 'https://api.jsonblob.com';
 
+/* Resilience helper: retry transient network failures with exponential
+   backoff + jitter. Treats network errors, 5xx, 408, and 429 as transient
+   (retried). 2xx, 3xx, and other 4xx are returned immediately so callers
+   can decide what to do. Total worst-case wait ~6s before giving up. */
+async function fetchWithRetry(url, opts = {}, attempts = 4) {
+  const baseDelays = [300, 800, 1800, 3000];
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res.ok) return res;
+      // Transient HTTP — retry. Permanent — return so caller can handle.
+      if (res.status >= 500 || res.status === 408 || res.status === 429) {
+        lastErr = new Error(`HTTP ${res.status}`);
+      } else {
+        return res;
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+    if (i < attempts - 1) {
+      const delay = baseDelays[Math.min(i, baseDelays.length - 1)] + Math.random() * 200;
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw lastErr || new Error('Network error');
+}
+
 // Shared "directory" blob mapping short user-facing codes -> real blob UUIDs.
 // JSONBlob deletes blobs after ~30 days of inactivity, so the directory is
 // kept alive by pinging it on every page load (see directoryKeepAlive below).
@@ -3362,12 +3445,12 @@ function generateShortCode() {
 
 // Fire-and-forget GET on the directory to keep it from expiring (JSONBlob TTL).
 function directoryKeepAlive() {
-  fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' }).catch(() => {});
+  fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' }, 2).catch(() => {});
 }
 
 async function directoryFetch() {
   try {
-    const res = await fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' });
+    const res = await fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' });
     if (!res.ok) {
       console.warn('[pandi] Directory fetch HTTP', res.status);
       return null;
@@ -3385,7 +3468,7 @@ async function directoryFetch() {
 }
 
 async function directoryWrite(dir) {
-  const res = await fetch(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, {
+  const res = await fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -3478,7 +3561,7 @@ async function cloudCreate() {
   // Stamp lastChangeAt so the cloud's updatedAt matches what we persist locally,
   // letting auto-pull comparisons correctly treat this state as "already synced".
   state.cloud.lastChangeAt = Date.now();
-  const res = await fetch(CLOUD_API, {
+  const res = await fetchWithRetry(CLOUD_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
     body: JSON.stringify(cloudPayload())
@@ -3506,7 +3589,7 @@ async function cloudCreate() {
 
 async function cloudPush() {
   if (!state.cloud.syncId) return;
-  const res = await fetch(`${CLOUD_API}/${state.cloud.syncId}`, {
+  const res = await fetchWithRetry(`${CLOUD_API}/${state.cloud.syncId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(cloudPayload())
@@ -3519,7 +3602,7 @@ async function cloudPush() {
 }
 
 async function cloudPull(syncId) {
-  const res = await fetch(`${CLOUD_API}/${syncId}`);
+  const res = await fetchWithRetry(`${CLOUD_API}/${syncId}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Sync code not found (HTTP ' + res.status + ')');
   const data = await res.json();
   if (!data || !data.pandiState) throw new Error('Sync data is invalid');
@@ -3536,7 +3619,7 @@ async function cloudAutoPull({ silent = true } = {}) {
   // Don't clobber unflushed local edits — let the in-flight / queued push run.
   if (_cloudPushInFlight || _cloudPushPending) return;
   try {
-    const res = await fetch(`${CLOUD_API}/${state.cloud.syncId}`, { cache: 'no-store' });
+    const res = await fetchWithRetry(`${CLOUD_API}/${state.cloud.syncId}`, { cache: 'no-store' }, 2);
     if (!res.ok) return;
     const data = await res.json();
     if (!data || !data.pandiState || !data.updatedAt) return;
@@ -3590,40 +3673,136 @@ async function setupCloudSync() {
   }
 }
 
+/* ============= RESTORE-FROM-CLOUD MODAL =============
+   Three-step flow: enter → confirm → progress. Replaces the old prompt() +
+   confirm() chain so we get proper iOS-friendly inputs, validation, real
+   progress feedback, and accurate error messages. */
+let _restoreFound = null;       // { syncId, enteredShortCode, cloudState, cloudUpdatedAt }
+
 async function restoreFromCloud() {
   const ok = await requireParent();
   if (!ok) return;
-  const code = (prompt('Enter the sync code from your other device:') || '').trim();
-  if (!code) return;
-  let syncId = null;
-  // First try to interpret as a short code (6 digits). Strip any spaces or dashes
-  // the user might have typed for readability (e.g. "428 193" or "428-193").
-  const cleaned = code.replace(/[\s-]/g, '');
-  const shortMatch = cleaned.match(new RegExp(`^[${SHORT_CODE_ALPHABET}]{${SHORT_CODE_LEN}}$`));
-  if (shortMatch) {
-    try {
-      syncId = await directoryLookup(shortMatch[0]);
-    } catch (e) { /* fall through to UUID path */ }
+  openRestoreModal();
+}
+
+function openRestoreModal() {
+  _restoreFound = null;
+  document.getElementById('restoreStepEnter').style.display = '';
+  document.getElementById('restoreStepConfirm').style.display = 'none';
+  document.getElementById('restoreStepProgress').style.display = 'none';
+  document.getElementById('restoreLookupBtn').style.display = '';
+  document.getElementById('restoreLookupBtn').disabled = false;
+  document.getElementById('restoreLookupBtn').textContent = 'Find code';
+  document.getElementById('restoreConfirmBtn').style.display = 'none';
+  document.getElementById('restoreCancelBtn').style.display = '';
+  document.getElementById('restoreErr').textContent = '';
+  document.getElementById('restoreSub').textContent = 'Type the 6-digit sync code from your other device';
+  const codeInp = document.getElementById('restoreCodeInput');
+  const uuidInp = document.getElementById('restoreUuidInput');
+  if (codeInp) codeInp.value = '';
+  if (uuidInp) uuidInp.value = '';
+  // Auto-strip whitespace + dashes as the user types so paste works cleanly.
+  if (codeInp && !codeInp._wired) {
+    codeInp.addEventListener('input', () => {
+      codeInp.value = codeInp.value.replace(/[^0-9]/g, '').slice(0, 6);
+      document.getElementById('restoreErr').textContent = '';
+    });
+    codeInp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitRestoreLookup();
+    });
+    codeInp._wired = true;
   }
-  if (!syncId) {
-    // Fallback: full UUID anywhere in the input.
-    const uuidMatch = code.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-    if (uuidMatch) syncId = uuidMatch[0];
-  }
-  if (!syncId) {
-    showToast('❌ Sync code not found', 'red');
+  document.getElementById('restoreModal').classList.add('show');
+  setTimeout(() => codeInp && codeInp.focus(), 200);
+}
+
+function closeRestoreModal() {
+  document.getElementById('restoreModal').classList.remove('show');
+}
+
+async function submitRestoreLookup() {
+  const codeInp = document.getElementById('restoreCodeInput');
+  const uuidInp = document.getElementById('restoreUuidInput');
+  const err = document.getElementById('restoreErr');
+  const lookupBtn = document.getElementById('restoreLookupBtn');
+  err.textContent = '';
+
+  const codeRaw  = (codeInp.value || '').replace(/[\s-]/g, '');
+  const uuidRaw  = (uuidInp.value || '').trim();
+  const shortMatch = codeRaw.match(/^\d{6}$/);
+  const uuidMatch  = uuidRaw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+
+  if (!shortMatch && !uuidMatch) {
+    err.textContent = 'Enter a 6-digit code (or expand "Use a long device code instead").';
+    codeInp.focus();
     return;
   }
-  // Remember the short code if the user entered one — we'll show it on this device.
-  const enteredShortCode = shortMatch ? shortMatch[0] : null;
+
+  // Move into progress UI.
+  document.getElementById('restoreStepEnter').style.display = 'none';
+  document.getElementById('restoreStepProgress').style.display = '';
+  lookupBtn.style.display = 'none';
+  document.getElementById('restoreSub').textContent = 'Hang tight…';
+
   try {
-    showToast('☁️ Pulling progress…', '');
+    let syncId = null;
+    let enteredShortCode = null;
+    if (shortMatch) {
+      document.getElementById('restoreProgressLabel').textContent = 'Looking up your code…';
+      syncId = await directoryLookup(shortMatch[0]);
+      enteredShortCode = shortMatch[0];
+    }
+    if (!syncId && uuidMatch) {
+      // User pasted a UUID directly — skip the directory lookup.
+      syncId = uuidMatch[0];
+    }
+    if (!syncId) {
+      throw new Error('not-found');
+    }
+    document.getElementById('restoreProgressLabel').textContent = 'Pulling progress from cloud…';
     const { pandiState: cloudState, updatedAt: cloudUpdatedAt } = await cloudPull(syncId);
-    if (!confirm('Replace this device\'s progress with cloud progress?\n\nThis can\'t be undone.')) return;
-    // Apply: keep parent PIN of this device (so user doesn't get locked out)
+    _restoreFound = { syncId, enteredShortCode, cloudState, cloudUpdatedAt };
+
+    // Confirm step.
+    document.getElementById('restoreStepProgress').style.display = 'none';
+    document.getElementById('restoreStepConfirm').style.display = '';
+    document.getElementById('restoreUpdatedAt').textContent = cloudUpdatedAt
+      ? formatRelativeTime(cloudUpdatedAt)
+      : 'just now';
+    document.getElementById('restoreConfirmBtn').style.display = '';
+    document.getElementById('restoreSub').textContent = 'Last step — review and restore';
+  } catch (e) {
+    console.warn('[pandi] restore lookup failed:', e);
+    document.getElementById('restoreStepProgress').style.display = 'none';
+    document.getElementById('restoreStepEnter').style.display = '';
+    document.getElementById('restoreLookupBtn').style.display = '';
+    document.getElementById('restoreSub').textContent = 'Type the 6-digit sync code from your other device';
+    const msg = (e && e.message) || '';
+    if (/not-found/.test(msg) || /HTTP 404/.test(msg)) {
+      err.textContent = "We couldn't find that code. Double-check the 6 digits in the other device's Sync settings.";
+    } else if (/network|fetch|HTTP/i.test(msg) || msg === 'Network error') {
+      err.textContent = "Couldn't reach the cloud. Check your internet and try again.";
+    } else {
+      err.textContent = 'Something went wrong. Try again in a moment.';
+    }
+    setTimeout(() => document.getElementById('restoreCodeInput').focus(), 50);
+  }
+}
+
+async function submitRestoreConfirm() {
+  if (!_restoreFound) return;
+  const { syncId, enteredShortCode, cloudState, cloudUpdatedAt } = _restoreFound;
+  const confirmBtn = document.getElementById('restoreConfirmBtn');
+  const cancelBtn  = document.getElementById('restoreCancelBtn');
+  confirmBtn.disabled = true;
+  cancelBtn.disabled = true;
+  document.getElementById('restoreStepConfirm').style.display = 'none';
+  document.getElementById('restoreStepProgress').style.display = '';
+  document.getElementById('restoreProgressLabel').textContent = 'Restoring…';
+
+  try {
+    // Apply: keep parent PIN of this device (so user doesn't get locked out).
     const localPin = state.parent ? state.parent.pinHash : null;
-    // Match lastChangeAt to the cloud's updatedAt so we don't immediately
-    // re-push (or trigger an auto-pull bounce) right after restoring.
     const restoredChangeAt = cloudUpdatedAt || Date.now();
     state = {
       ...defaultState,
@@ -3635,39 +3814,63 @@ async function restoreFromCloud() {
     showToast('✓ Progress restored from cloud', 'gold');
     Sound.playDayComplete();
     rerender();
-    // If the user pasted a UUID instead of a short code, opportunistically
-    // register/find a short code so subsequent restores are easier.
-    if (!enteredShortCode) {
-      ensureShortCodeRegistered();
-    }
+    closeRestoreModal();
+    // Opportunistically backfill a short code if the user pasted a UUID.
+    if (!enteredShortCode) ensureShortCodeRegistered({ resetBackoff: true });
   } catch (e) {
-    showToast('❌ ' + (e.message || 'Restore failed'), 'red');
-    console.error(e);
+    console.error('[pandi] restore failed:', e);
+    document.getElementById('restoreStepProgress').style.display = 'none';
+    document.getElementById('restoreStepEnter').style.display = '';
+    document.getElementById('restoreLookupBtn').style.display = '';
+    document.getElementById('restoreConfirmBtn').style.display = 'none';
+    document.getElementById('restoreErr').textContent = 'Couldn\'t save the restored progress. Try again.';
+    confirmBtn.disabled = false;
+    cancelBtn.disabled = false;
   }
 }
 
 // Track in-flight short-code registration so the UI can show clear status.
 let _shortCodeRegState = 'idle'; // 'idle' | 'pending' | 'failed'
+let _shortCodeRetryTimer = null;
+let _shortCodeRetryCount = 0;
 
 // Background: ensure the current syncId has a short code in the directory.
-// Called on load (migration), after a UUID-based restore, or via manual retry.
-async function ensureShortCodeRegistered() {
-  if (!state.cloud || !state.cloud.syncId || state.cloud.shortCode) return;
+// Called on load (migration), after a UUID-based restore, manual retry, or
+// automatically on `online` events. On failure, schedules a quiet retry with
+// exponential backoff (5s → 15s → 30s → 60s → 120s → 5m) so transient
+// directory hiccups self-heal without surfacing scary errors to the user.
+async function ensureShortCodeRegistered({ resetBackoff = false } = {}) {
+  if (!state.cloud || !state.cloud.syncId || state.cloud.shortCode) {
+    _shortCodeRetryCount = 0;
+    return;
+  }
   if (_shortCodeRegState === 'pending') return;
+  if (resetBackoff) _shortCodeRetryCount = 0;
+  // Clear any pending scheduled retry — we're trying right now.
+  if (_shortCodeRetryTimer) { clearTimeout(_shortCodeRetryTimer); _shortCodeRetryTimer = null; }
   _shortCodeRegState = 'pending';
   renderMeIfActive();
-  console.log('[pandi] Registering short code for syncId', state.cloud.syncId);
+  console.log('[pandi] Registering short code for syncId', state.cloud.syncId, '(attempt', _shortCodeRetryCount + 1 + ')');
   try {
     const code = await directoryRegister(state.cloud.syncId);
     state.cloud.shortCode = code;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     _shortCodeRegState = 'idle';
+    _shortCodeRetryCount = 0;
     console.log('[pandi] Short code registered:', code);
     renderMeIfActive();
   } catch (e) {
     _shortCodeRegState = 'failed';
-    console.warn('[pandi] ensureShortCodeRegistered failed:', e);
+    _shortCodeRetryCount++;
+    console.warn('[pandi] ensureShortCodeRegistered attempt', _shortCodeRetryCount, 'failed:', e);
     renderMeIfActive();
+    // Quiet auto-retry with backoff. Caps at 6 attempts (~3.5min total) — after
+    // that we wait for an online/focus event or manual user retry.
+    const delays = [5000, 15000, 30000, 60000, 120000, 300000];
+    if (_shortCodeRetryCount <= delays.length) {
+      const delay = delays[_shortCodeRetryCount - 1];
+      _shortCodeRetryTimer = setTimeout(() => ensureShortCodeRegistered(), delay);
+    }
   }
 }
 
@@ -3690,6 +3893,16 @@ async function copySyncCode() {
     showToast('Sync code copied!', 'gold');
   } catch (e) {
     prompt('Copy this code:', codeToCopy);
+  }
+}
+
+async function copyDeviceUuid() {
+  if (!state.cloud || !state.cloud.syncId) return;
+  try {
+    await navigator.clipboard.writeText(state.cloud.syncId);
+    showToast('Device code copied', 'gold');
+  } catch (e) {
+    prompt('Copy this code:', state.cloud.syncId);
   }
 }
 
@@ -6295,35 +6508,50 @@ function renderSyncUI() {
       codeBlock = `
         <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
         <div class="sync-code-box">
-          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">Generating 6-digit code…</span>
+          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">⏳ Setting up 6-digit code…</span>
         </div>
-      `;
-    } else if (_shortCodeRegState === 'failed') {
-      codeBlock = `
-        <div class="pin-row-label" style="margin-top:8px;color:var(--red,#d33);">Couldn't reach sync directory — use the long code below</div>
-        <div class="sync-code-box">
-          <span class="scb-code" style="font-size:.85em;">${state.cloud.syncId}</span>
-          <span class="scb-copy" onclick="copySyncCode()">Copy</span>
-        </div>
-        <div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);">Paste this on another device to restore — works even when 6-digit codes are unavailable.</div>
-        <button class="btn-3d gray" onclick="ensureShortCodeRegistered()" style="margin-top:6px;font-size:.85em;padding:6px 10px;">Retry getting 6-digit code</button>
       `;
     } else {
+      // No short code yet (idle or quietly retrying after a failure). We
+      // don't show scary error text — instead present this as "still
+      // working", offer a manual retry, and tuck the long device code under
+      // an Advanced disclosure so it's only visible when actually needed.
+      const stillWorking = _shortCodeRegState === 'failed';
       codeBlock = `
         <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
         <div class="sync-code-box">
-          <span class="scb-code" style="font-size:.85em;">${state.cloud.syncId}</span>
-          <span class="scb-copy" onclick="copySyncCode()">Copy</span>
+          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">
+            ${stillWorking ? '⏳ Still working on your 6-digit code…' : 'Setting up…'}
+          </span>
+          <span class="scb-copy" onclick="ensureShortCodeRegistered({ resetBackoff: true })">Retry now</span>
         </div>
-        <button class="btn-3d gray" onclick="ensureShortCodeRegistered()" style="margin-top:6px;font-size:.85em;padding:6px 10px;">Get 6-digit code</button>
+        <div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);">
+          Cloud sync is already saving your progress — the 6-digit code is just a friendly nickname for restoring on another device. We'll keep trying in the background.
+        </div>
       `;
     }
+    // Always-available advanced disclosure for the long device code. Lets
+    // the user copy the UUID directly (works even if the directory is down)
+    // without cluttering the normal view.
+    const advBlock = `
+      <details class="sync-advanced" style="margin-top:8px;">
+        <summary style="cursor:pointer;font-size:.85em;font-weight:700;color:var(--text-muted);">Advanced (long device code)</summary>
+        <div class="sync-code-box" style="margin-top:6px;">
+          <span class="scb-code" style="font-size:.78em;word-break:break-all;line-height:1.3;">${state.cloud.syncId}</span>
+          <span class="scb-copy" onclick="copyDeviceUuid()">Copy</span>
+        </div>
+        <div class="pin-row-hint" style="margin-top:4px;font-size:.78em;color:var(--text-muted);">
+          Use this only if the 6-digit code isn't available on the other device.
+        </div>
+      </details>
+    `;
     status.innerHTML = `
       <div class="sync-status on">
         <span class="sync-dot"></span>
         <span>Active · ${last}</span>
       </div>
       ${codeBlock}
+      ${advBlock}
     `;
     actions.innerHTML = `
       <button class="btn-3d gray" onclick="restoreFromCloud()" style="margin-bottom:8px;">Restore from another device</button>
@@ -6910,11 +7138,41 @@ setInterval(() => {
 // Auto-pulls newer remote state on load, when the tab regains focus, and every
 // 10s while open. Uses last-writer-wins by `updatedAt` (see cloudAutoPull).
 cloudAutoPull({ silent: false });
-window.addEventListener('focus', () => { cloudAutoPull(); processInvestmentPayouts(); runMonthlyTaxWithholding(); applyPendingRefund(); rerender(); });
+window.addEventListener('focus', () => {
+  cloudAutoPull();
+  processInvestmentPayouts();
+  runMonthlyTaxWithholding();
+  applyPendingRefund();
+  if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+    // Reset backoff on focus — feels like the user expects us to retry now.
+    ensureShortCodeRegistered({ resetBackoff: true });
+  }
+  rerender();
+});
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) { cloudAutoPull(); processInvestmentPayouts(); runMonthlyTaxWithholding(); applyPendingRefund(); rerender(); }
+  if (!document.hidden) {
+    cloudAutoPull();
+    processInvestmentPayouts();
+    runMonthlyTaxWithholding();
+    applyPendingRefund();
+    if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+      ensureShortCodeRegistered({ resetBackoff: true });
+    }
+    rerender();
+  }
 });
 setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 10 * 1000);
+
+// Network came back: best chance to flush a stuck push or finally register a
+// short code. Reset backoff so we try immediately.
+window.addEventListener('online', () => {
+  console.log('[pandi] online — replaying any deferred cloud work');
+  if (_cloudPushFailed && !_cloudPushInFlight) scheduleCloudPush();
+  cloudAutoPull();
+  if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+    ensureShortCodeRegistered({ resetBackoff: true });
+  }
+});
 
 // Migration: if this device already has cloud sync but no short code (user was
 // set up before short codes existed), register one in the background.
