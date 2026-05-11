@@ -20,11 +20,13 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-<!-- QR code generator (display sync code) + scanner (camera input on the new
-     device). Both are tiny UMD bundles that expose globals (QRCode, jsQR).
-     Loaded with `defer` so they don't block first paint; sync UI rechecks
-     them when entered and retries briefly if they haven't arrived yet. -->
-<script defer src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<!-- QR code generator (display sync code) + scanner (camera input on the
+     new device). Both expose globals on window:
+     - qrcode-generator → `qrcode` (a function): used to render the syncId
+     - jsQR → `jsQR`: decodes camera frames in the restore modal
+     Loaded with `defer` so they don't block first paint; the sync UI
+     rechecks them when entered and retries briefly if they're not ready. -->
+<script defer src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 <style>
@@ -3446,23 +3448,56 @@ async function fetchWithRetry(url, opts = {}, attempts = 4) {
    "code -> id" mapping is involved, so this path is as reliable as the
    user's own cloud blob (which already has to work for pulls anyway). */
 
-// Render the syncId into the #syncQrCanvas. Self-retries quietly if the
-// qrcode lib hasn't finished loading yet.
+// Render the syncId into the #syncQrCanvas. Uses qrcode-generator
+// (window.qrcode) to compute the module grid, then we paint it pixel-perfect
+// onto the canvas at device pixel ratio. Self-retries quietly if the
+// library hasn't finished loading yet from CDN.
 function renderSyncQrCode(syncId) {
   const canvas = document.getElementById('syncQrCanvas');
   if (!canvas || !syncId) return;
-  if (typeof QRCode === 'undefined' || !QRCode.toCanvas) {
+  if (typeof qrcode !== 'function') {
     setTimeout(() => renderSyncQrCode(syncId), 400);
     return;
   }
-  QRCode.toCanvas(canvas, syncId, {
-    width: 240,
-    margin: 1,
-    errorCorrectionLevel: 'M',
-    color: { dark: '#1a1a1a', light: '#ffffff' }
-  }, (err) => {
-    if (err) console.warn('[pandi] QR render failed:', err);
-  });
+  try {
+    // typeNumber=0 → auto-detect smallest size that fits the data.
+    const qr = qrcode(0, 'M');
+    qr.addData(syncId);
+    qr.make();
+    const modules = qr.getModuleCount();
+
+    // Render at device pixel ratio so it stays crisp on retina screens.
+    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+    const cssSize = 240;
+    const px = cssSize * dpr;
+    const margin = Math.round(8 * dpr); // small quiet zone — the white card
+                                        // around the canvas already provides
+                                        // the spec-required 4-module quiet
+                                        // zone visually.
+    const cell = Math.floor((px - margin * 2) / modules);
+    const drawn = cell * modules;
+    const offset = Math.floor((px - drawn) / 2);
+
+    canvas.width = px;
+    canvas.height = px;
+    canvas.style.width = cssSize + 'px';
+    canvas.style.height = cssSize + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, px, px);
+    ctx.fillStyle = '#1a1a1a';
+    for (let r = 0; r < modules; r++) {
+      for (let c = 0; c < modules; c++) {
+        if (qr.isDark(r, c)) {
+          ctx.fillRect(offset + c * cell, offset + r * cell, cell, cell);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[pandi] QR render failed:', err);
+  }
 }
 
 // Scanner state lives on module scope so we can clean up when the modal
