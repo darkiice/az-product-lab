@@ -17,7 +17,15 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- QR code generator (display sync code) + scanner (camera input on the new
+     device). Both are tiny UMD bundles that expose globals (QRCode, jsQR).
+     Loaded with `defer` so they don't block first paint; sync UI rechecks
+     them when entered and retries briefly if they haven't arrived yet. -->
+<script defer src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -2811,7 +2819,7 @@
     <div id="syncStatus"></div>
     <div id="syncActions"></div>
     <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">
-      Cloud sync stores progress online (anonymous JSON storage) so you can restore on a new device with the sync code.
+      Cloud sync stores progress online (anonymous JSON storage) so you can restore on a new device by scanning the QR code on this device.
     </div>
   </div>
 
@@ -3013,23 +3021,29 @@
   <div class="modal">
     <div class="modal-header" style="background:var(--blue);">
       <button class="close-x" onclick="closeRestoreModal()">✕</button>
-      <div class="big-icon">☁️</div>
+      <div class="big-icon">📷</div>
       <div class="pill">CLOUD SYNC</div>
       <h3>Restore from another device</h3>
-      <div class="sub" id="restoreSub">Type the 6-digit sync code from your other device</div>
+      <div class="sub" id="restoreSub">Scan the QR code on your other device</div>
     </div>
     <div class="modal-body">
-      <!-- STEP 1: enter code -->
+      <!-- STEP 1: scan QR -->
       <div id="restoreStepEnter">
-        <div class="pin-row-label">6-digit sync code</div>
-        <input id="restoreCodeInput" class="pin-input" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="11" placeholder="• • • • • •" autocomplete="off" />
-        <div class="pin-row-hint" style="font-size:.8em;color:var(--text-muted);margin-top:4px;">
-          Find it in the other device's <strong>Stats → Settings &amp; More → Sync</strong>.
+        <div id="restoreScannerWrap" style="position:relative;width:100%;max-width:280px;aspect-ratio:1;margin:0 auto 8px;border-radius:16px;overflow:hidden;background:#0a0a0a;">
+          <video id="restoreVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+          <div id="restoreScanFrame" style="position:absolute;inset:10%;border:3px solid rgba(255,255,255,0.85);border-radius:12px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,0.25);"></div>
+          <div id="restoreScannerOverlay" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;text-align:center;padding:16px;background:rgba(0,0,0,0.55);">Starting camera…</div>
         </div>
-        <details style="margin-top:10px;">
-          <summary style="cursor:pointer;font-size:.85em;font-weight:700;color:var(--text-muted);">Use a long device code instead</summary>
+        <div class="pin-row-hint" id="restoreScannerHint" style="text-align:center;font-size:.85em;color:var(--text-muted);">
+          Point at the QR code on the other device's <strong>Sync</strong> screen
+        </div>
+        <details style="margin-top:14px;">
+          <summary style="cursor:pointer;font-size:.85em;font-weight:700;color:var(--text-muted);">Camera not working? Paste device code instead</summary>
           <div class="pin-row-label" style="margin-top:8px;">Device code (UUID)</div>
-          <input id="restoreUuidInput" class="name-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" style="font-family:ui-monospace,Menlo,monospace;font-size:11px;" />
+          <input id="restoreUuidInput" class="name-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font-family:ui-monospace,Menlo,monospace;font-size:11px;" />
+          <div class="pin-row-hint" style="font-size:.78em;color:var(--text-muted);margin-top:4px;">
+            Find it under <strong>Sync → Can't scan? Show device code</strong> on the other device.
+          </div>
         </details>
         <div class="err-msg" id="restoreErr"></div>
       </div>
@@ -3056,7 +3070,7 @@
       </div>
     </div>
     <div class="modal-footer" id="restoreFooter">
-      <button class="btn-3d" id="restoreLookupBtn" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark,#1a6bb3);" onclick="submitRestoreLookup()">Find code</button>
+      <button class="btn-3d" id="restoreLookupBtn" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark,#1a6bb3);display:none;" onclick="submitRestoreLookup()">Find device</button>
       <button class="btn-3d" id="restoreConfirmBtn" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark,#1a6bb3);display:none;" onclick="submitRestoreConfirm()">Restore</button>
       <button class="btn-secondary" id="restoreCancelBtn" onclick="closeRestoreModal()">Cancel</button>
     </div>
@@ -3109,9 +3123,11 @@ const defaultState = {
   },
 
   // === CLOUD SYNC (JSONBlob — anonymous, CORS-enabled key-value) ===
+  // The syncId UUID is the device's "address" in the cloud. Devices share
+  // it via a QR code rendered in Sync settings — no shared directory or
+  // short-code lookup service is involved.
   cloud: {
     syncId: null,             // blob UUID — used internally for fetches
-    shortCode: null,          // short user-facing code (6 chars) — registered in directory blob
     lastPushAt: 0,
     lastPullAt: 0,
     lastChangeAt: 0           // bumped on every saveState() — drives last-writer-wins
@@ -3424,100 +3440,152 @@ async function fetchWithRetry(url, opts = {}, attempts = 4) {
   throw lastErr || new Error('Network error');
 }
 
-// Shared "directory" blob mapping short user-facing codes -> real blob UUIDs.
-// JSONBlob deletes blobs after ~30 days of inactivity, so the directory is
-// kept alive by pinging it on every page load (see directoryKeepAlive below).
-// Re-bootstrapped 2026-05-08 after the original blob expired.
-const DIRECTORY_BLOB_ID = '019e0aad-15fd-7732-b520-1a119177aac2';
+/* ============= QR CODE GENERATION + SCANNING =============
+   The sync code is the syncId UUID itself, encoded in a QR code that the
+   new device's camera reads directly. No shared directory or third-party
+   "code -> id" mapping is involved, so this path is as reliable as the
+   user's own cloud blob (which already has to work for pulls anyway). */
 
-// Pure-digit alphabet so the code is easy to type on phone numeric keypads.
-// 10 digits ^ 6 positions => 1,000,000 combos — plenty for personal/family use.
-const SHORT_CODE_ALPHABET = '0123456789';
-const SHORT_CODE_LEN = 6;
-
-function generateShortCode() {
-  let s = '';
-  for (let i = 0; i < SHORT_CODE_LEN; i++) {
-    s += SHORT_CODE_ALPHABET[Math.floor(Math.random() * SHORT_CODE_ALPHABET.length)];
+// Render the syncId into the #syncQrCanvas. Self-retries quietly if the
+// qrcode lib hasn't finished loading yet.
+function renderSyncQrCode(syncId) {
+  const canvas = document.getElementById('syncQrCanvas');
+  if (!canvas || !syncId) return;
+  if (typeof QRCode === 'undefined' || !QRCode.toCanvas) {
+    setTimeout(() => renderSyncQrCode(syncId), 400);
+    return;
   }
-  return s;
-}
-
-// Fire-and-forget GET on the directory to keep it from expiring (JSONBlob TTL).
-function directoryKeepAlive() {
-  fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' }, 2).catch(() => {});
-}
-
-async function directoryFetch() {
-  try {
-    const res = await fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' });
-    if (!res.ok) {
-      console.warn('[pandi] Directory fetch HTTP', res.status);
-      return null;
-    }
-    const data = await res.json();
-    if (!data || data._pandi_directory !== true) {
-      console.warn('[pandi] Directory blob has unexpected shape:', data);
-      return null;
-    }
-    return data;
-  } catch (e) {
-    console.warn('[pandi] Directory fetch failed:', e);
-    return null;
-  }
-}
-
-async function directoryWrite(dir) {
-  const res = await fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      _pandi_directory: true,
-      version: 1,
-      codes: dir.codes || {},
-      updatedAt: Date.now()
-    })
+  QRCode.toCanvas(canvas, syncId, {
+    width: 240,
+    margin: 1,
+    errorCorrectionLevel: 'M',
+    color: { dark: '#1a1a1a', light: '#ffffff' }
+  }, (err) => {
+    if (err) console.warn('[pandi] QR render failed:', err);
   });
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Directory write failed: HTTP ${res.status} ${body.slice(0, 120)}`);
+}
+
+// Scanner state lives on module scope so we can clean up when the modal
+// closes (camera tracks must be released so the LED indicator turns off).
+let _scanStream = null;
+let _scanRaf    = null;
+let _scanCanvas = null;
+
+function _showScannerOverlay(text) {
+  const o = document.getElementById('restoreScannerOverlay');
+  if (!o) return;
+  if (text == null) {
+    o.style.display = 'none';
+  } else {
+    o.style.display = '';
+    o.textContent = text;
   }
 }
 
-// Look up a short code (case-insensitive) and return the syncId, or null.
-async function directoryLookup(rawCode) {
-  const code = String(rawCode || '').trim().toUpperCase();
-  if (!code) return null;
-  const dir = await directoryFetch();
-  if (!dir || !dir.codes) return null;
-  return dir.codes[code] || null;
+async function startQrScanner() {
+  const video = document.getElementById('restoreVideo');
+  const hint  = document.getElementById('restoreScannerHint');
+  if (!video) return;
+
+  // Wait for jsQR to load (deferred from CDN). 99% of the time it's already
+  // present by the time the user opens the restore modal.
+  if (typeof jsQR === 'undefined') {
+    _showScannerOverlay('Loading scanner…');
+    setTimeout(startQrScanner, 400);
+    return;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    _showScannerOverlay('Camera not available on this device');
+    if (hint) hint.innerHTML = 'No camera here. Tap <strong>Camera not working?</strong> below to paste the device code instead.';
+    _autoOpenManualFallback();
+    return;
+  }
+
+  try {
+    _scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false
+    });
+    video.srcObject = _scanStream;
+    // Some browsers need an explicit play() on iOS PWAs.
+    try { await video.play(); } catch (e) {}
+    _showScannerOverlay(null);
+    if (hint) hint.innerHTML = 'Point at the QR code on the other device\'s <strong>Sync</strong> screen';
+
+    if (!_scanCanvas) _scanCanvas = document.createElement('canvas');
+    const ctx = _scanCanvas.getContext('2d', { willReadFrequently: true });
+
+    const tick = () => {
+      if (!_scanStream) return; // scanner stopped
+      if (video.readyState >= video.HAVE_ENOUGH_DATA && video.videoWidth) {
+        // Downscale modestly — jsQR is fast enough on 480p frames and this
+        // keeps battery use sane on iOS.
+        const targetW = Math.min(480, video.videoWidth);
+        const scale   = targetW / video.videoWidth;
+        _scanCanvas.width  = Math.round(video.videoWidth  * scale);
+        _scanCanvas.height = Math.round(video.videoHeight * scale);
+        ctx.drawImage(video, 0, 0, _scanCanvas.width, _scanCanvas.height);
+        const img = ctx.getImageData(0, 0, _scanCanvas.width, _scanCanvas.height);
+        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+        if (code && code.data) {
+          // Look for a UUID anywhere in the decoded payload — that lets us
+          // accept either a bare UUID or a longer URL that contains one.
+          const m = code.data.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+          if (m) {
+            stopQrScanner();
+            _onQrDetected(m[0]);
+            return;
+          }
+        }
+      }
+      _scanRaf = requestAnimationFrame(tick);
+    };
+    _scanRaf = requestAnimationFrame(tick);
+  } catch (err) {
+    console.warn('[pandi] camera start failed:', err);
+    const denied = err && (err.name === 'NotAllowedError' || /denied|permission/i.test(String(err.message)));
+    _showScannerOverlay(denied ? 'Camera access denied' : 'Camera not available');
+    if (hint) {
+      hint.innerHTML = denied
+        ? 'Camera access was denied. Allow it in browser settings or tap <strong>Camera not working?</strong> below.'
+        : 'Couldn\'t open the camera. Tap <strong>Camera not working?</strong> below.';
+    }
+    _autoOpenManualFallback();
+  }
 }
 
-// Claim a short code for `syncId` in the shared directory. If syncId is
-// already registered, reuses the existing code. If `preferredCode` is given
-// and free, reuses it (the local-instant code from cloudCreate). Otherwise
-// allocates a fresh non-colliding code. Returns the code that ended up
-// registered, or throws on directory failure.
-async function directoryRegister(syncId, preferredCode = null) {
-  const dir = (await directoryFetch()) || { codes: {} };
-  const codes = dir.codes || {};
-  // Reuse existing mapping if already present.
-  for (const [code, id] of Object.entries(codes)) {
-    if (id === syncId) return code;
+function stopQrScanner() {
+  if (_scanRaf) { cancelAnimationFrame(_scanRaf); _scanRaf = null; }
+  if (_scanStream) {
+    _scanStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+    _scanStream = null;
   }
-  // Try to honour the preferred code (the locally-generated one shown to
-  // the user) so we don't surprise them with a different code.
-  let code = (preferredCode && /^[0-9]{6}$/.test(preferredCode) && !codes[preferredCode])
-    ? preferredCode
-    : null;
-  if (!code) {
-    code = generateShortCode();
-    for (let i = 0; i < 50 && codes[code]; i++) code = generateShortCode();
-    if (codes[code]) throw new Error('Could not allocate a unique short code');
+  const video = document.getElementById('restoreVideo');
+  if (video) {
+    try { video.pause(); } catch (e) {}
+    video.srcObject = null;
   }
-  codes[code] = syncId;
-  await directoryWrite({ codes });
-  return code;
+}
+
+function _autoOpenManualFallback() {
+  const uuidInp = document.getElementById('restoreUuidInput');
+  const adv = uuidInp ? uuidInp.closest('details') : null;
+  if (adv) adv.open = true;
+  // Surface the UUID input so the user can paste right away.
+  if (uuidInp) setTimeout(() => uuidInp.focus(), 200);
+  const lookupBtn = document.getElementById('restoreLookupBtn');
+  if (lookupBtn) lookupBtn.style.display = '';
+}
+
+// Called when either the camera scans a UUID or the user pastes one. Both
+// paths share the same lookup/confirm flow below.
+function _onQrDetected(syncId) {
+  const uuidInp = document.getElementById('restoreUuidInput');
+  if (uuidInp) uuidInp.value = syncId;
+  const sub = document.getElementById('restoreSub');
+  if (sub) sub.textContent = 'Found a code — pulling progress…';
+  submitRestoreLookup();
 }
 
 // Push every edit to the cloud immediately, but serialize so rapid-fire edits
@@ -3581,21 +3649,10 @@ async function cloudCreate() {
   state.cloud.syncId = id;
   state.cloud.lastPushAt = Date.now();
 
-  // INSTANT CODE: pre-generate a 6-digit code locally so the user sees it
-  // immediately. Mark it as not-yet-claimed in the shared directory; we
-  // claim it asynchronously below. If the directory is slow or briefly down,
-  // the user already has something to read off — the directory write
-  // self-heals via ensureShortCodeRegistered's retry loop.
-  if (!state.cloud.shortCode) state.cloud.shortCode = generateShortCode();
-  state.cloud.shortCodeRegistered = false;
-
   // Persist immediately — we just uploaded, no need to schedule another push.
+  // The QR code in the Sync UI encodes this syncId, so the new device can
+  // scan it directly with no further round-trips.
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-
-  // Background: claim the code in the shared directory so other devices can
-  // resolve it. If there's a collision (rare: 1-in-a-million), the helper
-  // swaps to a fresh code and updates state.cloud.shortCode.
-  ensureShortCodeRegistered({ resetBackoff: true }).catch(() => {});
 
   return id;
 }
@@ -3687,10 +3744,10 @@ async function setupCloudSync() {
 }
 
 /* ============= RESTORE-FROM-CLOUD MODAL =============
-   Three-step flow: enter → confirm → progress. Replaces the old prompt() +
-   confirm() chain so we get proper iOS-friendly inputs, validation, real
-   progress feedback, and accurate error messages. */
-let _restoreFound = null;       // { syncId, enteredShortCode, cloudState, cloudUpdatedAt }
+   Three-step flow: scan → confirm → progress. The QR scanner reads the
+   syncId UUID directly off the other device's screen; the manual UUID
+   field is the fallback for cameraless devices. */
+let _restoreFound = null;       // { syncId, cloudState, cloudUpdatedAt }
 
 async function restoreFromCloud() {
   const ok = await requireParent();
@@ -3703,53 +3760,62 @@ function openRestoreModal() {
   document.getElementById('restoreStepEnter').style.display = '';
   document.getElementById('restoreStepConfirm').style.display = 'none';
   document.getElementById('restoreStepProgress').style.display = 'none';
-  document.getElementById('restoreLookupBtn').style.display = '';
+  document.getElementById('restoreLookupBtn').style.display = 'none';
   document.getElementById('restoreLookupBtn').disabled = false;
-  document.getElementById('restoreLookupBtn').textContent = 'Find code';
+  document.getElementById('restoreLookupBtn').textContent = 'Find device';
   document.getElementById('restoreConfirmBtn').style.display = 'none';
   document.getElementById('restoreCancelBtn').style.display = '';
   document.getElementById('restoreErr').textContent = '';
-  document.getElementById('restoreSub').textContent = 'Type the 6-digit sync code from your other device';
-  const codeInp = document.getElementById('restoreCodeInput');
+  document.getElementById('restoreSub').textContent = 'Scan the QR code on your other device';
   const uuidInp = document.getElementById('restoreUuidInput');
-  if (codeInp) codeInp.value = '';
   if (uuidInp) uuidInp.value = '';
-  // Auto-strip whitespace + dashes as the user types so paste works cleanly.
-  if (codeInp && !codeInp._wired) {
-    codeInp.addEventListener('input', () => {
-      codeInp.value = codeInp.value.replace(/[^0-9]/g, '').slice(0, 6);
-      document.getElementById('restoreErr').textContent = '';
+  // When the user opens the manual fallback details, surface the Find button
+  // and wire Enter on the input so paste-and-Enter just works.
+  const adv = uuidInp ? uuidInp.closest('details') : null;
+  if (adv && !adv._wired) {
+    adv.addEventListener('toggle', () => {
+      const btn = document.getElementById('restoreLookupBtn');
+      if (btn) btn.style.display = adv.open ? '' : 'none';
     });
-    codeInp.addEventListener('keydown', (e) => {
+    adv._wired = true;
+  }
+  if (uuidInp && !uuidInp._wired) {
+    uuidInp.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitRestoreLookup();
     });
-    codeInp._wired = true;
+    uuidInp._wired = true;
   }
+  _showScannerOverlay('Starting camera…');
   document.getElementById('restoreModal').classList.add('show');
-  setTimeout(() => codeInp && codeInp.focus(), 200);
+  // Start the camera AFTER the modal animates in — getUserMedia on iOS is
+  // happier when called from a settled UI state than from inside the same
+  // tick that toggles the modal.
+  setTimeout(() => startQrScanner(), 250);
 }
 
 function closeRestoreModal() {
+  stopQrScanner();
   document.getElementById('restoreModal').classList.remove('show');
 }
 
 async function submitRestoreLookup() {
-  const codeInp = document.getElementById('restoreCodeInput');
   const uuidInp = document.getElementById('restoreUuidInput');
   const err = document.getElementById('restoreErr');
   const lookupBtn = document.getElementById('restoreLookupBtn');
   err.textContent = '';
 
-  const codeRaw  = (codeInp.value || '').replace(/[\s-]/g, '');
-  const uuidRaw  = (uuidInp.value || '').trim();
-  const shortMatch = codeRaw.match(/^\d{6}$/);
-  const uuidMatch  = uuidRaw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  const uuidRaw = (uuidInp.value || '').trim();
+  const uuidMatch = uuidRaw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
 
-  if (!shortMatch && !uuidMatch) {
-    err.textContent = 'Enter a 6-digit code (or expand "Use a long device code instead").';
-    codeInp.focus();
+  if (!uuidMatch) {
+    err.textContent = 'Paste a device code that looks like xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.';
+    uuidInp.focus();
     return;
   }
+
+  // Camera no longer needed once we have a code — release it so the
+  // indicator turns off and the device can spin down the sensor.
+  stopQrScanner();
 
   // Move into progress UI.
   document.getElementById('restoreStepEnter').style.display = 'none';
@@ -3758,23 +3824,10 @@ async function submitRestoreLookup() {
   document.getElementById('restoreSub').textContent = 'Hang tight…';
 
   try {
-    let syncId = null;
-    let enteredShortCode = null;
-    if (shortMatch) {
-      document.getElementById('restoreProgressLabel').textContent = 'Looking up your code…';
-      syncId = await directoryLookup(shortMatch[0]);
-      enteredShortCode = shortMatch[0];
-    }
-    if (!syncId && uuidMatch) {
-      // User pasted a UUID directly — skip the directory lookup.
-      syncId = uuidMatch[0];
-    }
-    if (!syncId) {
-      throw new Error('not-found');
-    }
+    const syncId = uuidMatch[0];
     document.getElementById('restoreProgressLabel').textContent = 'Pulling progress from cloud…';
     const { pandiState: cloudState, updatedAt: cloudUpdatedAt } = await cloudPull(syncId);
-    _restoreFound = { syncId, enteredShortCode, cloudState, cloudUpdatedAt };
+    _restoreFound = { syncId, cloudState, cloudUpdatedAt };
 
     // Confirm step.
     document.getElementById('restoreStepProgress').style.display = 'none';
@@ -3788,23 +3841,24 @@ async function submitRestoreLookup() {
     console.warn('[pandi] restore lookup failed:', e);
     document.getElementById('restoreStepProgress').style.display = 'none';
     document.getElementById('restoreStepEnter').style.display = '';
-    document.getElementById('restoreLookupBtn').style.display = '';
-    document.getElementById('restoreSub').textContent = 'Type the 6-digit sync code from your other device';
+    document.getElementById('restoreSub').textContent = 'Scan the QR code on your other device';
     const msg = (e && e.message) || '';
-    if (/not-found/.test(msg) || /HTTP 404/.test(msg)) {
-      err.textContent = "We couldn't find that code. Double-check the 6 digits in the other device's Sync settings.";
+    if (/not-found/i.test(msg) || /HTTP 404/.test(msg)) {
+      err.textContent = "We couldn't find that device. Double-check the QR code or device code on the other device.";
     } else if (/network|fetch|HTTP/i.test(msg) || msg === 'Network error') {
       err.textContent = "Couldn't reach the cloud. Check your internet and try again.";
     } else {
       err.textContent = 'Something went wrong. Try again in a moment.';
     }
-    setTimeout(() => document.getElementById('restoreCodeInput').focus(), 50);
+    // Restart the scanner so the user can try again without reopening.
+    setTimeout(() => startQrScanner(), 200);
+    if (lookupBtn) lookupBtn.style.display = '';
   }
 }
 
 async function submitRestoreConfirm() {
   if (!_restoreFound) return;
-  const { syncId, enteredShortCode, cloudState, cloudUpdatedAt } = _restoreFound;
+  const { syncId, cloudState, cloudUpdatedAt } = _restoreFound;
   const confirmBtn = document.getElementById('restoreConfirmBtn');
   const cancelBtn  = document.getElementById('restoreCancelBtn');
   confirmBtn.disabled = true;
@@ -3821,20 +3875,17 @@ async function submitRestoreConfirm() {
       ...defaultState,
       ...cloudState,
       parent: { ...defaultState.parent, ...(cloudState.parent || {}), pinHash: localPin || (cloudState.parent && cloudState.parent.pinHash) || null, unlockedUntil: 0 },
-      cloud:  { ...defaultState.cloud, syncId, shortCode: enteredShortCode, lastPullAt: Date.now(), lastChangeAt: restoredChangeAt }
+      cloud:  { ...defaultState.cloud, syncId, lastPullAt: Date.now(), lastChangeAt: restoredChangeAt }
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     showToast('✓ Progress restored from cloud', 'gold');
     Sound.playDayComplete();
     rerender();
     closeRestoreModal();
-    // Opportunistically backfill a short code if the user pasted a UUID.
-    if (!enteredShortCode) ensureShortCodeRegistered({ resetBackoff: true });
   } catch (e) {
     console.error('[pandi] restore failed:', e);
     document.getElementById('restoreStepProgress').style.display = 'none';
     document.getElementById('restoreStepEnter').style.display = '';
-    document.getElementById('restoreLookupBtn').style.display = '';
     document.getElementById('restoreConfirmBtn').style.display = 'none';
     document.getElementById('restoreErr').textContent = 'Couldn\'t save the restored progress. Try again.';
     confirmBtn.disabled = false;
@@ -3842,93 +3893,13 @@ async function submitRestoreConfirm() {
   }
 }
 
-// Track in-flight short-code registration so the UI can show clear status.
-let _shortCodeRegState = 'idle'; // 'idle' | 'pending' | 'failed'
-let _shortCodeRetryTimer = null;
-let _shortCodeRetryCount = 0;
-
-// Background: ensure the current syncId is registered in the shared directory.
-// We always show a code instantly (generated locally in cloudCreate); this
-// helper just makes that code resolvable from another device. Called on load,
-// after a UUID-based restore, manual retry, or on `online` events. On failure,
-// schedules quiet exponential-backoff retries so transient directory hiccups
-// self-heal without scary errors.
-async function ensureShortCodeRegistered({ resetBackoff = false } = {}) {
-  if (!state.cloud || !state.cloud.syncId) {
-    _shortCodeRetryCount = 0;
-    return;
-  }
-  // Already confirmed registered — nothing to do.
-  if (state.cloud.shortCodeRegistered === true && state.cloud.shortCode) {
-    _shortCodeRetryCount = 0;
-    return;
-  }
-  if (_shortCodeRegState === 'pending') return;
-  if (resetBackoff) _shortCodeRetryCount = 0;
-  if (_shortCodeRetryTimer) { clearTimeout(_shortCodeRetryTimer); _shortCodeRetryTimer = null; }
-
-  // Make sure we always have SOMETHING to show. If by some quirk the local
-  // code is missing (older state pre-migration), fill it in now.
-  if (!state.cloud.shortCode) {
-    state.cloud.shortCode = generateShortCode();
-    state.cloud.shortCodeRegistered = false;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    renderMeIfActive();
-  }
-
-  _shortCodeRegState = 'pending';
-  renderMeIfActive();
-  const preferred = state.cloud.shortCode;
-  console.log('[pandi] Claiming short code', preferred, 'for syncId', state.cloud.syncId, '(attempt', _shortCodeRetryCount + 1 + ')');
-  try {
-    const claimed = await directoryRegister(state.cloud.syncId, preferred);
-    if (claimed !== state.cloud.shortCode) {
-      // Rare collision — directory had our preferred code already. We swapped
-      // to a different one. Update local state so the UI reflects reality.
-      console.log('[pandi] Short code swapped due to collision:', preferred, '→', claimed);
-      state.cloud.shortCode = claimed;
-    }
-    state.cloud.shortCodeRegistered = true;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    _shortCodeRegState = 'idle';
-    _shortCodeRetryCount = 0;
-    console.log('[pandi] Short code registered:', claimed);
-    renderMeIfActive();
-  } catch (e) {
-    _shortCodeRegState = 'failed';
-    _shortCodeRetryCount++;
-    console.warn('[pandi] ensureShortCodeRegistered attempt', _shortCodeRetryCount, 'failed:', e);
-    renderMeIfActive();
-    // Quiet auto-retry with backoff. Caps at 6 attempts (~3.5min total) — after
-    // that we wait for an online/focus event or manual user retry.
-    const delays = [5000, 15000, 30000, 60000, 120000, 300000];
-    if (_shortCodeRetryCount <= delays.length) {
-      const delay = delays[_shortCodeRetryCount - 1];
-      _shortCodeRetryTimer = setTimeout(() => ensureShortCodeRegistered(), delay);
-    }
-  }
-}
-
 function disconnectCloudSync() {
-  if (!confirm('Disconnect cloud sync?\n\nProgress on this device will stay; the cloud copy stays where it is. You can reconnect with the same sync code later.')) return;
+  if (!confirm('Disconnect cloud sync?\n\nProgress on this device will stay; the cloud copy stays where it is. You can reconnect by scanning the QR on this device later.')) return;
   state.cloud.syncId = null;
-  state.cloud.shortCode = null;
   state.cloud.lastPushAt = 0;
   saveState();
   showToast('Cloud sync disconnected', '');
   renderMeIfActive();
-}
-
-async function copySyncCode() {
-  if (!state.cloud.syncId) return;
-  // Prefer the short code; fall back to the UUID if no short code is available.
-  const codeToCopy = state.cloud.shortCode || state.cloud.syncId;
-  try {
-    await navigator.clipboard.writeText(codeToCopy);
-    showToast('Sync code copied!', 'gold');
-  } catch (e) {
-    prompt('Copy this code:', codeToCopy);
-  }
 }
 
 async function copyDeviceUuid() {
@@ -3939,78 +3910,6 @@ async function copyDeviceUuid() {
   } catch (e) {
     prompt('Copy this code:', state.cloud.syncId);
   }
-}
-
-/* Build a restore URL whose hash carries the full syncId. Hash fragments are
-   never sent to servers, so sharing this link is effectively peer-to-peer.
-   The receiving device parses the hash on load and pulls progress directly
-   from its own cloud blob — no shared directory required, so this path keeps
-   working even when the 6-digit code service is having a bad day. */
-function buildSyncShareUrl() {
-  if (!state.cloud || !state.cloud.syncId) return null;
-  const base = window.location.origin + window.location.pathname;
-  return base + '#restore=' + state.cloud.syncId;
-}
-
-async function shareSyncLink() {
-  if (!state.cloud || !state.cloud.syncId) {
-    showToast("Cloud sync isn't set up yet", 'red');
-    return;
-  }
-  const url = buildSyncShareUrl();
-  // Native share sheet is the best UX on iOS (AirDrop, Messages, Mail).
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Restore Cappie',
-        text: 'Open this link on the new device to restore Cappie progress.',
-        url
-      });
-      return;
-    } catch (e) {
-      // AbortError = user dismissed the share sheet; don't fall through to
-      // clipboard or it'd feel like a double action.
-      if (e && (e.name === 'AbortError' || /abort/i.test(String(e.message)))) return;
-    }
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    showToast('🔗 Sync link copied — paste on the other device', 'gold');
-  } catch (e) {
-    prompt('Copy this sync link and open it on the other device:', url);
-  }
-}
-
-/* On load, look for #restore=<uuid> in the URL. If present, treat it as the
-   user opening a sync link from another device: open the restore modal with
-   the UUID prefilled and kick off the pull immediately. */
-function handleSyncRestoreFromUrl() {
-  const hash = window.location.hash || '';
-  const m = hash.match(/^#restore=([0-9a-fA-F-]{32,40})/);
-  if (!m) return;
-  const syncId = m[1];
-  // Clear hash so a refresh doesn't re-fire the restore prompt.
-  try {
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-  } catch (e) {}
-  // Already synced to this exact ID — nothing to do, just confirm.
-  if (state.cloud && state.cloud.syncId &&
-      state.cloud.syncId.toLowerCase() === syncId.toLowerCase()) {
-    setTimeout(() => showToast('Already synced — you\'re up to date', ''), 600);
-    return;
-  }
-  // Wait for the rest of the boot sequence to finish before popping a modal.
-  setTimeout(() => {
-    if (typeof openRestoreModal !== 'function') return;
-    openRestoreModal();
-    const uuidInp = document.getElementById('restoreUuidInput');
-    const adv = uuidInp ? uuidInp.closest('details') : null;
-    if (adv) adv.open = true;
-    if (uuidInp) uuidInp.value = syncId;
-    const sub = document.getElementById('restoreSub');
-    if (sub) sub.textContent = 'Restoring from your sync link…';
-    if (typeof submitRestoreLookup === 'function') submitRestoreLookup();
-  }, 400);
 }
 
 /* ============= MANUAL EXPORT / IMPORT ============= */
@@ -6448,95 +6347,24 @@ function renderTaxHistory() {
   `;
 }
 
-/* ============= TAX PIN CARD (reuses cloud sync short code) ============= */
-let _taxPinMasked = true;   // default to masked for privacy on shared screens
-
+/* ============= TAX PIN CARD =============
+   Dormant while TAXES_ENABLED is false. The original Tax PIN reused the
+   short cloud-sync code; now that sync uses QR codes instead, this card
+   just renders a placeholder so re-enabling taxes doesn't throw — we'll
+   redesign the Tax PIN flow if/when the tax feature comes back. */
 function renderTaxPinCard() {
   const body = document.getElementById('taxPinBody');
   if (!body) return;
-  const cloud = state.cloud || {};
-  const code = cloud.shortCode || null;
-  const hasSync = !!cloud.syncId;
-  const fetching = (typeof _shortCodeRegState !== 'undefined') && _shortCodeRegState === 'pending';
-
-  if (code) {
-    const display = _taxPinMasked ? '••••••' : code;
-    body.innerHTML = `
-      <div class="tax-pin-display">
-        <div class="tax-pin-digits${_taxPinMasked ? ' masked' : ''}" id="taxPinDigits">${display}</div>
-        <div class="tax-pin-actions">
-          <button class="tax-pin-btn" onclick="toggleTaxPinReveal()">${_taxPinMasked ? '👁 Show' : '🙈 Hide'}</button>
-          <button class="tax-pin-btn" onclick="copyTaxPin()">📋 Copy</button>
-        </div>
-      </div>
-      <div class="tax-pin-hint">Enter this 6-digit PIN in <strong>TurboTax for Kids</strong> when she files her taxes. It's the same code as your cloud sync code — keep it safe.</div>
-    `;
-  } else if (hasSync && fetching) {
-    body.innerHTML = `
-      <div class="tax-pin-setup">
-        <div class="tax-pin-setup-msg">⏳ Generating your Tax PIN…</div>
-      </div>
-    `;
-  } else if (hasSync) {
-    body.innerHTML = `
-      <div class="tax-pin-setup">
-        <div class="tax-pin-setup-msg">No Tax PIN yet. Tap below to register one for TurboTax for Kids.</div>
-        <button class="tax-pin-setup-btn" onclick="generateTaxPin()">🔑 Get Tax PIN</button>
-      </div>
-    `;
-  } else {
-    body.innerHTML = `
-      <div class="tax-pin-setup">
-        <div class="tax-pin-setup-msg">A Tax PIN keeps her taxes private — only someone with the PIN can file in TurboTax for Kids. Set it up once, then she's good to go.</div>
-        <button class="tax-pin-setup-btn" onclick="setupTaxPin()">🔑 Set up Tax PIN</button>
-      </div>
-    `;
-  }
+  body.innerHTML = `
+    <div class="tax-pin-setup">
+      <div class="tax-pin-setup-msg">Tax PIN is being redesigned. The taxes feature is paused for now — check back soon.</div>
+    </div>
+  `;
 }
-
-function toggleTaxPinReveal() {
-  _taxPinMasked = !_taxPinMasked;
-  renderTaxPinCard();
-}
-
-function copyTaxPin() {
-  const code = state.cloud && state.cloud.shortCode;
-  if (!code) return;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(code).then(
-      () => showToast('🔑 Tax PIN copied!', 'gold'),
-      () => showToast('❌ Copy failed', 'red')
-    );
-  } else {
-    // Fallback: select + execCommand
-    try {
-      const ta = document.createElement('textarea');
-      ta.value = code; document.body.appendChild(ta);
-      ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('🔑 Tax PIN copied!', 'gold');
-    } catch (e) { showToast('❌ Copy failed', 'red'); }
-  }
-}
-
-async function generateTaxPin() {
-  if (!state.cloud || !state.cloud.syncId) {
-    return setupTaxPin();
-  }
-  await ensureShortCodeRegistered();
-  renderTaxPinCard();
-}
-
-async function setupTaxPin() {
-  // Cloud sync not configured — bootstrap it (this prompts for parent PIN).
-  try {
-    await setupCloudSync();
-    // setupCloudSync also kicks off short code registration.
-    setTimeout(renderTaxPinCard, 400);
-  } catch (e) {
-    console.error('Tax PIN setup failed', e);
-  }
-}
+function toggleTaxPinReveal() {}
+function copyTaxPin() {}
+async function generateTaxPin() {}
+async function setupTaxPin() {}
 
 // Returns a friendly label for the next filing window (or "Filing OPEN!" if
 // we're inside one). Kept here so the Stats tab can use it without depending
@@ -6601,57 +6429,30 @@ function renderSyncUI() {
     const last = state.cloud.lastPushAt
       ? `Last synced ${formatRelativeTime(state.cloud.lastPushAt)}`
       : 'Awaiting first sync';
-    const shortCode = state.cloud.shortCode;
-    const codeRegistered = state.cloud.shortCodeRegistered === true;
-    let codeBlock = '';
-    if (shortCode) {
-      // Code is shown instantly — display it the same way whether or not the
-      // background directory claim has landed yet. A tiny status line below
-      // tells the user when it's safe to share with another device.
-      const statusLine = codeRegistered
-        ? `<div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--green-dark, #2a8a4a);">✓ Ready to share with another device</div>`
-        : (_shortCodeRegState === 'failed'
-            ? `<div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                 <span>⏳ Saving to cloud — keep this code handy, we'll keep retrying.</span>
-                 <a href="javascript:void(0)" onclick="ensureShortCodeRegistered({ resetBackoff: true })" style="color:var(--blue);font-weight:700;">Retry now</a>
-               </div>`
-            : `<div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);">⏳ Saving to cloud… (you can already use this code in a moment)</div>`);
-      codeBlock = `
-        <div class="pin-row-label" style="margin-top:8px;">Sync code (type on another device)</div>
-        <div class="sync-code-box">
-          <span class="scb-code" style="font-size:1.6em;letter-spacing:.18em;font-weight:700;font-variant-numeric:tabular-nums;">${shortCode}</span>
-          <span class="scb-copy" onclick="copySyncCode()">Copy</span>
+    // QR code is the primary share path. The QR encodes the syncId UUID
+    // directly — no third-party directory in the loop, so this always
+    // works as long as the new device's camera can read the screen.
+    const qrBlock = `
+      <div class="qr-display" style="margin-top:14px;text-align:center;">
+        <div style="display:inline-block;padding:10px;background:#fff;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+          <canvas id="syncQrCanvas" width="240" height="240" style="display:block;width:240px;height:240px;max-width:62vw;max-height:62vw;"></canvas>
         </div>
-        ${statusLine}
-        <button class="btn-3d" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark, #1a6bb3);margin-top:12px;width:100%;" onclick="shareSyncLink()">🔗 Share sync link instead</button>
-        <div class="pin-row-hint" style="margin-top:6px;font-size:.78em;color:var(--text-muted);line-height:1.4;">
-          Send a link via Messages, AirDrop, or copy. Opening the link on the new device restores Cappie instantly — works even if the 6-digit code is still saving.
+        <div class="pin-row-hint" style="margin-top:10px;font-size:.85em;color:var(--text-muted);line-height:1.4;">
+          Scan with another device to copy progress
         </div>
-      `;
-    } else {
-      // Edge case: somehow no short code at all (rare — older state, or first
-      // load after a failed cloudCreate). Trigger a re-register and show a
-      // friendly placeholder.
-      if (state.cloud && state.cloud.syncId) ensureShortCodeRegistered({ resetBackoff: true });
-      codeBlock = `
-        <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
-        <div class="sync-code-box">
-          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">⏳ Generating…</span>
-        </div>
-      `;
-    }
-    // Always-available advanced disclosure for the long device code. Lets
-    // the user copy the UUID directly (works even if the directory is down)
-    // without cluttering the normal view.
+      </div>
+    `;
+    // Manual fallback: show the underlying UUID so a user can copy/paste it
+    // if the camera path isn't available (e.g. desktop without a webcam).
     const advBlock = `
-      <details class="sync-advanced" style="margin-top:8px;">
-        <summary style="cursor:pointer;font-size:.85em;font-weight:700;color:var(--text-muted);">Advanced (long device code)</summary>
+      <details class="sync-advanced" style="margin-top:10px;">
+        <summary style="cursor:pointer;font-size:.85em;font-weight:700;color:var(--text-muted);">Can't scan? Show device code</summary>
         <div class="sync-code-box" style="margin-top:6px;">
           <span class="scb-code" style="font-size:.78em;word-break:break-all;line-height:1.3;">${state.cloud.syncId}</span>
           <span class="scb-copy" onclick="copyDeviceUuid()">Copy</span>
         </div>
         <div class="pin-row-hint" style="margin-top:4px;font-size:.78em;color:var(--text-muted);">
-          Use this only if the 6-digit code isn't available on the other device.
+          Paste this on the other device under <strong>Restore → Camera not working?</strong>
         </div>
       </details>
     `;
@@ -6660,13 +6461,16 @@ function renderSyncUI() {
         <span class="sync-dot"></span>
         <span>Active · ${last}</span>
       </div>
-      ${codeBlock}
+      ${qrBlock}
       ${advBlock}
     `;
     actions.innerHTML = `
       <button class="btn-3d gray" onclick="restoreFromCloud()" style="margin-bottom:8px;">Restore from another device</button>
       <button class="btn-3d red" onclick="disconnectCloudSync()">Disconnect sync</button>
     `;
+    // Render the QR after the canvas is in the DOM. renderSyncQrCode
+    // self-retries if the qrcode lib hasn't finished loading yet.
+    renderSyncQrCode(state.cloud.syncId);
   } else {
     status.innerHTML = `
       <div class="sync-status off">
@@ -6676,7 +6480,7 @@ function renderSyncUI() {
     `;
     actions.innerHTML = `
       <button class="btn-3d" style="background:var(--purple);box-shadow:0 4px 0 var(--purple-dark);margin-bottom:8px;" onclick="setupCloudSync()">Set up cloud sync</button>
-      <button class="btn-3d gray" onclick="restoreFromCloud()">Restore from sync code</button>
+      <button class="btn-3d gray" onclick="restoreFromCloud()">Restore from another device</button>
     `;
   }
 }
@@ -7253,10 +7057,6 @@ window.addEventListener('focus', () => {
   processInvestmentPayouts();
   runMonthlyTaxWithholding();
   applyPendingRefund();
-  if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
-    // Reset backoff on focus — feels like the user expects us to retry now.
-    ensureShortCodeRegistered({ resetBackoff: true });
-  }
   rerender();
 });
 document.addEventListener('visibilitychange', () => {
@@ -7265,42 +7065,17 @@ document.addEventListener('visibilitychange', () => {
     processInvestmentPayouts();
     runMonthlyTaxWithholding();
     applyPendingRefund();
-    if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
-      ensureShortCodeRegistered({ resetBackoff: true });
-    }
     rerender();
   }
 });
 setInterval(() => { if (!document.hidden) cloudAutoPull(); }, 10 * 1000);
 
-// Network came back: best chance to flush a stuck push or finally register a
-// short code. Reset backoff so we try immediately.
+// Network came back: best chance to flush a stuck push.
 window.addEventListener('online', () => {
   console.log('[pandi] online — replaying any deferred cloud work');
   if (_cloudPushFailed && !_cloudPushInFlight) scheduleCloudPush();
   cloudAutoPull();
-  if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
-    ensureShortCodeRegistered({ resetBackoff: true });
-  }
 });
-
-// Migration / catch-up: if this device has cloud sync but the short code
-// hasn't been confirmed in the directory yet (old user pre-short-codes, or
-// background claim never landed last session), claim it now in the background.
-if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
-  ensureShortCodeRegistered();
-}
-
-// Keep the directory blob alive: a quiet GET on every load resets JSONBlob's
-// inactivity TTL so short codes don't silently expire. Ping unconditionally
-// (not just for users who already have a code) — that way even a single
-// active reader on any device keeps the shared directory healthy for everyone.
-directoryKeepAlive();
-
-// If we arrived via a #restore=<uuid> sync link from another device, kick off
-// the restore flow automatically. Runs after the initial render so the modal
-// surfaces over a fully-booted UI.
-handleSyncRestoreFromUrl();
 </script>
 </body>
 </html>
