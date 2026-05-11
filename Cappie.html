@@ -3493,20 +3493,28 @@ async function directoryLookup(rawCode) {
   return dir.codes[code] || null;
 }
 
-// Register `syncId` under a fresh short code. If syncId is already registered,
-// reuse the existing code so users don't accidentally get duplicates. Returns
-// the short code, or throws on failure.
-async function directoryRegister(syncId) {
+// Claim a short code for `syncId` in the shared directory. If syncId is
+// already registered, reuses the existing code. If `preferredCode` is given
+// and free, reuses it (the local-instant code from cloudCreate). Otherwise
+// allocates a fresh non-colliding code. Returns the code that ended up
+// registered, or throws on directory failure.
+async function directoryRegister(syncId, preferredCode = null) {
   const dir = (await directoryFetch()) || { codes: {} };
   const codes = dir.codes || {};
   // Reuse existing mapping if already present.
   for (const [code, id] of Object.entries(codes)) {
     if (id === syncId) return code;
   }
-  // Generate unique code (very unlikely to collide given alphabet size).
-  let code = generateShortCode();
-  for (let i = 0; i < 50 && codes[code]; i++) code = generateShortCode();
-  if (codes[code]) throw new Error('Could not allocate a unique short code');
+  // Try to honour the preferred code (the locally-generated one shown to
+  // the user) so we don't surprise them with a different code.
+  let code = (preferredCode && /^[0-9]{6}$/.test(preferredCode) && !codes[preferredCode])
+    ? preferredCode
+    : null;
+  if (!code) {
+    code = generateShortCode();
+    for (let i = 0; i < 50 && codes[code]; i++) code = generateShortCode();
+    if (codes[code]) throw new Error('Could not allocate a unique short code');
+  }
   codes[code] = syncId;
   await directoryWrite({ codes });
   return code;
@@ -3573,17 +3581,22 @@ async function cloudCreate() {
   state.cloud.syncId = id;
   state.cloud.lastPushAt = Date.now();
 
-  // Register a short user-facing code in the shared directory blob.
-  // Best-effort: if registration fails, the user can still sync with the full
-  // UUID via the existing fallback path.
-  try {
-    state.cloud.shortCode = await directoryRegister(id);
-  } catch (e) {
-    console.warn('Short code registration failed; full UUID still works:', e);
-  }
+  // INSTANT CODE: pre-generate a 6-digit code locally so the user sees it
+  // immediately. Mark it as not-yet-claimed in the shared directory; we
+  // claim it asynchronously below. If the directory is slow or briefly down,
+  // the user already has something to read off — the directory write
+  // self-heals via ensureShortCodeRegistered's retry loop.
+  if (!state.cloud.shortCode) state.cloud.shortCode = generateShortCode();
+  state.cloud.shortCodeRegistered = false;
 
-  // Persist directly — we just uploaded, no need to schedule another push.
+  // Persist immediately — we just uploaded, no need to schedule another push.
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  // Background: claim the code in the shared directory so other devices can
+  // resolve it. If there's a collision (rare: 1-in-a-million), the helper
+  // swaps to a fresh code and updates state.cloud.shortCode.
+  ensureShortCodeRegistered({ resetBackoff: true }).catch(() => {});
+
   return id;
 }
 
@@ -3834,30 +3847,52 @@ let _shortCodeRegState = 'idle'; // 'idle' | 'pending' | 'failed'
 let _shortCodeRetryTimer = null;
 let _shortCodeRetryCount = 0;
 
-// Background: ensure the current syncId has a short code in the directory.
-// Called on load (migration), after a UUID-based restore, manual retry, or
-// automatically on `online` events. On failure, schedules a quiet retry with
-// exponential backoff (5s → 15s → 30s → 60s → 120s → 5m) so transient
-// directory hiccups self-heal without surfacing scary errors to the user.
+// Background: ensure the current syncId is registered in the shared directory.
+// We always show a code instantly (generated locally in cloudCreate); this
+// helper just makes that code resolvable from another device. Called on load,
+// after a UUID-based restore, manual retry, or on `online` events. On failure,
+// schedules quiet exponential-backoff retries so transient directory hiccups
+// self-heal without scary errors.
 async function ensureShortCodeRegistered({ resetBackoff = false } = {}) {
-  if (!state.cloud || !state.cloud.syncId || state.cloud.shortCode) {
+  if (!state.cloud || !state.cloud.syncId) {
+    _shortCodeRetryCount = 0;
+    return;
+  }
+  // Already confirmed registered — nothing to do.
+  if (state.cloud.shortCodeRegistered === true && state.cloud.shortCode) {
     _shortCodeRetryCount = 0;
     return;
   }
   if (_shortCodeRegState === 'pending') return;
   if (resetBackoff) _shortCodeRetryCount = 0;
-  // Clear any pending scheduled retry — we're trying right now.
   if (_shortCodeRetryTimer) { clearTimeout(_shortCodeRetryTimer); _shortCodeRetryTimer = null; }
+
+  // Make sure we always have SOMETHING to show. If by some quirk the local
+  // code is missing (older state pre-migration), fill it in now.
+  if (!state.cloud.shortCode) {
+    state.cloud.shortCode = generateShortCode();
+    state.cloud.shortCodeRegistered = false;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    renderMeIfActive();
+  }
+
   _shortCodeRegState = 'pending';
   renderMeIfActive();
-  console.log('[pandi] Registering short code for syncId', state.cloud.syncId, '(attempt', _shortCodeRetryCount + 1 + ')');
+  const preferred = state.cloud.shortCode;
+  console.log('[pandi] Claiming short code', preferred, 'for syncId', state.cloud.syncId, '(attempt', _shortCodeRetryCount + 1 + ')');
   try {
-    const code = await directoryRegister(state.cloud.syncId);
-    state.cloud.shortCode = code;
+    const claimed = await directoryRegister(state.cloud.syncId, preferred);
+    if (claimed !== state.cloud.shortCode) {
+      // Rare collision — directory had our preferred code already. We swapped
+      // to a different one. Update local state so the UI reflects reality.
+      console.log('[pandi] Short code swapped due to collision:', preferred, '→', claimed);
+      state.cloud.shortCode = claimed;
+    }
+    state.cloud.shortCodeRegistered = true;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     _shortCodeRegState = 'idle';
     _shortCodeRetryCount = 0;
-    console.log('[pandi] Short code registered:', code);
+    console.log('[pandi] Short code registered:', claimed);
     renderMeIfActive();
   } catch (e) {
     _shortCodeRegState = 'failed';
@@ -6495,38 +6530,37 @@ function renderSyncUI() {
       ? `Last synced ${formatRelativeTime(state.cloud.lastPushAt)}`
       : 'Awaiting first sync';
     const shortCode = state.cloud.shortCode;
+    const codeRegistered = state.cloud.shortCodeRegistered === true;
     let codeBlock = '';
     if (shortCode) {
+      // Code is shown instantly — display it the same way whether or not the
+      // background directory claim has landed yet. A tiny status line below
+      // tells the user when it's safe to share with another device.
+      const statusLine = codeRegistered
+        ? `<div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--green-dark, #2a8a4a);">✓ Ready to share with another device</div>`
+        : (_shortCodeRegState === 'failed'
+            ? `<div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                 <span>⏳ Saving to cloud — keep this code handy, we'll keep retrying.</span>
+                 <a href="javascript:void(0)" onclick="ensureShortCodeRegistered({ resetBackoff: true })" style="color:var(--blue);font-weight:700;">Retry now</a>
+               </div>`
+            : `<div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);">⏳ Saving to cloud… (you can already use this code in a moment)</div>`);
       codeBlock = `
         <div class="pin-row-label" style="margin-top:8px;">Sync code (type on another device)</div>
         <div class="sync-code-box">
           <span class="scb-code" style="font-size:1.6em;letter-spacing:.18em;font-weight:700;font-variant-numeric:tabular-nums;">${shortCode}</span>
           <span class="scb-copy" onclick="copySyncCode()">Copy</span>
         </div>
-      `;
-    } else if (_shortCodeRegState === 'pending') {
-      codeBlock = `
-        <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
-        <div class="sync-code-box">
-          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">⏳ Setting up 6-digit code…</span>
-        </div>
+        ${statusLine}
       `;
     } else {
-      // No short code yet (idle or quietly retrying after a failure). We
-      // don't show scary error text — instead present this as "still
-      // working", offer a manual retry, and tuck the long device code under
-      // an Advanced disclosure so it's only visible when actually needed.
-      const stillWorking = _shortCodeRegState === 'failed';
+      // Edge case: somehow no short code at all (rare — older state, or first
+      // load after a failed cloudCreate). Trigger a re-register and show a
+      // friendly placeholder.
+      if (state.cloud && state.cloud.syncId) ensureShortCodeRegistered({ resetBackoff: true });
       codeBlock = `
         <div class="pin-row-label" style="margin-top:8px;">Sync code</div>
         <div class="sync-code-box">
-          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">
-            ${stillWorking ? '⏳ Still working on your 6-digit code…' : 'Setting up…'}
-          </span>
-          <span class="scb-copy" onclick="ensureShortCodeRegistered({ resetBackoff: true })">Retry now</span>
-        </div>
-        <div class="pin-row-hint" style="margin-top:4px;font-size:.8em;color:var(--text-muted);">
-          Cloud sync is already saving your progress — the 6-digit code is just a friendly nickname for restoring on another device. We'll keep trying in the background.
+          <span class="scb-code" style="font-size:1em;color:var(--text-muted);">⏳ Generating…</span>
         </div>
       `;
     }
@@ -7143,7 +7177,7 @@ window.addEventListener('focus', () => {
   processInvestmentPayouts();
   runMonthlyTaxWithholding();
   applyPendingRefund();
-  if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+  if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
     // Reset backoff on focus — feels like the user expects us to retry now.
     ensureShortCodeRegistered({ resetBackoff: true });
   }
@@ -7155,7 +7189,7 @@ document.addEventListener('visibilitychange', () => {
     processInvestmentPayouts();
     runMonthlyTaxWithholding();
     applyPendingRefund();
-    if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+    if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
       ensureShortCodeRegistered({ resetBackoff: true });
     }
     rerender();
@@ -7169,14 +7203,15 @@ window.addEventListener('online', () => {
   console.log('[pandi] online — replaying any deferred cloud work');
   if (_cloudPushFailed && !_cloudPushInFlight) scheduleCloudPush();
   cloudAutoPull();
-  if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+  if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
     ensureShortCodeRegistered({ resetBackoff: true });
   }
 });
 
-// Migration: if this device already has cloud sync but no short code (user was
-// set up before short codes existed), register one in the background.
-if (state.cloud && state.cloud.syncId && !state.cloud.shortCode) {
+// Migration / catch-up: if this device has cloud sync but the short code
+// hasn't been confirmed in the directory yet (old user pre-short-codes, or
+// background claim never landed last session), claim it now in the background.
+if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== true) {
   ensureShortCodeRegistered();
 }
 
