@@ -3941,6 +3941,78 @@ async function copyDeviceUuid() {
   }
 }
 
+/* Build a restore URL whose hash carries the full syncId. Hash fragments are
+   never sent to servers, so sharing this link is effectively peer-to-peer.
+   The receiving device parses the hash on load and pulls progress directly
+   from its own cloud blob — no shared directory required, so this path keeps
+   working even when the 6-digit code service is having a bad day. */
+function buildSyncShareUrl() {
+  if (!state.cloud || !state.cloud.syncId) return null;
+  const base = window.location.origin + window.location.pathname;
+  return base + '#restore=' + state.cloud.syncId;
+}
+
+async function shareSyncLink() {
+  if (!state.cloud || !state.cloud.syncId) {
+    showToast("Cloud sync isn't set up yet", 'red');
+    return;
+  }
+  const url = buildSyncShareUrl();
+  // Native share sheet is the best UX on iOS (AirDrop, Messages, Mail).
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Restore Cappie',
+        text: 'Open this link on the new device to restore Cappie progress.',
+        url
+      });
+      return;
+    } catch (e) {
+      // AbortError = user dismissed the share sheet; don't fall through to
+      // clipboard or it'd feel like a double action.
+      if (e && (e.name === 'AbortError' || /abort/i.test(String(e.message)))) return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('🔗 Sync link copied — paste on the other device', 'gold');
+  } catch (e) {
+    prompt('Copy this sync link and open it on the other device:', url);
+  }
+}
+
+/* On load, look for #restore=<uuid> in the URL. If present, treat it as the
+   user opening a sync link from another device: open the restore modal with
+   the UUID prefilled and kick off the pull immediately. */
+function handleSyncRestoreFromUrl() {
+  const hash = window.location.hash || '';
+  const m = hash.match(/^#restore=([0-9a-fA-F-]{32,40})/);
+  if (!m) return;
+  const syncId = m[1];
+  // Clear hash so a refresh doesn't re-fire the restore prompt.
+  try {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  } catch (e) {}
+  // Already synced to this exact ID — nothing to do, just confirm.
+  if (state.cloud && state.cloud.syncId &&
+      state.cloud.syncId.toLowerCase() === syncId.toLowerCase()) {
+    setTimeout(() => showToast('Already synced — you\'re up to date', ''), 600);
+    return;
+  }
+  // Wait for the rest of the boot sequence to finish before popping a modal.
+  setTimeout(() => {
+    if (typeof openRestoreModal !== 'function') return;
+    openRestoreModal();
+    const uuidInp = document.getElementById('restoreUuidInput');
+    const adv = uuidInp ? uuidInp.closest('details') : null;
+    if (adv) adv.open = true;
+    if (uuidInp) uuidInp.value = syncId;
+    const sub = document.getElementById('restoreSub');
+    if (sub) sub.textContent = 'Restoring from your sync link…';
+    if (typeof submitRestoreLookup === 'function') submitRestoreLookup();
+  }, 400);
+}
+
 /* ============= MANUAL EXPORT / IMPORT ============= */
 function exportProgress() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -6551,6 +6623,10 @@ function renderSyncUI() {
           <span class="scb-copy" onclick="copySyncCode()">Copy</span>
         </div>
         ${statusLine}
+        <button class="btn-3d" style="background:var(--blue);box-shadow:0 4px 0 var(--blue-dark, #1a6bb3);margin-top:12px;width:100%;" onclick="shareSyncLink()">🔗 Share sync link instead</button>
+        <div class="pin-row-hint" style="margin-top:6px;font-size:.78em;color:var(--text-muted);line-height:1.4;">
+          Send a link via Messages, AirDrop, or copy. Opening the link on the new device restores Cappie instantly — works even if the 6-digit code is still saving.
+        </div>
       `;
     } else {
       // Edge case: somehow no short code at all (rare — older state, or first
@@ -7220,6 +7296,11 @@ if (state.cloud && state.cloud.syncId && state.cloud.shortCodeRegistered !== tru
 // (not just for users who already have a code) — that way even a single
 // active reader on any device keeps the shared directory healthy for everyone.
 directoryKeepAlive();
+
+// If we arrived via a #restore=<uuid> sync link from another device, kick off
+// the restore flow automatically. Runs after the initial render so the modal
+// surfaces over a fully-booted UI.
+handleSyncRestoreFromUrl();
 </script>
 </body>
 </html>
