@@ -18,6 +18,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap" rel="stylesheet">
 
+<!-- QR scanner: decodes Cappie's sync QR (which encodes the cloud syncId
+     UUID) so a fresh device can unlock TT4K with a camera scan instead of
+     typing a 6-digit Tax PIN. Same library Cappie uses for restore. -->
+<script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -491,6 +496,112 @@
   }
   .pin-no-setup strong { color: var(--pepper-120); }
 
+  /* ============= QR SCANNER (LOCK SCREEN) ============= */
+  /* Initial state: just a CTA button to open the camera (needs a user
+     gesture for getUserMedia on iOS). Once camera is live, this hides and
+     #lockScannerView takes over. */
+  .lock-scanner-start { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+  .lock-scanner-start .hint {
+    font-size: 12px; color: var(--pepper-90); line-height: 1.5;
+    text-align: center;
+  }
+
+  .lock-scanner-view {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 1 / 1;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .lock-scanner-view video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  /* Centered square cut-out hint so the user knows where to aim. */
+  .lock-scanner-view::after {
+    content: '';
+    position: absolute;
+    inset: 16%;
+    border: 3px solid rgba(255,255,255,0.85);
+    border-radius: 16px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+    pointer-events: none;
+  }
+  .lock-scanner-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+    text-align: center;
+    padding: 16px;
+    background: rgba(0,0,0,0.55);
+    pointer-events: none;
+  }
+  .lock-scanner-overlay[hidden] { display: none; }
+  .lock-scanner-hint {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pepper-90);
+    line-height: 1.4;
+  }
+  .lock-scanner-hint strong { color: var(--pepper-120); }
+
+  /* Manual UUID-paste fallback (for devices without a working camera). */
+  .lock-manual-fallback {
+    margin-top: 14px;
+    background: var(--tofu-warm);
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+  .lock-manual-fallback > summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--pepper-90);
+    list-style: none;
+  }
+  .lock-manual-fallback > summary::-webkit-details-marker { display: none; }
+  .lock-manual-fallback > summary::before {
+    content: '⌨️  ';
+  }
+  .lock-manual-fallback[open] > summary { margin-bottom: 10px; }
+  .lock-manual-fallback input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    border: 1.5px solid var(--pepper-30);
+    border-radius: 10px;
+    background: var(--white);
+    margin-bottom: 8px;
+    word-break: break-all;
+  }
+  .lock-manual-fallback input:focus {
+    outline: none;
+    border-color: var(--watermelon-70);
+  }
+  .lock-manual-fallback .manual-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 999px;
+    background: var(--pepper-90);
+    color: var(--white);
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .lock-manual-fallback .manual-btn:disabled { opacity: 0.5; cursor: default; }
+
   /* ============= REVIEW BIG NUMBERS ============= */
   .review-grid {
     display: grid;
@@ -710,40 +821,50 @@
 </header>
 
 <main>
-  <!-- TAX PIN LOCK — shown when TT4K is opened standalone (not from Cappie).
-       Validates against state.cloud.shortCode (the family's cloud sync code,
-       reused as the Tax PIN). Unlock persists in sessionStorage. -->
+  <!-- QR SCAN LOCK — shown when TT4K is opened standalone (not from Cappie).
+       Scans the QR shown in Cappie's Sync settings (encodes the cloud syncId
+       UUID), then pulls the family state from the cloud. Unlock persists in
+       sessionStorage. Manual UUID paste is preserved as a fallback for
+       devices without a working camera. -->
   <section class="screen" id="screen-lock">
     <div class="hero">
-      <div class="hero-mascot">🔒</div>
-      <div class="hero-greet">Tax PIN required</div>
-      <h1 class="hero-title">Enter your <span class="accent">Tax PIN</span></h1>
-      <p class="hero-sub" id="lockSub">Find your 6-digit Tax PIN in <strong style="color:var(--pepper-120);">Cappie → Stats → Tax History</strong>. Enter it below to keep filing private.</p>
+      <div class="hero-mascot">📷</div>
+      <div class="hero-greet">Connect to Cappie</div>
+      <h1 class="hero-title">Scan your <span class="accent">Cappie code</span></h1>
+      <p class="hero-sub" id="lockSub">Open <strong style="color:var(--pepper-120);">Cappie → Stats → Settings &amp; More → Sync</strong> on your phone and scan the QR code shown there.</p>
     </div>
 
-    <div class="card" id="lockPinCard">
-      <input
-        id="lockPinInput"
-        class="pin-input-tt4k"
-        type="tel"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        maxlength="6"
-        autocomplete="off"
-        placeholder="• • • • • •"
-      />
-      <div class="pin-err" id="lockPinErr"></div>
-    </div>
-
-    <div class="card" id="lockNoPinCard" style="display:none;">
-      <div class="pin-no-setup" id="lockNoPinMsg">
-        <strong>No Tax PIN set up yet.</strong> Open Cappie on this device, go to Stats → Tax History, and tap "Set up Tax PIN". Then come back here.
+    <div class="card" id="lockScannerCard">
+      <!-- Pre-camera state: a button to open the camera (user gesture). -->
+      <div class="lock-scanner-start" id="lockScannerStart">
+        <button class="cta" id="lockStartCameraBtn">📷 Open camera</button>
+        <div class="hint">Your camera is only used to read the QR — nothing is sent anywhere.</div>
       </div>
+
+      <!-- Live camera state: video preview with viewfinder cutout. -->
+      <div id="lockScannerView" style="display:none;">
+        <div class="lock-scanner-view">
+          <video id="lockVideo" playsinline muted autoplay></video>
+          <div class="lock-scanner-overlay" id="lockScannerOverlay" hidden></div>
+        </div>
+        <div class="lock-scanner-hint" id="lockScannerHint">Point at the QR code on the <strong>Cappie → Sync</strong> screen</div>
+      </div>
+
+      <div class="pin-err" id="lockErr"></div>
     </div>
 
-    <div class="cta-row">
-      <button class="cta" id="lockUnlockBtn">🔑 Unlock TurboTax for Kids</button>
-    </div>
+    <details class="lock-manual-fallback" id="lockManualFallback">
+      <summary>Camera not working? Paste the device code instead</summary>
+      <input
+        id="lockUuidInput"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="e.g. 019dcbb9-7eea-7995-95b5-79b4bb9d2575"
+      />
+      <button class="manual-btn" id="lockManualBtn">Restore from device code</button>
+    </details>
   </section>
 
   <!-- WELCOME / LOCK SCREEN -->
@@ -971,12 +1092,11 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const TAX_WITHHOLD_DIVISOR = 10;
 const TAX_OWED_DIVISOR     = 20;
 
-/* ============= CLOUD SYNC LOOKUP (mirrors Cappie's directory blob) =============
-   Lets a fresh device unlock TT4K just by typing the 6-digit Tax PIN: we
-   look it up in the shared directory blob to get the cloud sync UUID,
-   pull the Cappie state, save it locally, and proceed. */
+/* ============= CLOUD PULL (read Cappie state by syncId) =============
+   Lets a fresh device unlock TT4K by scanning Cappie's sync QR — which
+   encodes the cloud syncId UUID. We use that UUID to GET the blob, save
+   Cappie state locally, and proceed. No third-party directory in the loop. */
 const CLOUD_API = 'https://api.jsonblob.com';
-const DIRECTORY_BLOB_ID = '019e0aad-15fd-7732-b520-1a119177aac2';
 
 // Retry transient network failures with exponential backoff. 4 attempts,
 // total worst-case ~6s. Mirrors Cappie's fetchWithRetry.
@@ -1003,16 +1123,6 @@ async function fetchWithRetry(url, opts = {}, attempts = 4) {
   throw lastErr || new Error('Network error');
 }
 
-async function directoryLookup(rawCode) {
-  const code = String(rawCode || '').trim();
-  if (!/^\d{6}$/.test(code)) return null;
-  const res = await fetchWithRetry(`${CLOUD_API}/${DIRECTORY_BLOB_ID}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Directory unavailable (HTTP ' + res.status + ')');
-  const dir = await res.json();
-  if (!dir || dir._pandi_directory !== true || !dir.codes) return null;
-  return dir.codes[code] || null;
-}
-
 async function cloudPullSyncId(syncId) {
   const res = await fetchWithRetry(`${CLOUD_API}/${syncId}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Cloud data not found (HTTP ' + res.status + ')');
@@ -1021,11 +1131,13 @@ async function cloudPullSyncId(syncId) {
   return { pandiState: data.pandiState, updatedAt: data.updatedAt || 0 };
 }
 
-// Restore Cappie state on this device using the 6-digit Tax PIN. Returns
-// the freshly-saved state, or throws on failure.
-async function restoreCappieFromTaxPin(pin) {
-  const syncId = await directoryLookup(pin);
-  if (!syncId) throw new Error('Tax PIN not found in cloud');
+// Restore Cappie state on this device using a syncId UUID (scanned from
+// the QR shown in Cappie's Sync settings, or pasted via the manual
+// fallback). Returns the freshly-saved state, or throws on failure.
+async function restoreCappieFromSyncId(syncId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(syncId)) {
+    throw new Error('Not a valid device code');
+  }
   const { pandiState, updatedAt } = await cloudPullSyncId(syncId);
   // Stamp the cloud envelope onto the restored state so Cappie's auto-pull
   // logic doesn't immediately overwrite it.
@@ -1034,7 +1146,6 @@ async function restoreCappieFromTaxPin(pin) {
     cloud: {
       ...(pandiState.cloud || {}),
       syncId,
-      shortCode: pin,
       lastPullAt: Date.now(),
       lastChangeAt: updatedAt || Date.now(),
     }
@@ -1066,11 +1177,11 @@ let currentScreen = 'welcome';
 /* ============= ENTRY GATE =============
    TT4K can be entered two ways:
      1. Launched from Cappie (sessionStorage breadcrumb set by Cappie's
-        link click) — no PIN required, full back-to-Cappie navigation.
-     2. Launched directly (Safari, home-screen PWA, etc.) — must enter the
-        family's 6-digit Tax PIN (state.cloud.shortCode) to proceed. No
-        back-to-Cappie navigation is shown, since iOS can't switch to a
-        separate PWA anyway. */
+        link click) — no scan required, full back-to-Cappie navigation.
+     2. Launched directly (Safari, home-screen PWA, etc.) — must scan the
+        QR code shown in Cappie's Sync settings (which encodes the cloud
+        syncId UUID) to proceed. No back-to-Cappie navigation is shown,
+        since iOS can't switch to a separate PWA anyway. */
 const SESSION_FROM_CAPPIE = (() => {
   try { return sessionStorage.getItem('tt4k.cameFromCappie') === '1'; } catch (e) { return false; }
 })();
@@ -1494,104 +1605,205 @@ function fireConfetti() {
   setTimeout(() => { c.classList.remove('show'); c.innerHTML = ''; }, 3500);
 }
 
-/* ============= LOCK SCREEN =============
-   Shown when TT4K is launched directly (not from Cappie). User enters the
-   family Tax PIN (state.cloud.shortCode). If this device already has
-   Cappie data, we match locally. If not, we look up the PIN in the cloud
-   directory blob and pull the full state — so a fresh device can file
-   taxes without first opening Cappie.
+/* ============= LOCK SCREEN (QR scan) =============
+   Shown when TT4K is launched directly (not from Cappie). User scans the
+   QR shown in Cappie's Sync settings; the QR encodes the cloud syncId UUID,
+   which we use to pull Cappie state and unlock. Manual UUID-paste fallback
+   is provided for devices without a working camera.
 
    Once verified, the unlock is cached in sessionStorage for the session. */
 function renderLockScreen() {
-  const lockPinCard   = document.getElementById('lockPinCard');
-  const lockNoPinCard = document.getElementById('lockNoPinCard');
-  const unlockBtn     = document.getElementById('lockUnlockBtn');
-  const subEl         = document.getElementById('lockSub');
-  const lockPinInput  = document.getElementById('lockPinInput');
-  const lockPinErr    = document.getElementById('lockPinErr');
-
   // Hide the top-bar back arrow on the lock screen — no "back" until the
   // user has authenticated (and they didn't come from Cappie).
   const topbarBack = document.getElementById('topbarBack');
   if (topbarBack) topbarBack.style.display = 'none';
 
-  // Always show the PIN entry. Even if there's no local state, the user
-  // can enter their Tax PIN and we'll restore from the cloud.
-  lockPinCard.style.display = '';
-  lockNoPinCard.style.display = 'none';
-  unlockBtn.disabled = false;
-  unlockBtn.classList.remove('locked');
-  unlockBtn.textContent = '🔑 Unlock TurboTax for Kids';
+  // Reset scanner UI to its initial (pre-camera) state every time we land
+  // on this screen, so re-entering after a failed scan starts clean.
+  stopLockScanner();
+  const startEl  = document.getElementById('lockScannerStart');
+  const viewEl   = document.getElementById('lockScannerView');
+  const errEl    = document.getElementById('lockErr');
+  const hintEl   = document.getElementById('lockScannerHint');
+  const overlay  = document.getElementById('lockScannerOverlay');
+  if (startEl)  startEl.style.display = '';
+  if (viewEl)   viewEl.style.display  = 'none';
+  if (errEl)    errEl.textContent     = '';
+  if (hintEl)   hintEl.innerHTML      = 'Point at the QR code on the <strong>Cappie → Sync</strong> screen';
+  if (overlay)  overlay.hidden        = true;
 
-  const hasLocalCode = !!(state && state.cloud && state.cloud.shortCode);
-  if (hasLocalCode) {
-    subEl.innerHTML = `Find your 6-digit Tax PIN in <strong style="color:var(--pepper-120);">Cappie → Stats → Tax History</strong>. Enter it below to keep filing private.`;
-  } else {
-    subEl.innerHTML = `Enter your 6-digit Tax PIN to file your taxes. We'll pull your Cappie info from the cloud so you can pick up right where you left off.`;
-  }
-
-  if (lockPinErr) lockPinErr.textContent = '';
-  setTimeout(() => lockPinInput && lockPinInput.focus(), 250);
   showScreen('lock');
 }
 
-async function tryUnlockTaxPin() {
-  const inp = document.getElementById('lockPinInput');
-  const err = document.getElementById('lockPinErr');
-  const unlockBtn = document.getElementById('lockUnlockBtn');
-  if (!inp) return;
-  const entered = (inp.value || '').replace(/[\s-]/g, '');
-  if (!/^\d{6}$/.test(entered)) {
-    err.textContent = 'Tax PIN should be 6 digits.';
-    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+// ---- QR scanner state (lock screen) ----
+let _lockScanStream = null;
+let _lockScanRaf    = null;
+let _lockScanCanvas = null;
+let _lockScanBusy   = false;
+
+function _showLockOverlay(text) {
+  const o = document.getElementById('lockScannerOverlay');
+  if (!o) return;
+  if (text == null) { o.hidden = true; o.textContent = ''; }
+  else              { o.hidden = false; o.textContent = text; }
+}
+
+async function startLockScanner() {
+  const video = document.getElementById('lockVideo');
+  const start = document.getElementById('lockScannerStart');
+  const view  = document.getElementById('lockScannerView');
+  const err   = document.getElementById('lockErr');
+  const hint  = document.getElementById('lockScannerHint');
+  if (!video || !view) return;
+
+  // jsQR is loaded with `defer` from the CDN. If we beat it to the punch,
+  // wait briefly and retry — same pattern Cappie uses.
+  if (typeof jsQR === 'undefined') {
+    if (start) start.style.display = 'none';
+    if (view)  view.style.display  = '';
+    _showLockOverlay('Loading scanner…');
+    setTimeout(startLockScanner, 400);
     return;
   }
 
-  // Fast path — local state already has a matching shortCode.
-  if (state && state.cloud && state.cloud.shortCode) {
-    if (entered === state.cloud.shortCode) {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (err) err.textContent = 'Camera not available on this device. Use the manual code option below.';
+    _openLockManualFallback();
+    return;
+  }
+
+  if (start) start.style.display = 'none';
+  if (view)  view.style.display  = '';
+  _showLockOverlay('Starting camera…');
+
+  try {
+    _lockScanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false
+    });
+    video.srcObject = _lockScanStream;
+    try { await video.play(); } catch (e) {}
+    _showLockOverlay(null);
+    if (hint) hint.innerHTML = 'Point at the QR code on the <strong>Cappie → Sync</strong> screen';
+
+    if (!_lockScanCanvas) _lockScanCanvas = document.createElement('canvas');
+    const ctx = _lockScanCanvas.getContext('2d', { willReadFrequently: true });
+
+    const tick = () => {
+      if (!_lockScanStream) return; // scanner stopped
+      if (video.readyState >= video.HAVE_ENOUGH_DATA && video.videoWidth) {
+        // Downscale to ~480p so jsQR runs fast and saves battery.
+        const targetW = Math.min(480, video.videoWidth);
+        const scale   = targetW / video.videoWidth;
+        _lockScanCanvas.width  = Math.round(video.videoWidth  * scale);
+        _lockScanCanvas.height = Math.round(video.videoHeight * scale);
+        ctx.drawImage(video, 0, 0, _lockScanCanvas.width, _lockScanCanvas.height);
+        const img = ctx.getImageData(0, 0, _lockScanCanvas.width, _lockScanCanvas.height);
+        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+        if (code && code.data) {
+          // Accept a bare UUID or anything containing one (e.g. a URL).
+          const m = code.data.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+          if (m) {
+            stopLockScanner();
+            _onLockQrDetected(m[0]);
+            return;
+          }
+        }
+      }
+      _lockScanRaf = requestAnimationFrame(tick);
+    };
+    _lockScanRaf = requestAnimationFrame(tick);
+  } catch (e) {
+    console.warn('[tt4k] camera start failed:', e);
+    const denied = e && (e.name === 'NotAllowedError' || /denied|permission/i.test(String(e.message)));
+    _showLockOverlay(denied ? 'Camera access denied' : 'Camera not available');
+    if (err) {
+      err.textContent = denied
+        ? 'Camera access was denied. Allow it in browser settings, or use the manual code option below.'
+        : 'Couldn\'t open the camera. Use the manual code option below.';
+    }
+    _openLockManualFallback();
+  }
+}
+
+function stopLockScanner() {
+  if (_lockScanRaf) { cancelAnimationFrame(_lockScanRaf); _lockScanRaf = null; }
+  if (_lockScanStream) {
+    _lockScanStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+    _lockScanStream = null;
+  }
+  const video = document.getElementById('lockVideo');
+  if (video) {
+    try { video.pause(); } catch (e) {}
+    video.srcObject = null;
+  }
+}
+
+function _openLockManualFallback() {
+  const det = document.getElementById('lockManualFallback');
+  if (det) det.open = true;
+  const inp = document.getElementById('lockUuidInput');
+  if (inp) setTimeout(() => inp.focus(), 200);
+}
+
+// Called when either the camera scans a UUID or the user pastes one via
+// the manual-fallback details. Both paths share this lookup/restore flow.
+async function _onLockQrDetected(syncId) {
+  if (_lockScanBusy) return;
+  _lockScanBusy = true;
+  const err = document.getElementById('lockErr');
+  const hint = document.getElementById('lockScannerHint');
+  if (err)  err.textContent  = '';
+  if (hint) hint.innerHTML   = '☁️ Pulling your Cappie info…';
+  try {
+    // Fast path — local state already has a matching syncId, so we can
+    // unlock without a round-trip to the cloud.
+    if (state && state.cloud && state.cloud.syncId === syncId) {
       markUnlocked();
-      err.textContent = '';
-      inp.value = '';
       runMainFlow();
       return;
     }
-    err.textContent = 'That PIN doesn\'t match. Check Cappie → Stats → Tax History.';
-    inp.value = '';
-    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
-    inp.focus();
-    return;
-  }
-
-  // Cloud restore path — no local state (or no shortCode locally), so look
-  // up the PIN in the directory blob and pull Cappie state.
-  err.textContent = '';
-  const originalLabel = unlockBtn.textContent;
-  unlockBtn.disabled = true;
-  unlockBtn.classList.add('locked');
-  unlockBtn.textContent = '☁️ Pulling your Cappie info…';
-  try {
-    const restored = await restoreCappieFromTaxPin(entered);
+    const restored = await restoreCappieFromSyncId(syncId);
     state = restored;
     markUnlocked();
-    inp.value = '';
     runMainFlow();
   } catch (e) {
-    console.warn('Tax PIN cloud restore failed:', e);
+    console.warn('[tt4k] QR restore failed:', e);
     const msg = (e && e.message) || '';
-    if (/not found/i.test(msg)) {
-      err.textContent = 'That PIN didn\'t match any Cappie account. Double-check the 6 digits in Cappie → Stats → Tax History.';
-    } else if (/network|fetch|HTTP|unavailable/i.test(msg)) {
-      err.textContent = 'Couldn\'t reach the cloud. Check your internet and try again.';
-    } else {
-      err.textContent = 'Something went wrong. Try again in a moment.';
+    if (err) {
+      if (/not found|invalid/i.test(msg)) {
+        err.textContent = 'That code didn\'t match any Cappie account. Make sure you\'re scanning the QR on the same device that has Cappie installed.';
+      } else if (/network|fetch|HTTP|unavailable/i.test(msg)) {
+        err.textContent = 'Couldn\'t reach the cloud. Check your internet and try again.';
+      } else {
+        err.textContent = 'Something went wrong. Try again in a moment.';
+      }
     }
-    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
-    inp.focus();
+    if (hint) hint.innerHTML = 'Point at the QR code on the <strong>Cappie → Sync</strong> screen';
+    // Re-arm the scanner so the user can try again without re-tapping.
+    setTimeout(() => { _lockScanBusy = false; startLockScanner(); }, 250);
+    return;
+  }
+  _lockScanBusy = false;
+}
+
+async function tryManualLockUnlock() {
+  const inp = document.getElementById('lockUuidInput');
+  const btn = document.getElementById('lockManualBtn');
+  const err = document.getElementById('lockErr');
+  if (!inp) return;
+  const raw = (inp.value || '').trim();
+  const m = raw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  if (!m) {
+    if (err) err.textContent = 'That doesn\'t look like a device code. Open Cappie → Sync, tap "Can\'t scan? Show device code", and paste the full code here.';
+    return;
+  }
+  const original = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '☁️ Pulling…'; }
+  try {
+    await _onLockQrDetected(m[0]);
   } finally {
-    unlockBtn.disabled = false;
-    unlockBtn.classList.remove('locked');
-    unlockBtn.textContent = originalLabel;
+    if (btn) { btn.disabled = false; btn.textContent = original || 'Restore from device code'; }
   }
 }
 
@@ -1610,7 +1822,7 @@ function init() {
   const receiptBack = document.getElementById('receiptBackToCappie');
   if (receiptBack) receiptBack.style.display = isCameFromCappie() ? '' : 'none';
 
-  // Entry gate: if not unlocked, show the Tax PIN lock screen.
+  // Entry gate: if not unlocked, show the QR-scan lock screen.
   if (!isUnlocked()) {
     renderLockScreen();
     return;
@@ -1733,21 +1945,27 @@ function runMainFlow() {
   }
 }
 
-// Wire up the Tax PIN lock screen (input + unlock button + Enter key).
+// Wire up the QR lock screen (start camera + manual UUID paste fallback).
 (function bindLockScreen() {
-  const unlockBtn = document.getElementById('lockUnlockBtn');
-  const inp = document.getElementById('lockPinInput');
-  if (unlockBtn) unlockBtn.addEventListener('click', tryUnlockTaxPin);
-  if (inp) {
-    inp.addEventListener('input', () => {
-      inp.value = inp.value.replace(/[^0-9]/g, '').slice(0, 6);
-      const err = document.getElementById('lockPinErr');
+  const startBtn  = document.getElementById('lockStartCameraBtn');
+  const manualBtn = document.getElementById('lockManualBtn');
+  const uuidInp   = document.getElementById('lockUuidInput');
+  if (startBtn)  startBtn.addEventListener('click', startLockScanner);
+  if (manualBtn) manualBtn.addEventListener('click', tryManualLockUnlock);
+  if (uuidInp) {
+    uuidInp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tryManualLockUnlock();
+    });
+    uuidInp.addEventListener('input', () => {
+      const err = document.getElementById('lockErr');
       if (err) err.textContent = '';
     });
-    inp.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') tryUnlockTaxPin();
-    });
   }
+  // Stop the camera when navigating away or hiding the tab so we're not
+  // holding the sensor while the user is on another screen.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopLockScanner();
+  });
 })();
 
 init();
